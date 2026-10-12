@@ -1,0 +1,108 @@
+<section class="pg-hero">
+  <img class="pg-hero-img" src="https://i.ibb.co/NnFnSxyV/image-43.webp" alt="Manufacturing and technology collaboration" fetchpriority="high" loading="eager" decoding="async">
+  <div class="wrap pg-hero-body">
+    <div class="pg-hero-eyebrow"><span class="dot"></span><span>Manufacturing &amp; Technology Collaboration</span></div>
+    <h1>Explore manufacturing and OEM opportunities in India</h1>
+    <p>Component ecosystem, assembly and integration opportunities, distribution networks and after-sales support — for international drone manufacturers and technology companies.</p>
+    <div class="pg-hero-cta">
+      <a href="enquiry.php" class="pg-btn-solid">Explore Manufacturing Options <i class="ph ph-bold ph-arrow-right"></i></a>
+      <a href="../India-Market-Entry/" class="pg-btn-ghost">Back to India Market Entry</a>
+    </div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <span class="section-tag">Overview</span>
+    <h2>Manufacturing &amp; Technology Collaboration</h2>
+    <p>India's growing drone ecosystem is opening up opportunities in local manufacturing, component sourcing, assembly and OEM partnerships — often supported by national initiatives around domestic drone production.</p>
+    <p>For international drone manufacturers and technology companies, GarudHub can support exploration of the manufacturing and technology collaboration landscape in India.</p>
+  </div>
+</section>
+
+<section class="fw reg-sec">
+  <div class="wrap">
+    <div class="reg-head gs-reveal">
+      <span class="section-tag">What's Included</span>
+      <h2>From component sourcing to after-sales support</h2>
+      <p>Explore how your manufacturing or technology footprint could extend into India.</p>
+    </div>
+    <div class="reg-grid gs-reveal">
+      <div class="reg-card"><i class="ph ph-fill ph-factory"></i><b>Indian Manufacturing Opportunities</b><span>Where local manufacturing could fit your product line.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-handshake"></i><b>Technology Partnerships</b><span>Collaborations with Indian technology and component companies.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-puzzle-piece"></i><b>Component Ecosystem</b><span>Sourcing and supply chain considerations within India.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-gear-six"></i><b>Assembly &amp; Integration Opportunities</b><span>Local assembly and integration partnership models.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-briefcase"></i><b>OEM Partnerships</b><span>Original equipment manufacturer collaboration structures.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-truck"></i><b>Distribution Networks</b><span>Getting your product to Indian customers efficiently.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-wrench"></i><b>After-Sales Service Ecosystem</b><span>Building support infrastructure customers can rely on.</span></div>
+      <div class="reg-card"><i class="ph ph-fill ph-headset"></i><b>Local Technical Support</b><span>On-ground technical expertise for your product line.</span></div>
+    </div>
+    <div class="gs-reveal" style="margin-top:30px;"><a href="enquiry.php" class="sec-cta">Explore Manufacturing Options <i class="ph ph-bold ph-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <div class="note-box">
+      <i class="ph ph-fill ph-info"></i>
+      <p><b>Note:</b> Manufacturing, import and technology transfer activities remain subject to applicable Indian regulations, including those specific to drone/UAS manufacturing and any relevant defence or dual-use technology restrictions.</p>
+    </div>
+  </div>
+</section>
+
+<section class="fw cta-sec">
+  <div class="wrap gs-reveal">
+    <h2>Exploring manufacturing or OEM partnerships in India?</h2>
+    <p>Tell us about your product and technology — we'll help you explore the right collaboration model.</p>
+    <div class="cta-actions">
+      <a href="enquiry.php" class="dark-pill">Explore Manufacturing Options</a>
+      <a href="../India-Market-Entry/" class="ghost-pill">Explore All Market Entry Services</a>
+    </div>
+  </div>
+</section>
+
+<div class="fw contact-strip">
+  <div class="wrap contact-strip-inner">
+    <div class="contact-brand">
+      <span class="contact-brand-name">ChandraGhanshyam &amp; Associates LLP</span>
+      <span class="contact-brand-sub">Drone Ecosystem Platform</span>
+    </div>
+    <div class="contact-items">
+      <a href="tel:+919935760540" class="contact-item"><i class="ph ph-fill ph-phone"></i><span>9935760540</span></a>
+      <a href="mailto:connectwithcga@gmail.com" class="contact-item"><i class="ph ph-fill ph-envelope-simple"></i><span>connectwithcga@gmail.com</span></a>
+      <span class="contact-item"><i class="ph ph-fill ph-map-pin"></i><span>310/104-C, Alopibagh, Prayagraj &ndash; 211006, UP</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.gsap) {
+    gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll('.gs-reveal').forEach(function(el){
+      gsap.to(el, { opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'power3.out',
+        scrollTrigger:{ trigger:el, start:'top 87%', toggleActions:'play none none reverse' } });
+    });
+  } else {
+    document.querySelectorAll('.gs-reveal').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; el.style.filter='none'; });
+  }
+});
+(function () {
+  function killTopGap() {
+    var e = document.querySelector('section,.fw');
+    if (!e) return;
+    while (e && e !== document.documentElement) {
+      var s = window.getComputedStyle(e);
+      if (parseFloat(s.paddingTop) > 0) e.style.setProperty('padding-top', '0', 'important');
+      if (parseFloat(s.marginTop) > 0) e.style.setProperty('margin-top', '0', 'important');
+      e = e.parentElement;
+    }
+    document.documentElement.style.setProperty('margin-top', '0', 'important');
+    document.body.style.setProperty('padding-top', '0', 'important');
+  }
+  killTopGap();
+  document.addEventListener('DOMContentLoaded', killTopGap);
+  window.addEventListener('load', killTopGap);
+  setTimeout(killTopGap, 300);
+})();
+</script>

@@ -1,0 +1,9 @@
+{
+  "path": "drone-training",
+  "title": "Drone-Training - DroneHub",
+  "bodyClass": "page-drone-training",
+  "externalScripts": [
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+  ]
+}

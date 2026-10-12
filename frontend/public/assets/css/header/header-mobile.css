@@ -1,0 +1,465 @@
+/**
+ * Mobile Menu CSS
+ * Fullscreen & Drawer Templates
+ */
+
+/* =====================================================
+   BACKDROP
+   ===================================================== */
+.mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-backdrop.backdrop-blur {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* =====================================================
+   MOBILE MENU BASE
+   ===================================================== */
+.mobile-menu {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* =====================================================
+   FULLSCREEN TEMPLATE
+   ===================================================== */
+.mobile-menu-fullscreen {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.98);
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-fullscreen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* =====================================================
+   DRAWER TEMPLATE
+   ===================================================== */
+.mobile-menu-drawer {
+    top: 0;
+    bottom: 0;
+    max-width: 400px;
+    box-shadow: -5px 0 30px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu-drawer.drawer-right {
+    right: 0;
+    transform: translateX(100%);
+}
+
+.mobile-menu-drawer.drawer-left {
+    left: 0;
+    transform: translateX(-100%);
+}
+
+.mobile-menu-drawer.active {
+    transform: translateX(0);
+}
+
+/* =====================================================
+   MOBILE HEADER
+   ===================================================== */
+.mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.mobile-menu-logo .logo-image {
+    max-height: 40px;
+}
+
+.mobile-menu-logo .logo-text {
+    font-size: 1.25rem;
+}
+
+.mobile-menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: rgba(0,0,0,0.05);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-menu-close:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.mobile-menu-close i {
+    font-size: 20px;
+}
+
+/* =====================================================
+   MOBILE NAV
+   ===================================================== */
+.mobile-menu-nav {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+}
+
+.mobile-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.mobile-menu-item {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.mobile-menu-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-menu-parent {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.mobile-menu-link:hover {
+    background: rgba(0,0,0,0.03);
+    text-decoration: none;
+}
+
+.mobile-menu-item.active > .mobile-menu-link,
+.mobile-menu-item.active > .mobile-menu-parent .mobile-menu-link {
+    background: rgba(0,0,0,0.05);
+}
+
+.mobile-menu-link i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+/* =====================================================
+   SUBMENU TOGGLE
+   ===================================================== */
+.mobile-submenu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-left: 1px solid rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-submenu-toggle:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.mobile-submenu-toggle i {
+    font-size: 14px;
+    transition: transform 0.3s;
+}
+
+.mobile-menu-item.submenu-open .mobile-submenu-toggle i {
+    transform: rotate(180deg);
+}
+
+/* Fullscreen - chevron right */
+.mobile-menu-fullscreen .mobile-submenu-toggle i {
+    transform: rotate(0);
+}
+
+.mobile-menu-fullscreen .mobile-menu-item.submenu-open .mobile-submenu-toggle i {
+    transform: rotate(90deg);
+}
+
+/* =====================================================
+   SUBMENU
+   ===================================================== */
+.mobile-submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: rgba(0,0,0,0.02);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.mobile-menu-item.submenu-open .mobile-submenu {
+    max-height: 500px;
+}
+
+.mobile-submenu-item {
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.mobile-submenu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px 14px 56px;
+    font-size: 15px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.mobile-submenu-link:hover {
+    background: rgba(0,0,0,0.03);
+    text-decoration: none;
+}
+
+.mobile-submenu-item.active .mobile-submenu-link {
+    background: rgba(0,0,0,0.05);
+}
+
+.mobile-submenu-link i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.mobile-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #fff;
+    margin-left: auto;
+}
+
+/* =====================================================
+   MOBILE CTA
+   ===================================================== */
+.mobile-menu-cta {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.mobile-menu-cta .header-cta {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 16px;
+}
+
+/* =====================================================
+   MOBILE FOOTER
+   ===================================================== */
+.mobile-menu-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.02);
+    flex-shrink: 0;
+}
+
+.mobile-menu-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mobile-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.mobile-contact-item:hover {
+    text-decoration: none;
+}
+
+.mobile-contact-item i {
+    font-size: 16px;
+}
+
+/* Drawer contact buttons */
+.mobile-contact-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.mobile-contact-btn:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+.mobile-contact-btn-outline {
+    background: transparent;
+    border: 2px solid;
+}
+
+.mobile-menu-drawer .mobile-menu-contact {
+    flex-direction: row;
+}
+
+/* Social in mobile */
+.mobile-social-row {
+    display: flex;
+    justify-content: center;
+}
+
+.mobile-menu-footer .topbar-social {
+    justify-content: center;
+    gap: 16px;
+}
+
+.mobile-menu-footer .social-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    background: rgba(0,0,0,0.08);
+}
+
+/* =====================================================
+   HAMBURGER ANIMATIONS
+   ===================================================== */
+.hamburger-animated {
+    position: relative;
+}
+
+.hamburger-animated .hamburger-box {
+    width: 24px;
+    height: 18px;
+    position: relative;
+}
+
+.hamburger-animated .hamburger-inner {
+    display: block;
+    position: absolute;
+    top: 50%;
+    margin-top: -1px;
+    width: 24px;
+    height: 2px;
+    border-radius: 2px;
+    transition: transform 0.15s ease;
+}
+
+.hamburger-animated .hamburger-inner::before,
+.hamburger-animated .hamburger-inner::after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    border-radius: 2px;
+    background: inherit;
+    transition: transform 0.15s ease;
+}
+
+.hamburger-animated .hamburger-inner::before {
+    top: -7px;
+}
+
+.hamburger-animated .hamburger-inner::after {
+    bottom: -7px;
+}
+
+.hamburger-animated.is-active .hamburger-inner {
+    transform: rotate(45deg);
+}
+
+.hamburger-animated.is-active .hamburger-inner::before {
+    top: 0;
+    transform: rotate(90deg);
+}
+
+.hamburger-animated.is-active .hamburger-inner::after {
+    bottom: 0;
+    opacity: 0;
+    transform: rotate(90deg);
+}
+
+/* Minimal hamburger */
+.hamburger-minimal .hamburger-line {
+    width: 24px;
+}
+
+.hamburger-minimal .hamburger-line:first-child {
+    width: 16px;
+}
+
+/* Dots hamburger */
+.hamburger-dots {
+    gap: 4px;
+}
+
+.hamburger-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+/* =====================================================
+   BODY LOCK WHEN MENU OPEN
+   ===================================================== */
+body.mobile-menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}

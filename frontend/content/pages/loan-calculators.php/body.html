@@ -1,0 +1,131 @@
+<div class="calculator-container">
+    <div class="calculator-header">
+        <h1>Loan Calculators</h1>
+        <p>Calculate your loan EMI, check eligibility, and compare different loan options</p>
+    </div>
+    
+    <!-- Calculator Type Tabs -->
+    <div class="calculator-tabs">
+                <a href="?type=emi" class="calculator-tab active">
+            <i class="bi-calculator"></i> 
+            EMI Calculator        </a>
+                <a href="?type=eligibility" class="calculator-tab ">
+            <i class="bi-check-circle"></i> 
+            Loan Eligibility Calculator        </a>
+                <a href="?type=compare" class="calculator-tab ">
+            <i class="bi-arrows-expand"></i> 
+            Compare Loans        </a>
+                <a href="?type=prepayment" class="calculator-tab ">
+            <i class="bi-cash-stack"></i> 
+            Prepayment Calculator        </a>
+                <a href="?type=balance-transfer" class="calculator-tab ">
+            <i class="bi-arrow-left-right"></i> 
+            Balance Transfer Calculator        </a>
+                <a href="?type=part-payment" class="calculator-tab ">
+            <i class="bi-pie-chart"></i> 
+            Part Payment Calculator        </a>
+            </div>
+    
+    <div class="calculator-wrapper">
+                <!-- EMI Calculator -->
+        <div class="calculator-main">
+            <div class="calculator-inputs">
+                <h3>Enter Loan Details</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Loan Amount</label>
+                    <div class="input-group">
+                        <input type="number" id="loanAmount" class="form-control" 
+                               value="1000000" min="10000" max="10000000" step="10000">
+                        <span class="input-addon">₹</span>
+                    </div>
+                    <input type="range" id="loanAmountSlider" class="range-slider" 
+                           value="1000000" min="10000" max="10000000" step="10000">
+                    <div class="range-values">
+                        <span>₹10K</span>
+                        <span>₹1Cr</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Interest Rate (% per annum)</label>
+                    <div class="input-group">
+                        <input type="number" id="interestRate" class="form-control" 
+                               value="8.5" min="1" max="30" step="0.1">
+                        <span class="input-addon">%</span>
+                    </div>
+                    <input type="range" id="interestRateSlider" class="range-slider" 
+                           value="8.5" min="1" max="30" step="0.1">
+                    <div class="range-values">
+                        <span>1%</span>
+                        <span>30%</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Loan Tenure</label>
+                    <div class="input-group">
+                        <input type="number" id="loanTenure" class="form-control" 
+                               value="240" min="12" max="360" step="12">
+                        <span class="input-addon">months</span>
+                    </div>
+                    <input type="range" id="loanTenureSlider" class="range-slider" 
+                           value="240" min="12" max="360" step="12">
+                    <div class="range-values">
+                        <span>1 year</span>
+                        <span>30 years</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calculator-results">
+                <div class="results-card">
+                    <h3>Monthly EMI</h3>
+                    <div class="emi-amount">
+                        <span id="emiAmount">₹0</span>
+                    </div>
+                    
+                    <div class="result-details">
+                        <div class="result-item">
+                            <div class="result-label">Total Interest</div>
+                            <div class="result-value" id="totalInterest">₹0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Total Payment</div>
+                            <div class="result-value" id="totalPayment">₹0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="emiChart" width="400" height="200"></canvas>
+                </div>
+                
+                                <div class="action-buttons">
+                                        <button onclick="window.print()" class="btn btn-secondary">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                                        
+                                        <button onclick="downloadExcel()" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel
+                    </button>
+                                    </div>
+                            </div>
+        </div>
+        
+                <div class="amortization-section">
+            <h3>Amortization Schedule</h3>
+            <p>View the complete breakdown of your loan payments</p>
+            
+            <div class="loading-spinner" id="amortizationLoader">
+                <div class="spinner"></div>
+                <p>Calculating amortization schedule...</p>
+            </div>
+            
+            <div id="amortizationTable"></div>
+        </div>
+                
+            </div>
+</div>
+
+<!-- Chart.js Library -->

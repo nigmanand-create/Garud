@@ -1,0 +1,394 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLATFORM_ADMIN
+  PARTNER
+  BUYER
+  GOVERNMENT
+}
+
+enum AccountType {
+  MANUFACTURER
+  OEM
+  INTERNATIONAL_COMPANY
+  DISTRIBUTOR
+  DEALER
+  SERVICE_PROVIDER
+  TRAINING_INSTITUTE
+  TECHNOLOGY_COMPANY
+  BUYER_ENTERPRISE
+  GOVERNMENT_PSU
+}
+
+enum VerificationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ApplicationDocumentType {
+  GST_CERTIFICATE
+  CIN_CERTIFICATE
+  COMPANY_REGISTRATION
+  AUTHORIZATION_LETTER
+  OTHER
+}
+
+enum ListingType {
+  PRODUCT
+  SERVICE
+}
+
+enum CatalogCategory {
+  AGRICULTURE_DRONE
+  SURVEY_MAPPING_DRONE
+  INDUSTRIAL_ENTERPRISE_DRONE
+  CAMERA_DRONE
+  COMPONENT
+  ACCESSORY
+  PAYLOAD
+  REPAIR_MAINTENANCE
+  TRAINING
+  CONSULTANCY
+  OTHER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole
+  accountType  AccountType @map("account_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  organization  Organization?
+  refreshTokens RefreshToken[]
+  rfqsCreated   Rfq[] @relation("RfqBuyer")
+  cart          Cart?
+  ordersAsBuyer Order[] @relation("OrderBuyer")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Organization {
+  id        String @id @default(uuid())
+  ownerId   String @unique @map("owner_id")
+  companyName String @map("company_name")
+  country   String
+  state     String?
+  city      String?
+  website   String?
+  companyType String? @map("company_type")
+  yearEstablished Int? @map("year_established")
+  gst       String?
+  cin       String?
+  contactPersonName String @map("contact_person_name")
+  contactEmail      String @map("contact_email")
+  contactMobile     String @map("contact_mobile")
+  productsServicesDescription String? @map("products_services_description")
+  industries        String[] @default([])
+  partnershipTypes  String[] @default([]) @map("partnership_types")
+  verificationStatus VerificationStatus @default(DRAFT) @map("verification_status")
+  rejectionReason    String? @map("rejection_reason")
+  submittedAt DateTime? @map("submitted_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  verificationLogs VerificationAuditLog[]
+  documents OrganizationDocument[]
+  listings PartnerListing[]
+  rfqsAsBuyer Rfq[]
+  rfqInvites RfqInvite[]
+  quotations Quotation[]
+  cartsAsVendor Cart[] @relation("CartVendor")
+  ordersAsBuyer Order[] @relation("OrderBuyerOrg")
+  ordersAsVendor Order[] @relation("OrderVendor")
+
+  @@map("organizations")
+}
+
+model VerificationAuditLog {
+  id             String             @id @default(uuid())
+  organizationId String             @map("organization_id")
+  actorUserId    String             @map("actor_user_id")
+  fromStatus     VerificationStatus @map("from_status")
+  toStatus       VerificationStatus @map("to_status")
+  note           String?
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("verification_audit_logs")
+}
+
+model OrganizationDocument {
+  id               String                 @id @default(uuid())
+  organizationId   String                 @map("organization_id")
+  documentType     ApplicationDocumentType @map("document_type")
+  originalFilename String                 @map("original_filename")
+  storedRelativePath String               @map("stored_relative_path")
+  mimeType         String                 @map("mime_type")
+  sizeBytes        Int                    @map("size_bytes")
+  uploadedByUserId String                 @map("uploaded_by_user_id")
+  createdAt        DateTime               @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("organization_documents")
+}
+
+model PartnerListing {
+  id               String          @id @default(uuid())
+  organizationId   String          @map("organization_id")
+  listingType      ListingType     @map("listing_type")
+  name             String
+  brand            String?
+  category         CatalogCategory
+  description      String?
+  technicalSpecs   String?         @map("technical_specs")
+  applications     String[]        @default([])
+  country          String?
+  state            String?
+  city             String?
+  sku              String?
+  primaryImageUrl  String?         @map("primary_image_url")
+  galleryImageUrls String[]        @default([]) @map("gallery_image_urls")
+  minOrderQuantity Int?            @map("min_order_quantity")
+  priceInr         Decimal?        @map("price_inr") @db.Decimal(14, 2)
+  priceOnRequest   Boolean         @default(true) @map("price_on_request")
+  warranty         String?
+  isPublished      Boolean         @default(false) @map("is_published")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cartItems    CartItem[]
+  orderLineItems OrderLineItem[]
+
+  @@index([organizationId])
+  @@index([listingType, category, isPublished])
+  @@map("partner_listings")
+}
+
+enum OrderStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  FULFILLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Cart {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique @map("user_id")
+  partnerOrganizationId  String   @map("partner_organization_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partnerOrganization Organization @relation("CartVendor", fields: [partnerOrganizationId], references: [id], onDelete: Cascade)
+  items             CartItem[]
+
+  @@index([partnerOrganizationId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  listingId String   @map("listing_id")
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  listing PartnerListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, listingId])
+  @@index([listingId])
+  @@map("cart_items")
+}
+
+model Order {
+  id                    String        @id @default(uuid())
+  buyerUserId           String        @map("buyer_user_id")
+  buyerOrganizationId   String        @map("buyer_organization_id")
+  vendorOrganizationId  String        @map("vendor_organization_id")
+  status                OrderStatus         @default(CONFIRMED)
+  fulfillmentStatus     FulfillmentStatus   @default(PENDING) @map("fulfillment_status")
+  paymentStatus         PaymentStatus       @default(PENDING) @map("payment_status")
+  subtotalInr           Decimal       @map("subtotal_inr") @db.Decimal(14, 2)
+  taxInr                Decimal       @default(0) @map("tax_inr") @db.Decimal(14, 2)
+  shippingInr           Decimal       @default(0) @map("shipping_inr") @db.Decimal(14, 2)
+  totalInr              Decimal       @map("total_inr") @db.Decimal(14, 2)
+  companyName           String        @map("company_name")
+  contactName           String        @map("contact_name")
+  contactPhone          String        @map("contact_phone")
+  shippingAddressLine1  String        @map("shipping_address_line1")
+  shippingAddressLine2  String?       @map("shipping_address_line2")
+  shippingCity          String        @map("shipping_city")
+  shippingState         String        @map("shipping_state")
+  shippingPincode       String        @map("shipping_pincode")
+  shippingCountry       String        @map("shipping_country")
+  billingAddressLine1   String        @map("billing_address_line1")
+  billingAddressLine2   String?       @map("billing_address_line2")
+  billingCity           String        @map("billing_city")
+  billingState          String        @map("billing_state")
+  billingPincode        String        @map("billing_pincode")
+  billingCountry        String        @map("billing_country")
+  gstin                 String?
+  purchaseOrderNumber   String?       @map("purchase_order_number")
+  placedAt              DateTime      @default(now()) @map("placed_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  buyerUser          User         @relation("OrderBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  buyerOrganization  Organization @relation("OrderBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+  vendorOrganization Organization @relation("OrderVendor", fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+  lineItems          OrderLineItem[]
+
+  @@index([buyerUserId])
+  @@index([vendorOrganizationId])
+  @@index([placedAt])
+  @@map("orders")
+}
+
+model OrderLineItem {
+  id            String  @id @default(uuid())
+  orderId       String  @map("order_id")
+  listingId     String  @map("listing_id")
+  snapshotName  String  @map("snapshot_name")
+  snapshotSku   String? @map("snapshot_sku")
+  unitPriceInr  Decimal @map("unit_price_inr") @db.Decimal(14, 2)
+  quantity      Int
+  lineTotalInr  Decimal @map("line_total_inr") @db.Decimal(14, 2)
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing PartnerListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@map("order_line_items")
+}
+
+enum RfqStatus {
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum RfqInviteStatus {
+  INVITED
+  QUOTED
+  DECLINED
+}
+
+enum QuotationStatus {
+  SUBMITTED
+  WITHDRAWN
+}
+
+model Rfq {
+  id                   String          @id @default(uuid())
+  buyerUserId          String          @map("buyer_user_id")
+  buyerOrganizationId  String          @map("buyer_organization_id")
+  title                String
+  description          String
+  category             CatalogCategory
+  listingType          ListingType?    @map("listing_type")
+  quantity             Int?
+  country              String?
+  state                String?
+  city                 String?
+  deadlineAt           DateTime?       @map("deadline_at")
+  status               RfqStatus       @default(OPEN)
+  closedAt             DateTime?       @map("closed_at")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  buyerUser         User           @relation("RfqBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  buyerOrganization Organization   @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+  invites           RfqInvite[]
+  quotations        Quotation[]
+
+  @@index([buyerUserId])
+  @@index([status, category])
+  @@map("rfqs")
+}
+
+model RfqInvite {
+  id                    String          @id @default(uuid())
+  rfqId                 String          @map("rfq_id")
+  vendorOrganizationId  String          @map("vendor_organization_id")
+  status                RfqInviteStatus @default(INVITED)
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  rfq              Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+
+  @@unique([rfqId, vendorOrganizationId])
+  @@index([vendorOrganizationId])
+  @@map("rfq_invites")
+}
+
+model Quotation {
+  id                   String           @id @default(uuid())
+  rfqId                String           @map("rfq_id")
+  vendorOrganizationId String           @map("vendor_organization_id")
+  submittedByUserId    String           @map("submitted_by_user_id")
+  priceInr             Decimal?         @map("price_inr") @db.Decimal(14, 2)
+  priceOnRequest       Boolean          @default(false) @map("price_on_request")
+  minOrderQuantity     Int?             @map("min_order_quantity")
+  leadTimeDays         Int?             @map("lead_time_days")
+  notes                String?
+  validUntil           DateTime?        @map("valid_until")
+  status               QuotationStatus  @default(SUBMITTED)
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  rfq                Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+
+  @@index([rfqId])
+  @@index([vendorOrganizationId])
+  @@map("quotations")
+}

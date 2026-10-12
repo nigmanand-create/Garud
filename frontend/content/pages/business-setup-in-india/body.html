@@ -1,0 +1,107 @@
+<section class="pg-hero">
+  <img class="pg-hero-img" src="https://i.ibb.co/WNyjRchF/image-41.webp" alt="Business setup in India" fetchpriority="high" loading="eager" decoding="async">
+  <div class="wrap pg-hero-body">
+    <div class="pg-hero-eyebrow"><span class="dot"></span><span>Business Setup in India</span></div>
+    <h1>Plan and establish your Indian drone operation</h1>
+    <p>Business structure, office and infrastructure setup, vendor identification and local manpower planning — for international organizations entering India.</p>
+    <div class="pg-hero-cta">
+      <a href="enquiry.php" class="pg-btn-solid">Plan My Business Setup <i class="ph ph-bold ph-arrow-right"></i></a>
+      <a href="../India-Market-Entry/" class="pg-btn-ghost">Back to India Market Entry</a>
+    </div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <span class="section-tag">Overview</span>
+    <h2>Business Setup in India</h2>
+    <p>Setting up an Indian operation involves more than paperwork — it means choosing the right business structure, building local infrastructure, identifying reliable vendors and planning a workforce that can actually deliver on your India strategy.</p>
+    <p>GarudHub assists international organizations in planning and establishing their Indian drone operations, end to end.</p>
+  </div>
+</section>
+
+<section class="fw reg-sec">
+  <div class="wrap">
+    <div class="reg-head gs-reveal">
+      <span class="section-tag">What's Included</span>
+      <h2>From structure to day-one operations</h2>
+      <p>A practical setup plan, matched to your business model and scale.</p>
+    </div>
+    <div class="step-list gs-reveal">
+      <div class="step-row"><div class="step-num">01</div><div><b>Business Structure Guidance</b><span>Entity type, ownership and structuring considerations.</span></div></div>
+      <div class="step-row"><div class="step-num">02</div><div><b>Local Ecosystem Development</b><span>Building the network your India operation will run on.</span></div></div>
+      <div class="step-row"><div class="step-num">03</div><div><b>Office &amp; Operational Setup</b><span>Location, facility and day-to-day operational planning.</span></div></div>
+      <div class="step-row"><div class="step-num">04</div><div><b>Technical Infrastructure Planning</b><span>Equipment, systems and technical readiness for launch.</span></div></div>
+      <div class="step-row"><div class="step-num">05</div><div><b>Vendor Identification</b><span>Reliable local suppliers, service and equipment vendors.</span></div></div>
+      <div class="step-row"><div class="step-num">06</div><div><b>Local Manpower Planning</b><span>Hiring plans for pilots, technicians and operations staff.</span></div></div>
+      <div class="step-row"><div class="step-num">07</div><div><b>Operational Process Development</b><span>SOPs and workflows built for the Indian context.</span></div></div>
+    </div>
+    <div class="gs-reveal" style="margin-top:30px;"><a href="enquiry.php" class="sec-cta">Plan My Business Setup <i class="ph ph-bold ph-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <div class="note-box">
+      <i class="ph ph-fill ph-info"></i>
+      <p><b>Note:</b> Business registration, licensing and statutory compliance remain subject to applicable Indian company law, taxation and regulatory requirements. GarudHub provides setup guidance and coordination, not legal or company registration services.</p>
+    </div>
+  </div>
+</section>
+
+<section class="fw cta-sec">
+  <div class="wrap gs-reveal">
+    <h2>Ready to set up your India operation?</h2>
+    <p>Tell us about your business model — we'll help you plan a realistic setup roadmap.</p>
+    <div class="cta-actions">
+      <a href="enquiry.php" class="dark-pill">Plan My Business Setup</a>
+      <a href="../India-Market-Entry/" class="ghost-pill">Explore All Market Entry Services</a>
+    </div>
+  </div>
+</section>
+
+<div class="fw contact-strip">
+  <div class="wrap contact-strip-inner">
+    <div class="contact-brand">
+      <span class="contact-brand-name">ChandraGhanshyam &amp; Associates LLP</span>
+      <span class="contact-brand-sub">Drone Ecosystem Platform</span>
+    </div>
+    <div class="contact-items">
+      <a href="tel:+919935760540" class="contact-item"><i class="ph ph-fill ph-phone"></i><span>9935760540</span></a>
+      <a href="mailto:connectwithcga@gmail.com" class="contact-item"><i class="ph ph-fill ph-envelope-simple"></i><span>connectwithcga@gmail.com</span></a>
+      <span class="contact-item"><i class="ph ph-fill ph-map-pin"></i><span>310/104-C, Alopibagh, Prayagraj &ndash; 211006, UP</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.gsap) {
+    gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll('.gs-reveal').forEach(function(el){
+      gsap.to(el, { opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'power3.out',
+        scrollTrigger:{ trigger:el, start:'top 87%', toggleActions:'play none none reverse' } });
+    });
+  } else {
+    document.querySelectorAll('.gs-reveal').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; el.style.filter='none'; });
+  }
+});
+(function () {
+  function killTopGap() {
+    var e = document.querySelector('section,.fw');
+    if (!e) return;
+    while (e && e !== document.documentElement) {
+      var s = window.getComputedStyle(e);
+      if (parseFloat(s.paddingTop) > 0) e.style.setProperty('padding-top', '0', 'important');
+      if (parseFloat(s.marginTop) > 0) e.style.setProperty('margin-top', '0', 'important');
+      e = e.parentElement;
+    }
+    document.documentElement.style.setProperty('margin-top', '0', 'important');
+    document.body.style.setProperty('padding-top', '0', 'important');
+  }
+  killTopGap();
+  document.addEventListener('DOMContentLoaded', killTopGap);
+  window.addEventListener('load', killTopGap);
+  setTimeout(killTopGap, 300);
+})();
+</script>

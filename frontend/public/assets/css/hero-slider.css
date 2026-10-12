@@ -1,0 +1,796 @@
+/**
+ * FIXED CAROUSEL CSS - NO OVERLAPPING ISSUES
+ * 
+ * This fixes the carousel overlapping and transition problems
+ */
+
+/* ========================================
+   CORE SLIDER STRUCTURE - FULL WIDTH
+======================================== */
+
+.hero-slider-container {
+    position: relative;
+    width: 100vw;
+    max-width: none !important;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 0;
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.hero-carousel {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    min-height: 600px;
+    max-height: 1080px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* CRITICAL FIX: Proper carousel item positioning */
+.hero-carousel .carousel-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.hero-carousel .carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    min-height: 600px;
+    max-height: 1080px;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+    transform: none !important; /* Remove slide transforms that cause overlap */
+}
+
+/* CRITICAL: Active item visibility */
+.hero-carousel .carousel-item.active {
+    position: relative;
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Remove default Bootstrap carousel transforms */
+.hero-carousel .carousel-item-next,
+.hero-carousel .carousel-item-prev {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: none !important;
+}
+
+.hero-carousel .carousel-item-next.carousel-item-start,
+.hero-carousel .carousel-item-prev.carousel-item-end {
+    opacity: 1;
+    transform: none !important;
+}
+
+.hero-carousel .carousel-item-start,
+.hero-carousel .carousel-item-end {
+    transform: none !important;
+}
+
+/* ========================================
+   HERO SLIDE BACKGROUND & OVERLAY
+======================================== */
+
+.hero-slide {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transform: translateZ(0); /* Hardware acceleration */
+    backface-visibility: hidden;
+}
+
+/* Enhanced overlay with gradient */
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.2) 50%,
+        rgba(0, 0, 0, 0.6) 100%
+    );
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* Hover effect on overlay */
+.hero-slide:hover .hero-overlay {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
+}
+
+/* ========================================
+   CONTENT CONTAINER & TYPOGRAPHY
+======================================== */
+
+.hero-slide .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px;
+    text-align: center;
+}
+
+/* Responsive typography with fluid scaling */
+.hero-title {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.02em;
+    animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.hero-content {
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    line-height: 1.6;
+    margin-bottom: 3rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeInUp 1s ease-out 0.9s both;
+}
+
+/* ========================================
+   BUTTONS & CALL-TO-ACTION
+======================================== */
+
+.hero-actions {
+    animation: fadeInUp 1s ease-out 1.2s both;
+}
+
+.hero-actions .btn {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 600;
+    padding: 15px 40px;
+    margin: 0 10px 10px 0;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        0 4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Primary button styling */
+.hero-actions .btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.hero-actions .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.hero-actions .btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 15px 35px rgba(59, 130, 246, 0.4),
+        0 8px 15px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.hero-actions .btn-primary:hover::before {
+    left: 0;
+}
+
+/* Secondary button styling */
+.hero-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.hero-actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px) scale(1.05);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ========================================
+   CAROUSEL CONTROLS - MODERN DESIGN
+======================================== */
+
+.hero-carousel .carousel-control-prev,
+.hero-carousel .carousel-control-next {
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(20px);
+    opacity: 0.8;
+    z-index: 10; /* Ensure controls are above slides */
+}
+
+.hero-carousel .carousel-control-prev {
+    left: 40px;
+}
+
+.hero-carousel .carousel-control-next {
+    right: 40px;
+}
+
+.hero-carousel .carousel-control-prev:hover,
+.hero-carousel .carousel-control-next:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.1);
+    opacity: 1;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.hero-carousel .carousel-control-prev-icon,
+.hero-carousel .carousel-control-next-icon {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* ========================================
+   CAROUSEL INDICATORS - MODERN DOTS
+======================================== */
+
+.hero-carousel .carousel-indicators {
+    bottom: 40px;
+    margin-bottom: 0;
+    gap: 10px;
+    justify-content: center;
+    z-index: 10; /* Ensure indicators are above slides */
+}
+
+.hero-carousel .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+}
+
+.hero-carousel .carousel-indicators button.active {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 1);
+    transform: scale(1.4);
+    box-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.6),
+        0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hero-carousel .carousel-indicators button:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.2);
+}
+
+/* ========================================
+   ANIMATIONS & KEYFRAMES
+======================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* REMOVED: Conflicting slide transition animations */
+/* These were causing the overlap issues */
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+======================================== */
+
+/* Large Desktop (1400px+) */
+@media (min-width: 1400px) {
+    .hero-carousel {
+        height: 100vh;
+        min-height: 700px;
+        max-height: 1200px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 100vh;
+        min-height: 700px;
+        max-height: 1200px;
+    }
+    
+    .hero-slide .container {
+        padding: 0 40px;
+    }
+}
+
+/* Desktop (1200px - 1399px) */
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .hero-carousel {
+        height: 90vh;
+        min-height: 650px;
+        max-height: 1000px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 90vh;
+        min-height: 650px;
+        max-height: 1000px;
+    }
+}
+
+/* Tablet Landscape (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .hero-carousel {
+        height: 80vh;
+        min-height: 500px;
+        max-height: 800px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 80vh;
+        min-height: 500px;
+        max-height: 800px;
+    }
+    
+    .hero-slide {
+        background-attachment: scroll; /* Better performance on tablets */
+    }
+    
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .hero-carousel .carousel-control-prev {
+        left: 30px;
+    }
+    
+    .hero-carousel .carousel-control-next {
+        right: 30px;
+    }
+}
+
+/* Tablet Portrait (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .hero-carousel {
+        height: 75vh;
+        min-height: 450px;
+        max-height: 700px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 75vh;
+        min-height: 450px;
+        max-height: 700px;
+    }
+    
+    .hero-slide {
+        background-attachment: scroll;
+    }
+    
+    .hero-slide .container {
+        padding: 0 25px;
+    }
+    
+    .hero-content {
+        margin-bottom: 2.5rem;
+    }
+    
+    .hero-actions .btn {
+        padding: 12px 30px;
+        margin: 0 8px 8px 0;
+    }
+}
+
+/* Mobile Landscape (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .hero-carousel {
+        height: 70vh;
+        min-height: 400px;
+        max-height: 600px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 70vh;
+        min-height: 400px;
+        max-height: 600px;
+    }
+    
+    .hero-slide {
+        background-attachment: scroll;
+    }
+    
+    .hero-slide .container {
+        padding: 0 20px;
+    }
+    
+    .hero-title {
+        margin-bottom: 1rem;
+    }
+    
+    .hero-subtitle {
+        margin-bottom: 1.5rem;
+    }
+    
+    .hero-content {
+        margin-bottom: 2rem;
+    }
+    
+    .hero-actions .btn {
+        padding: 10px 25px;
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto 10px auto;
+    }
+    
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .hero-carousel .carousel-control-prev {
+        left: 20px;
+    }
+    
+    .hero-carousel .carousel-control-next {
+        right: 20px;
+    }
+    
+    .hero-carousel .carousel-indicators {
+        bottom: 30px;
+    }
+    
+    .hero-carousel .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* Mobile Portrait (up to 575px) */
+@media (max-width: 575px) {
+    .hero-slider-container {
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+    }
+    
+    .hero-carousel {
+        height: 65vh;
+        min-height: 350px;
+        max-height: 500px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 65vh;
+        min-height: 350px;
+        max-height: 500px;
+    }
+    
+    .hero-slide {
+        background-attachment: scroll;
+        background-position: center center;
+    }
+    
+    .hero-slide .container {
+        padding: 0 15px;
+    }
+    
+    .hero-title {
+        margin-bottom: 0.8rem;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        margin-bottom: 1.2rem;
+    }
+    
+    .hero-content {
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    
+    .hero-actions .btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        display: block;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto 12px auto;
+    }
+    
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        width: 45px;
+        height: 45px;
+        opacity: 0.7;
+    }
+    
+    .hero-carousel .carousel-control-prev {
+        left: 15px;
+    }
+    
+    .hero-carousel .carousel-control-next {
+        right: 15px;
+    }
+    
+    .hero-carousel .carousel-control-prev-icon,
+    .hero-carousel .carousel-control-next-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .hero-carousel .carousel-indicators {
+        bottom: 25px;
+        gap: 8px;
+    }
+    
+    .hero-carousel .carousel-indicators button {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+/* Extra Small Mobile (up to 375px) */
+@media (max-width: 375px) {
+    .hero-carousel {
+        height: 60vh;
+        min-height: 300px;
+        max-height: 450px;
+    }
+    
+    .hero-carousel .carousel-item {
+        height: 60vh;
+        min-height: 300px;
+        max-height: 450px;
+    }
+    
+    .hero-slide .container {
+        padding: 0 10px;
+    }
+    
+    .hero-content {
+        display: none; /* Hide content on very small screens to save space */
+    }
+    
+    .hero-actions .btn {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ========================================
+   PERFORMANCE & ACCESSIBILITY
+======================================== */
+
+/* Smooth scrolling for better UX */
+.hero-slider-container {
+    scroll-behavior: smooth;
+}
+
+/* Improve rendering performance */
+.hero-slide,
+.hero-carousel .carousel-item {
+    will-change: opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .hero-overlay {
+        background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .hero-title,
+    .hero-subtitle,
+    .hero-content {
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 1);
+    }
+    
+    .hero-actions .btn {
+        border-width: 3px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .hero-carousel .carousel-item {
+        transition: none;
+    }
+    
+    .hero-actions .btn,
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next,
+    .hero-carousel .carousel-indicators button {
+        transition: none;
+    }
+    
+    .hero-slide {
+        background-attachment: scroll;
+    }
+    
+    .hero-title,
+    .hero-subtitle,
+    .hero-content,
+    .hero-actions {
+        animation: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .hero-carousel .carousel-indicators button {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* ========================================
+   LOADING & ERROR STATES
+======================================== */
+
+/* Loading placeholder */
+.hero-slide.loading {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    position: relative;
+}
+
+.hero-slide.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Error state */
+.hero-slide.error {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-slide.error::before {
+    content: '⚠️ Image failed to load';
+    color: white;
+    font-size: 1.2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   PRINT STYLES
+======================================== */
+
+@media print {
+    .hero-slider-container {
+        display: none;
+    }
+}
+
+/* ========================================
+   CAROUSEL OVERLAP FIX - CRITICAL
+======================================== */
+
+/* Force proper positioning for all carousel states */
+.hero-carousel .carousel-item-next,
+.hero-carousel .carousel-item-prev,
+.hero-carousel .carousel-item.carousel-item-start,
+.hero-carousel .carousel-item.carousel-item-end {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    opacity: 0 !important;
+    z-index: 1 !important;
+}
+
+.hero-carousel .carousel-item.active {
+    position: relative !important;
+    opacity: 1 !important;
+    z-index: 2 !important;
+    transform: none !important;
+}
+
+/* Disable default Bootstrap transitions that cause overlap */
+.hero-carousel .carousel-item.carousel-item-next.carousel-item-start,
+.hero-carousel .carousel-item.carousel-item-prev.carousel-item-end {
+    opacity: 1 !important;
+    z-index: 1 !important;
+}
+
+/* Ensure smooth transitions */
+.hero-carousel .carousel-item {
+    transition: opacity 0.6s ease-in-out !important;
+}

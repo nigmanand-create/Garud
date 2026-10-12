@@ -1,0 +1,210 @@
+/* ============================================================
+   COMMON BASE (same as others)
+   ============================================================ */
+.enq-alert-bar { max-width: 1100px; margin: 0 auto; padding: 16px 24px 0; }
+.enq-alert { padding: 14px 20px; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+.enq-alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.enq-alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.enq-alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.enq-page-wrapper .form-section { margin-bottom: 24px; padding: 0; border: none; background: none; }
+.enq-page-wrapper .section-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+.enq-page-wrapper .icon-wrapper { width: 32px; height: 32px; border-radius: 8px; font-size: 14px; }
+.enq-page-wrapper .form-hint { font-size: 12px; color: #706e6b; margin-top: 4px; }
+.enq-page-wrapper .word-counter { font-size: 12px; color: #706e6b; }
+.enq-page-wrapper .modern-input, .enq-page-wrapper .form-control, .enq-page-wrapper .form-select { border-radius: 8px !important; padding: 11px 14px !important; font-size: 14px !important; transition: all 0.2s ease !important; box-shadow: none !important; height: auto !important; }
+
+.enq-page-wrapper .captcha-section { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.enq-page-wrapper .captcha-box { border-radius: 8px; padding: 10px 24px; box-shadow: none; }
+.enq-page-wrapper .captcha-code { font-size: 1.75rem; letter-spacing: 6px; }
+.enq-page-wrapper .captcha-input { flex: 1; min-width: 180px; }
+.enq-page-wrapper .captcha-label { font-size: 12px; }
+.enq-page-wrapper .submit-section { text-align: center; margin-top: 8px; }
+.enq-page-wrapper .btn-submit { width: 100%; padding: 13px 0 !important; border-radius: 8px !important; font-size: 15px !important; font-weight: 600 !important; border: none; cursor: pointer; transition: all 0.25s ease; }
+.enq-page-wrapper .submit-note { font-size: 12px; margin-top: 10px; }
+.enq-page-wrapper .success-container { min-height: 50vh; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+.enq-page-wrapper .success-card { padding: 48px; border-radius: 16px; text-align: center; max-width: 520px; width: 100%; }
+.enq-page-wrapper .success-icon { font-size: 56px; margin-bottom: 16px; }
+.enq-page-wrapper .btn-primary-custom { display: inline-block; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; transition: all 0.2s; margin-top: 16px; }
+.enq-page-wrapper .map-section { padding: 48px 0; margin-top: 0; }
+.enq-page-wrapper .map-header { padding: 24px; text-align: center; }
+.enq-page-wrapper .map-header h3 { font-size: 20px; margin-bottom: 4px; }
+.enq-page-wrapper .map-header p { opacity: 0.85; font-size: 14px; margin: 0; }
+.enq-page-wrapper .map-container iframe { display: block; }
+.enq-page-wrapper .map-footer { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.enq-page-wrapper .location-info { display: flex; align-items: center; gap: 12px; }
+.enq-page-wrapper .location-info i { font-size: 24px; }
+.enq-page-wrapper .location-info h6 { margin: 0; font-size: 14px; font-weight: 600; }
+.enq-page-wrapper .location-info p { margin: 0; font-size: 13px; }
+.enq-page-wrapper .btn-map { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+.enq-page-wrapper .btn-map:hover { opacity: 0.9; transform: translateY(-1px); text-decoration: none; }
+.enq-page-wrapper .enquiry-hero { display: none !important; }
+.enq-page-wrapper .contact-cards { display: none !important; }
+.enq-page-wrapper .alert { border-radius: 8px; border: none; font-size: 14px; }
+
+/* ============================================================
+   V-ENTERPRISE DESIGN - Enterprise, Trusted Blue, Structured
+   ============================================================ */
+.enq-design-venterprise { background: #f4f6f9; min-height: 80vh; }
+
+/* Full-width blue header band */
+.enq-design-venterprise .enq-split-layout {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.enq-design-venterprise .enq-info-panel {
+    border-radius: 0 !important;
+    overflow: hidden;
+    position: relative !important;
+    width: 100%;
+}
+.enq-design-venterprise .enq-info-inner {
+    padding: 48px 24px 40px;
+    color: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+.enq-design-venterprise .enq-label {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 14px;
+    display: inline-block; padding: 5px 16px; background: rgba(255,255,255,0.15);
+    border-radius: 20px; color: #fff; text-transform: none;
+}
+.enq-design-venterprise .enq-info-title { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 10px; color: #fff !important; }
+.enq-design-venterprise .enq-info-subtitle { font-size: 15px; line-height: 1.6; opacity: 0.9; margin-bottom: 0; }
+.enq-design-venterprise .enq-features { display: none; }
+.enq-design-venterprise .enq-contact-strip { display: none; }
+
+/* Form + sidebar layout */
+.enq-design-venterprise .enq-form-panel {
+    max-width: 1060px;
+    width: 100%;
+    margin: -24px auto 0;
+    padding: 0 24px 48px;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+/* We can't add sidebar HTML, so form takes full width */
+.enq-design-venterprise .enq-form-panel {
+    display: block;
+    max-width: 720px;
+}
+
+.enq-design-venterprise .enq-form-card {
+    background: #fff !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+.enq-design-venterprise .enq-form-card-header {
+    padding: 28px 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.enq-design-venterprise .enq-form-card-header::before {
+    content: "📝";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0176d3, #032d60);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.enq-design-venterprise .enq-form-heading { font-size: 18px; font-weight: 600; color: #032d60; margin-bottom: 0; }
+.enq-design-venterprise .enq-form-subheading { font-size: 12px; color: #706e6b; }
+.enq-design-venterprise .enq-form-card form { padding: 24px 32px 32px; }
+
+.enq-design-venterprise .section-title { color: #032d60; border-bottom-color: #e5e7eb; }
+.enq-design-venterprise .icon-wrapper { background: linear-gradient(135deg, #0176d3, #032d60) !important; }
+
+.enq-design-venterprise .modern-input, .enq-design-venterprise .form-control, .enq-design-venterprise .form-select { border: 1.5px solid #d8dde6 !important; background: #fff !important; color: #3e3e3c !important; }
+.enq-design-venterprise .modern-input:focus, .enq-design-venterprise .form-control:focus, .enq-design-venterprise .form-select:focus { border-color: #0176d3 !important; box-shadow: 0 0 0 3px rgba(1,118,211,0.1) !important; }
+.enq-design-venterprise .form-floating > .form-control:focus ~ label, .enq-design-venterprise .form-floating > .form-control:not(:placeholder-shown) ~ label, .enq-design-venterprise .form-floating > .form-select ~ label { background: #fff; color: #706e6b; }
+
+.enq-design-venterprise .consent-wrapper { background: #eef6ff !important; border: 1.5px solid #d4e5f7 !important; }
+.enq-design-venterprise .consent-wrapper .form-check-input:checked { background-color: #0176d3; border-color: #0176d3; }
+.enq-design-venterprise .captcha-box { background: linear-gradient(135deg, #0176d3, #032d60) !important; }
+.enq-design-venterprise .captcha-label { color: #706e6b; }
+.enq-design-venterprise .btn-submit { background: #0176d3 !important; }
+.enq-design-venterprise .btn-submit:hover { background: #014486 !important; box-shadow: 0 6px 20px rgba(1,118,211,0.3); }
+.enq-design-venterprise .submit-note { color: #706e6b; }
+
+.enq-design-venterprise .success-card { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+.enq-design-venterprise .success-icon { color: #10b981; }
+.enq-design-venterprise .success-card h2 { color: #032d60; }
+.enq-design-venterprise .btn-primary-custom { background: #0176d3; color: #fff; }
+.enq-design-venterprise .btn-primary-custom:hover { background: #014486; color: #fff; }
+
+.enq-design-venterprise .map-section { background: #f4f6f9; }
+.enq-design-venterprise .map-wrapper { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+.enq-design-venterprise .map-header { background: linear-gradient(135deg, #0176d3, #032d60) !important; border-radius: 12px 12px 0 0; }
+.enq-design-venterprise .location-info i { color: #0176d3; }
+.enq-design-venterprise .location-info h6 { color: #032d60; }
+.enq-design-venterprise .location-info p { color: #706e6b; }
+.enq-design-venterprise .btn-map { background: #0176d3; color: #fff; }
+.enq-design-venterprise .btn-map:hover { color: #fff; }
+
+@media (max-width: 575px) {
+    .enq-design-venterprise .enq-info-inner { padding: 32px 16px; }
+    .enq-design-venterprise .enq-info-title { font-size: 24px; }
+    .enq-design-venterprise .enq-form-panel { padding: 0 12px 32px; margin-top: -20px; }
+    .enq-design-venterprise .enq-form-card-header { padding: 20px 18px 0; }
+    .enq-design-venterprise .enq-form-card form { padding: 16px 18px 24px; }
+    .enq-design-venterprise .captcha-section { flex-direction: column; align-items: stretch; }
+    .enq-design-venterprise .captcha-box { text-align: center; }
+    .enq-design-venterprise .captcha-input { min-width: auto; }
+    .enq-design-venterprise .modern-input, .enq-design-venterprise .form-control, .enq-design-venterprise .form-select { font-size: 16px !important; }
+    .enq-design-venterprise .success-card { padding: 32px 20px; }
+    .enq-design-venterprise .map-footer { flex-direction: column; text-align: center; }
+    .enq-design-venterprise .location-info { justify-content: center; }
+}
+
+/* Icon fix */
+.enq-page-wrapper .icon-wrapper i { color: #fff !important; font-size: 14px !important; line-height: 1; }
+.enq-page-wrapper .icon-wrapper { display: flex !important; align-items: center !important; justify-content: center !important; }
+
+
+/* Floating label fix - ensure labels float on autofill and pre-filled values */
+.enq-page-wrapper .form-floating > .form-control,
+.enq-page-wrapper .form-floating > .form-select {
+    height: 56px !important;
+    padding: 16px 14px 8px !important;
+    line-height: 1.4 !important;
+}
+.enq-page-wrapper .form-floating > textarea.form-control {
+    height: auto !important;
+    min-height: 80px !important;
+}
+.enq-page-wrapper .form-floating > label {
+    padding: 16px 14px !important;
+    font-size: 14px;
+    color: #6b7280;
+    transition: all 0.15s ease;
+    pointer-events: none;
+}
+.enq-page-wrapper .form-floating > .form-control:focus ~ label,
+.enq-page-wrapper .form-floating > .form-control:not(:placeholder-shown) ~ label,
+.enq-page-wrapper .form-floating > .form-select ~ label {
+    transform: scale(0.78) translateY(-0.65rem) translateX(0.15rem) !important;
+    opacity: 0.8 !important;
+    padding: 0 4px !important;
+    height: auto !important;
+}
+/* Fix autofill detection */
+.enq-page-wrapper .form-floating > .form-control:-webkit-autofill ~ label {
+    transform: scale(0.78) translateY(-0.65rem) translateX(0.15rem) !important;
+    opacity: 0.8 !important;
+    padding: 0 4px !important;
+}

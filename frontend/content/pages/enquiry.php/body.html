@@ -1,0 +1,281 @@
+<!-- Stripe-Style Split Layout -->
+<div class="enq-page-wrapper enq-design-venterprise">
+            
+        <div class="enq-split-layout">
+            <!-- LEFT: Info Panel -->
+            <div class="enq-info-panel" style="background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);">
+                <div class="enq-info-inner">
+                    <p class="enq-label">Get Started</p>
+                    <h1 class="enq-info-title">Enquiry Form</h1>
+                    <p class="enq-info-subtitle">Fill in your details and our team will reach out within 24 hours to help you get started.</p>
+
+                    <div class="enq-features">
+                        <div class="enq-feature-item">
+                            <div class="enq-feature-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                            <div>
+                                <div class="enq-feature-title">Fast Response</div>
+                                <div class="enq-feature-desc">We respond within 24 hours</div>
+                            </div>
+                        </div>
+                        <div class="enq-feature-item">
+                            <div class="enq-feature-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                            <div>
+                                <div class="enq-feature-title">Secure & Private</div>
+                                <div class="enq-feature-desc">Your data is encrypted and safe</div>
+                            </div>
+                        </div>
+                        <div class="enq-feature-item">
+                            <div class="enq-feature-icon"><i class="bi bi-chat-dots-fill"></i></div>
+                            <div>
+                                <div class="enq-feature-title">Expert Support</div>
+                                <div class="enq-feature-desc">Talk to real people, not bots</div>
+                            </div>
+                        </div>
+                    </div>
+
+                                                            <div class="enq-contact-strip">
+                                                <a href="tel:9935760540" class="enq-contact-link">
+                            <i class="bi bi-telephone-fill"></i>
+                            <span>9935760540</span>
+                        </a>
+                                                                        <a href="mailto:chandraghanshyamdrone@gmail.com" class="enq-contact-link">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span>chandraghanshyamdrone@gmail.com</span>
+                        </a>
+                                            </div>
+                                    </div>
+            </div>
+
+            <!-- RIGHT: Form Card -->
+            <div class="enq-form-panel">
+                <div class="enq-form-card" style="background: #ffffff;">
+                    <div class="enq-form-card-header">
+                        <h3 class="enq-form-heading">Submit an Enquiry</h3>
+                        <p class="enq-form-subheading">All fields marked with * are required</p>
+                    </div>
+                                                                                                    
+                        <form method="post" action="/api/enquiry" id="enquiry-form">
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span class="icon-wrapper">
+                                        <i class="bi bi-person-circle"></i>
+                                    </span>
+                                    Your Information
+                                </h3>
+                                
+                                <div class="form-floating mb-4">
+                                    <input type="text" class="form-control modern-input" id="name" name="name" 
+                                           placeholder="Your Name" value="" required>
+                                    <label for="name">Full Name <span class="text-danger">*</span></label>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-4">
+                                            <input type="email" class="form-control modern-input" id="email" name="email" 
+                                                   placeholder="Email" value="" required>
+                                            <label for="email">Email Address <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-4">
+                                            <input type="tel" class="form-control modern-input" id="phone" name="phone" 
+                                                   placeholder="Mobile" value="" 
+                                                   pattern="[6-9][0-9]{9}" maxlength="10" minlength="10" required>
+                                            <label for="phone">Mobile Number <span class="text-danger">*</span></label>
+                                            <div class="form-hint">10-digit number starting with 6, 7, 8, or 9</div>
+                                            <div id="phone-error" class="invalid-feedback" style="display: none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Information (Only shown if enabled) -->
+<div class="form-section">
+    <h3 class="section-title">
+        <span class="icon-wrapper">
+            <i class="bi bi-geo-alt"></i>
+        </span>
+        Additional Information
+    </h3>
+    
+    <!-- Address Field -->
+    <div class="form-floating mb-4">
+        <textarea class="form-control modern-input" id="address" name="address" 
+                 placeholder="Your Address" rows="3" 
+                 ></textarea>
+        <label for="address">Address </label>
+    </div>
+    
+    <div class="row">
+        <!-- City Field -->
+        <div class="col-md-6">
+            <div class="form-floating mb-4">
+                <input type="text" class="form-control modern-input" id="city" name="city" 
+                       placeholder="Your City" value=""
+                       >
+                <label for="city">City </label>
+            </div>
+        </div>
+        
+        <!-- Pincode Field -->
+        <div class="col-md-6">
+            <div class="form-floating mb-4">
+                <input type="text" class="form-control modern-input" id="pincode" name="pincode" 
+                       placeholder="Your Pincode" value=""
+                       >
+                <label for="pincode">Pincode </label>
+                <div id="pincode-error" class="invalid-feedback" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Country Dropdown -->
+        <div class="col-md-6">
+            <div class="form-floating mb-4">
+                <select class="form-select modern-input" id="country_id" name="country_id" 
+                       >
+                    <option value="">Select Country</option>
+                                        <option value="5" >
+                        Australia                    </option>
+                                        <option value="4" >
+                        Canada                    </option>
+                                        <option value="9" >
+                        China                    </option>
+                                        <option value="7" >
+                        France                    </option>
+                                        <option value="6" >
+                        Germany                    </option>
+                                        <option value="1" >
+                        India                    </option>
+                                        <option value="8" >
+                        Japan                    </option>
+                                        <option value="10" >
+                        Singapore                    </option>
+                                        <option value="11" >
+                        United Arab Emirates                    </option>
+                                        <option value="3" >
+                        United Kingdom                    </option>
+                                        <option value="2" >
+                        United States                    </option>
+                                    </select>
+                <label for="country_id">Country </label>
+            </div>
+        </div>
+        
+        <!-- State Dropdown (Dynamic) -->
+        <div class="col-md-6">
+            <div class="form-floating mb-4">
+                <select class="form-select modern-input" id="state_id" name="state_id" 
+                       >
+                    <option value="">Select State</option>
+                                    </select>
+                <label for="state_id">State </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Remarks Field -->
+    <div class="form-floating mb-4">
+        <textarea class="form-control modern-input" id="remarks" name="remarks" 
+                 placeholder="Additional Information" rows="4" 
+                 ></textarea>
+        <label for="remarks">Remarks (max 200 words) </label>
+        <div class="word-counter small text-muted mt-1">
+            <span id="word-count">0</span>/200 words
+        </div>
+    </div>
+</div>
+                            
+                              
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span class="icon-wrapper">
+                                        <i class="bi bi-shield-check"></i>
+                                    </span>
+                                    Security Verification
+                                </h3>
+                                
+                                <div class="captcha-section">
+                                    <div class="captcha-box">
+                                        <span class="captcha-code">2520</span>
+                                    </div>
+                                    <div class="captcha-input">
+                                        <input type="text" class="form-control modern-input" id="captcha" name="captcha" 
+                                               placeholder="Enter the code" required>
+                                        <label class="captcha-label">Type the code shown above <span class="text-danger">*</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="submit-section">
+                                <button type="submit" name="enquiry_submit" class="btn-submit" id="submit-btn" 
+        style="background: #134e5e; color: #ffffff;">
+                                    <span class="btn-text">Submit Enquiry</span>
+                                    <span class="btn-loader" style="display: none;">
+                                        <i class="bi bi-arrow-repeat"></i> Processing...
+                                    </span>
+                                </button>
+                                <p class="submit-note">
+                                    <i class="bi bi-clock"></i> We typically respond within 24-48 hours
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                </div>
+            </div>
+        </div>
+
+            
+  <!-- Google Maps Section -->
+    
+        <div class="map-section">
+        <div class="container">
+            <div class="map-wrapper">
+                <div class="map-header">
+                    <h3>
+                        <i class="bi bi-geo-alt-fill"></i>
+                        Find Us Here
+                    </h3>
+                    <p>Visit our location</p>
+                </div>
+                <div class="map-container">
+                    <iframe 
+                        src="https://maps.google.com/maps?q=310%2F104-C%2C+Alopibagh%0D%0APrayagraj+%E2%80%93+211006%0D%0AUttar+Pradesh%2C+India&output=embed"
+                        width="100%" 
+                        height="450" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Business Location Map">
+                    </iframe>
+                </div>
+                <div class="map-footer">
+                    <div class="location-info">
+                        <i class="bi bi-pin-map-fill"></i>
+                        <div>
+                            <h6>Our Location</h6>
+                            <p>310/104-C, Alopibagh
+Prayagraj – 211006
+Uttar Pradesh, India</p>
+                        </div>
+                    </div>
+                    <a href="https://www.google.com/maps/search/?api=1&query=310%2F104-C%2C+Alopibagh%0D%0APrayagraj+%E2%80%93+211006%0D%0AUttar+Pradesh%2C+India" 
+                       target="_blank" class="btn-map">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Open in Google Maps
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+
+
+
+
+</style>

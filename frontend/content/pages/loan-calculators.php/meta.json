@@ -1,0 +1,8 @@
+{
+  "path": "loan-calculators.php",
+  "title": "DroneHub",
+  "bodyClass": "page-loan-calculators",
+  "externalScripts": [
+    "https://cdn.jsdelivr.net/npm/chart.js"
+  ]
+}

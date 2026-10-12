@@ -1,0 +1,566 @@
+/**
+ * Subscription Plans CSS - 5 Professional Designs
+ * File: assets/css/subscription-plans.css
+ * 
+ * Modern and responsive subscription plans styling with 5 unique designs
+ */
+
+/* Base Styles for All Designs */
+.subscription-plans-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.subscription-plans-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    pointer-events: none;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Common Plan Styles */
+.subscription-plan {
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-plan:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.featured-badge {
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    padding: 8px 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transform: rotate(45deg);
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.plan-header {
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.plan-description {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.plan-price {
+    margin-bottom: 1rem;
+}
+
+.price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.price-duration {
+    font-size: 1rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.plan-features {
+    padding: 0 2rem;
+}
+
+.plan-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-features li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.plan-features li:last-child {
+    border-bottom: none;
+}
+
+.plan-features i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.plan-footer {
+    padding: 2rem;
+    text-align: center;
+}
+
+.plan-btn {
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.plan-btn:hover::before {
+    left: 100%;
+}
+
+.plan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* ============================================
+   DESIGN 1 - CLASSIC CARDS
+   ============================================ */
+
+.subscription-plans-section[data-design="design1"] .subscription-plan {
+    border: 2px solid transparent;
+    background: white;
+}
+
+.subscription-plans-section[data-design="design1"] .subscription-plan.featured {
+    border-color: #3b82f6;
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+.subscription-plans-section[data-design="design1"] .subscription-plan.featured .plan-header {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.1) 100%);
+}
+
+.subscription-plans-section[data-design="design1"] .subscription-plan:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   DESIGN 2 - MODERN GRADIENT
+   ============================================ */
+
+.subscription-plans-section[data-design="design2"] .subscription-plan {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+}
+
+.subscription-plans-section[data-design="design2"] .plan-name,
+.subscription-plans-section[data-design="design2"] .price-amount {
+    color: white;
+}
+
+.subscription-plans-section[data-design="design2"] .plan-description,
+.subscription-plans-section[data-design="design2"] .price-duration {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.subscription-plans-section[data-design="design2"] .plan-features li {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.subscription-plans-section[data-design="design2"] .plan-btn {
+    background: white;
+    color: #3b82f6;
+}
+
+.subscription-plans-section[data-design="design2"] .plan-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    color: #3b82f6;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.subscription-plans-section[data-design="design2"] .subscription-plan.featured {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+/* ============================================
+   DESIGN 3 - MINIMALIST
+   ============================================ */
+
+.subscription-plans-section[data-design="design3"] {
+    background: white;
+}
+
+.subscription-plans-section[data-design="design3"] .subscription-plan {
+    background: white;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.subscription-plans-section[data-design="design3"] .subscription-plan:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-plans-section[data-design="design3"] .subscription-plan.featured {
+    border-color: #3b82f6;
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+}
+
+.subscription-plans-section[data-design="design3"] .plan-header {
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.subscription-plans-section[data-design="design3"] .plan-btn {
+    background: #3b82f6;
+    border-radius: 8px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.subscription-plans-section[data-design="design3"] .subscription-plan.featured .plan-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+}
+
+/* ============================================
+   DESIGN 4 - CORPORATE
+   ============================================ */
+
+.subscription-plans-section[data-design="design4"] {
+    background: #f8f9fa;
+}
+
+.subscription-plans-section[data-design="design4"] .subscription-plan {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-plans-section[data-design="design4"] .plan-header {
+    background: #2c3e50;
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.subscription-plans-section[data-design="design4"] .plan-name,
+.subscription-plans-section[data-design="design4"] .plan-header .price-amount {
+    color: white;
+}
+
+.subscription-plans-section[data-design="design4"] .plan-header .plan-description,
+.subscription-plans-section[data-design="design4"] .plan-header .price-duration {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.subscription-plans-section[data-design="design4"] .subscription-plan.featured .plan-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+}
+
+.subscription-plans-section[data-design="design4"] .plan-btn {
+    background: #2c3e50;
+    border-radius: 4px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.subscription-plans-section[data-design="design4"] .subscription-plan.featured .plan-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+}
+
+/* ============================================
+   DESIGN 5 - CREATIVE
+   ============================================ */
+
+.subscription-plans-section[data-design="design5"] .subscription-plan {
+    border-radius: 30px;
+    background: white;
+    position: relative;
+    overflow: visible;
+}
+
+.subscription-plans-section[data-design="design5"] .subscription-plan::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 50%, #ff6b6b 100%);
+    border-radius: 32px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.subscription-plans-section[data-design="design5"] .subscription-plan:hover::before {
+    opacity: 1;
+}
+
+.subscription-plans-section[data-design="design5"] .subscription-plan.featured::before {
+    opacity: 1;
+}
+
+.subscription-plans-section[data-design="design5"] .plan-header {
+    position: relative;
+}
+
+.subscription-plans-section[data-design="design5"] .plan-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    border-radius: 2px;
+}
+
+.subscription-plans-section[data-design="design5"] .price-amount {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subscription-plans-section[data-design="design5"] .plan-btn {
+    border-radius: 25px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Floating Animation for Design 5 */
+.subscription-plans-section[data-design="design5"] .subscription-plan {
+    animation: float 6s ease-in-out infinite;
+}
+
+.subscription-plans-section[data-design="design5"] .subscription-plan:nth-child(2) {
+    animation-delay: -2s;
+}
+
+.subscription-plans-section[data-design="design5"] .subscription-plan:nth-child(3) {
+    animation-delay: -4s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 991.98px) {
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .subscription-plan {
+        margin-bottom: 2rem;
+    }
+    
+    .subscription-plans-section[data-design="design1"] .subscription-plan.featured {
+        transform: none;
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .section-subtitle {
+        font-size: 1rem;
+    }
+    
+    .plan-header {
+        padding: 1.5rem;
+    }
+    
+    .plan-features {
+        padding: 0 1.5rem;
+    }
+    
+    .plan-footer {
+        padding: 1.5rem;
+    }
+    
+    .price-amount {
+        font-size: 2rem;
+    }
+    
+    .plan-btn {
+        padding: 10px 25px;
+        font-size: 0.9rem;
+    }
+    
+    .featured-badge {
+        font-size: 0.7rem;
+        padding: 6px 35px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .subscription-plans-section {
+        padding: 3rem 0;
+    }
+    
+    .plan-header {
+        padding: 1rem;
+    }
+    
+    .plan-features {
+        padding: 0 1rem;
+    }
+    
+    .plan-footer {
+        padding: 1rem;
+    }
+    
+    .plan-btn {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    /* Disable animations on mobile for better performance */
+    .subscription-plans-section[data-design="design5"] .subscription-plan {
+        animation: none;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .subscription-plans-section {
+        background: white !important;
+        box-shadow: none !important;
+    }
+    
+    .subscription-plan {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .featured-badge {
+        background: #333 !important;
+        color: white !important;
+    }
+    
+    .plan-btn {
+        background: #333 !important;
+        color: white !important;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================ */
+
+.subscription-plan:focus-within {
+    outline: 3px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+}
+
+.plan-btn:focus {
+    outline: 3px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .subscription-plan,
+    .plan-btn,
+    .plan-btn::before {
+        transition: none;
+        animation: none;
+    }
+    
+    .subscription-plans-section[data-design="design5"] .subscription-plan {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .subscription-plan {
+        border: 2px solid #000;
+    }
+    
+    .plan-btn {
+        border: 2px solid #000;
+    }
+    
+    .featured-badge {
+        border: 2px solid #000;
+    }
+}

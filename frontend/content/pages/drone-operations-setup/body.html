@@ -1,0 +1,109 @@
+<section class="pg-hero">
+  <img class="pg-hero-img" src="https://i.ibb.co/YBZhywMM/image-42.webp" alt="Drone operations setup" fetchpriority="high" loading="eager" decoding="async">
+  <div class="wrap pg-hero-body">
+    <div class="pg-hero-eyebrow"><span class="dot"></span><span>Drone Operations Setup</span></div>
+    <h1>Turn your drone technology into an operational business</h1>
+    <p>Operational planning, SOP development, fleet planning and service delivery models — built for organizations launching drone operations in India.</p>
+    <div class="pg-hero-cta">
+      <a href="enquiry.php" class="pg-btn-solid">Plan My Operations <i class="ph ph-bold ph-arrow-right"></i></a>
+      <a href="../India-Market-Entry/" class="pg-btn-ghost">Back to India Market Entry</a>
+    </div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <span class="section-tag">Overview</span>
+    <h2>Drone Operations Setup</h2>
+    <p>Having the right drone technology is only part of the equation — running it as a safe, repeatable, revenue-generating operation in India requires clear SOPs, trained manpower, planned fleets and a defined service delivery model.</p>
+    <p>GarudHub helps convert your drone technology into an operational business, matched to the sector and scale you're targeting.</p>
+  </div>
+</section>
+
+<section class="fw reg-sec">
+  <div class="wrap">
+    <div class="reg-head gs-reveal">
+      <span class="section-tag">What's Included</span>
+      <h2>From SOPs to service delivery</h2>
+      <p>The operational building blocks required to run drone missions safely and consistently.</p>
+    </div>
+    <div class="reg-grid gs-reveal">
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-flow-arrow"></i></div><b>Operational Planning</b><span>End-to-end workflow from mission request to delivery.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-file-text"></i></div><b>SOP Development</b><span>Standard operating procedures matched to your applications.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-users-three"></i></div><b>Pilot &amp; Manpower Planning</b><span>Staffing plans for pilots, technicians and support crew.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-drone"></i></div><b>Equipment Selection</b><span>Choosing the right platforms and payloads for your use case.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-stack"></i></div><b>Fleet Planning</b><span>Right-sizing your fleet against expected mission volume.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-wrench"></i></div><b>Maintenance Ecosystem</b><span>Servicing, spares and technical support planning.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-target"></i></div><b>Mission Planning</b><span>Flight planning practices aligned to Indian airspace rules.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-database"></i></div><b>Data Workflow Planning</b><span>Capture, processing and delivery of mission data.</span></div>
+      <div class="reg-card"><div class="step-num"><i class="ph ph-fill ph-handshake"></i></div><b>Service Delivery Models</b><span>How you'll price, package and deliver drone services.</span></div>
+    </div>
+    <div class="gs-reveal" style="margin-top:30px;"><a href="enquiry.php" class="sec-cta">Plan My Operations <i class="ph ph-bold ph-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <div class="note-box">
+      <i class="ph ph-fill ph-info"></i>
+      <p><b>Note:</b> All drone operations must comply with applicable DGCA regulations, airspace rules and operational permissions. GarudHub provides operational planning support; regulatory approval for specific missions remains subject to the competent authority.</p>
+    </div>
+  </div>
+</section>
+
+<section class="fw cta-sec">
+  <div class="wrap gs-reveal">
+    <h2>Ready to launch your India drone operations?</h2>
+    <p>Tell us about your application and fleet — we'll help you build an operational plan that works on day one.</p>
+    <div class="cta-actions">
+      <a href="enquiry.php" class="dark-pill">Plan My Operations</a>
+      <a href="../India-Market-Entry/" class="ghost-pill">Explore All Market Entry Services</a>
+    </div>
+  </div>
+</section>
+
+<div class="fw contact-strip">
+  <div class="wrap contact-strip-inner">
+    <div class="contact-brand">
+      <span class="contact-brand-name">ChandraGhanshyam &amp; Associates LLP</span>
+      <span class="contact-brand-sub">Drone Ecosystem Platform</span>
+    </div>
+    <div class="contact-items">
+      <a href="tel:+919935760540" class="contact-item"><i class="ph ph-fill ph-phone"></i><span>9935760540</span></a>
+      <a href="mailto:connectwithcga@gmail.com" class="contact-item"><i class="ph ph-fill ph-envelope-simple"></i><span>connectwithcga@gmail.com</span></a>
+      <span class="contact-item"><i class="ph ph-fill ph-map-pin"></i><span>310/104-C, Alopibagh, Prayagraj &ndash; 211006, UP</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.gsap) {
+    gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll('.gs-reveal').forEach(function(el){
+      gsap.to(el, { opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'power3.out',
+        scrollTrigger:{ trigger:el, start:'top 87%', toggleActions:'play none none reverse' } });
+    });
+  } else {
+    document.querySelectorAll('.gs-reveal').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; el.style.filter='none'; });
+  }
+});
+(function () {
+  function killTopGap() {
+    var e = document.querySelector('section,.fw');
+    if (!e) return;
+    while (e && e !== document.documentElement) {
+      var s = window.getComputedStyle(e);
+      if (parseFloat(s.paddingTop) > 0) e.style.setProperty('padding-top', '0', 'important');
+      if (parseFloat(s.marginTop) > 0) e.style.setProperty('margin-top', '0', 'important');
+      e = e.parentElement;
+    }
+    document.documentElement.style.setProperty('margin-top', '0', 'important');
+    document.body.style.setProperty('padding-top', '0', 'important');
+  }
+  killTopGap();
+  document.addEventListener('DOMContentLoaded', killTopGap);
+  window.addEventListener('load', killTopGap);
+  setTimeout(killTopGap, 300);
+})();
+</script>

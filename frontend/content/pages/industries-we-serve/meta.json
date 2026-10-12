@@ -1,0 +1,9 @@
+{
+  "path": "industries-we-serve",
+  "title": "Industries We Serve - DroneHub",
+  "bodyClass": "page-industries-we-serve",
+  "externalScripts": [
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+  ]
+}

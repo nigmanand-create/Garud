@@ -1,0 +1,9 @@
+{
+  "path": "business-setup-in-india",
+  "title": "Business Setup in India - DroneHub",
+  "bodyClass": "page-business-setup-in-india",
+  "externalScripts": [
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+  ]
+}

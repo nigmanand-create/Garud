@@ -1,0 +1,107 @@
+<section class="pg-hero">
+  <img class="pg-hero-img" src="https://i.ibb.co/6MHB1fh/image-40.webp" alt="India market entry consultancy" fetchpriority="high" loading="eager" decoding="async">
+  <div class="wrap pg-hero-body">
+    <div class="pg-hero-eyebrow"><span class="dot"></span><span>Market Entry Consultancy</span></div>
+    <h1>Understand the Indian drone ecosystem before you invest</h1>
+    <p>Market assessment, sector analysis and a structured India entry strategy — built for international drone companies, technology providers and investors.</p>
+    <div class="pg-hero-cta">
+      <a href="enquiry.php" class="pg-btn-solid">Request Market Assessment <i class="ph ph-bold ph-arrow-right"></i></a>
+      <a href="../India-Market-Entry/" class="pg-btn-ghost">Back to India Market Entry</a>
+    </div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <span class="section-tag">Overview</span>
+    <h2>India Market Entry Consultancy</h2>
+    <p>Before committing capital or resources, international drone companies need a clear picture of India's opportunities, competitive landscape and the right entry approach for their specific technology or business model.</p>
+    <p>GarudHub's market entry consultancy is designed to give you that clarity — grounded in local knowledge of India's drone ecosystem across agriculture, survey and mapping, infrastructure, industrial inspection, surveillance, logistics and training.</p>
+  </div>
+</section>
+
+<section class="fw reg-sec">
+  <div class="wrap">
+    <div class="reg-head gs-reveal">
+      <span class="section-tag">What's Included</span>
+      <h2>A structured assessment, not a generic report</h2>
+      <p>Every engagement is built around your specific technology, application focus and business objectives.</p>
+    </div>
+    <div class="reg-grid">
+      <div class="reg-card"><i class="ph ph-fill ph-chart-line-up"></i><div><b>India Drone Market Assessment</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Size, growth trends and demand drivers across sectors.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-squares-four"></i><div><b>Application &amp; Sector Analysis</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Where your technology fits best across Indian industries.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-target"></i><div><b>Business Opportunity Identification</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Concrete openings matched to your capabilities.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-scales"></i><div><b>Competitor &amp; Market Landscape</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Who else is operating, and where the gaps are.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-users-three"></i><div><b>Customer &amp; Partner Identification</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Early mapping of likely customers and local partners.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-map-trifold"></i><div><b>India Entry Strategy</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">A phased approach matched to your risk appetite and timeline.</span></div></div>
+      <div class="reg-card"><i class="ph ph-fill ph-briefcase"></i><div><b>Business Model Development</b><span style="color:var(--slate); font-size:.85rem; font-weight:500;">Direct entry, partnership, licensing or distribution — evaluated on merit.</span></div></div>
+    </div>
+    <div class="gs-reveal" style="margin-top:30px;"><a href="enquiry.php" class="sec-cta">Request Market Assessment <i class="ph ph-bold ph-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section class="fw ov-sec">
+  <div class="wrap gs-reveal">
+    <div class="note-box">
+      <i class="ph ph-fill ph-info"></i>
+      <p><b>Note:</b> Market entry consultancy provides analysis and strategic guidance. Regulatory approvals, licensing and statutory permissions remain subject to the applicable Indian authorities and their prevailing requirements.</p>
+    </div>
+  </div>
+</section>
+
+<section class="fw cta-sec">
+  <div class="wrap gs-reveal">
+    <h2>Ready to understand India's drone market?</h2>
+    <p>Tell us about your organization and technology — we'll help you build a clear, realistic India entry strategy.</p>
+    <div class="cta-actions">
+      <a href="enquiry.php" class="dark-pill">Request Market Assessment</a>
+      <a href="../India-Market-Entry/" class="ghost-pill">Explore All Market Entry Services</a>
+    </div>
+  </div>
+</section>
+
+<div class="fw contact-strip">
+  <div class="wrap contact-strip-inner">
+    <div class="contact-brand">
+      <span class="contact-brand-name">ChandraGhanshyam &amp; Associates LLP</span>
+      <span class="contact-brand-sub">Drone Ecosystem Platform</span>
+    </div>
+    <div class="contact-items">
+      <a href="tel:+919935760540" class="contact-item"><i class="ph ph-fill ph-phone"></i><span>9935760540</span></a>
+      <a href="mailto:connectwithcga@gmail.com" class="contact-item"><i class="ph ph-fill ph-envelope-simple"></i><span>connectwithcga@gmail.com</span></a>
+      <span class="contact-item"><i class="ph ph-fill ph-map-pin"></i><span>310/104-C, Alopibagh, Prayagraj &ndash; 211006, UP</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.gsap) {
+    gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll('.gs-reveal').forEach(function(el){
+      gsap.to(el, { opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'power3.out',
+        scrollTrigger:{ trigger:el, start:'top 87%', toggleActions:'play none none reverse' } });
+    });
+  } else {
+    document.querySelectorAll('.gs-reveal').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; el.style.filter='none'; });
+  }
+});
+(function () {
+  function killTopGap() {
+    var e = document.querySelector('section,.fw');
+    if (!e) return;
+    while (e && e !== document.documentElement) {
+      var s = window.getComputedStyle(e);
+      if (parseFloat(s.paddingTop) > 0) e.style.setProperty('padding-top', '0', 'important');
+      if (parseFloat(s.marginTop) > 0) e.style.setProperty('margin-top', '0', 'important');
+      e = e.parentElement;
+    }
+    document.documentElement.style.setProperty('margin-top', '0', 'important');
+    document.body.style.setProperty('padding-top', '0', 'important');
+  }
+  killTopGap();
+  document.addEventListener('DOMContentLoaded', killTopGap);
+  window.addEventListener('load', killTopGap);
+  setTimeout(killTopGap, 300);
+})();
+</script>

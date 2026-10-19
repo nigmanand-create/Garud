@@ -9,6 +9,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { RfqModule } from './modules/rfq/rfq.module';
 import { CommerceModule } from './modules/commerce/commerce.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CommerceModule } from './modules/commerce/commerce.module';
     CatalogModule,
     RfqModule,
     CommerceModule,
+    PaymentsModule,
     AdminModule,
   ],
   controllers: [AppController],

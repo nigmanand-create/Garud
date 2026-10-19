@@ -15,7 +15,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -84,10 +83,7 @@ export class PartnerCatalogController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get your listing by id' })
-  getOne(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-  ) {
+  getOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.catalogService.getMine(user.userId, id);
   }
 
@@ -101,12 +97,18 @@ export class PartnerCatalogController {
     return this.catalogService.updateMine(user.userId, id, dto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete your listing' })
-  remove(
+  @Post(':id/submit-for-review')
+  @ApiOperation({ summary: 'Submit listing for admin review' })
+  submitForReview(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
+    return this.catalogService.submitForReview(user.userId, id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete your listing' })
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.catalogService.deleteMine(user.userId, id);
   }
 }

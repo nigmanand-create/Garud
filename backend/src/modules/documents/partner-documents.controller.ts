@@ -71,7 +71,9 @@ export class PartnerDocumentsController {
       },
     },
   })
-  @ApiOperation({ summary: 'Upload document (draft/rejected application only)' })
+  @ApiOperation({
+    summary: 'Upload document (draft/rejected application only)',
+  })
   upload(
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
@@ -86,10 +88,7 @@ export class PartnerDocumentsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete document (draft/rejected only)' })
-  remove(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-  ) {
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.documentsService.deleteForPartner(user.userId, id);
   }
 

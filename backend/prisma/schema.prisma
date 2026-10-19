@@ -48,6 +48,14 @@ enum ListingType {
   SERVICE
 }
 
+enum ListingReviewStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  UNPUBLISHED
+}
+
 enum CatalogCategory {
   AGRICULTURE_DRONE
   SURVEY_MAPPING_DRONE
@@ -186,16 +194,38 @@ model PartnerListing {
   priceOnRequest   Boolean         @default(true) @map("price_on_request")
   warranty         String?
   isPublished      Boolean         @default(false) @map("is_published")
+  reviewStatus     ListingReviewStatus @default(DRAFT) @map("review_status")
+  rejectionReason  String?         @map("rejection_reason")
+  submittedForReviewAt DateTime?     @map("submitted_for_review_at")
+  reviewedAt       DateTime?         @map("reviewed_at")
+  reviewedByUserId String?           @map("reviewed_by_user_id")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cartItems    CartItem[]
   orderLineItems OrderLineItem[]
+  moderationLogs ListingModerationAuditLog[]
 
   @@index([organizationId])
   @@index([listingType, category, isPublished])
+  @@index([reviewStatus, updatedAt])
   @@map("partner_listings")
+}
+
+model ListingModerationAuditLog {
+  id          String               @id @default(uuid())
+  listingId   String               @map("listing_id")
+  actorUserId String               @map("actor_user_id")
+  fromStatus  ListingReviewStatus  @map("from_status")
+  toStatus    ListingReviewStatus  @map("to_status")
+  note        String?
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  listing PartnerListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_moderation_audit_logs")
 }
 
 enum OrderStatus {
@@ -285,11 +315,53 @@ model Order {
   buyerOrganization  Organization @relation("OrderBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation("OrderVendor", fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
   lineItems          OrderLineItem[]
+  transactions       PaymentTransaction[]
 
   @@index([buyerUserId])
   @@index([vendorOrganizationId])
   @@index([placedAt])
   @@map("orders")
+}
+
+enum PaymentGateway {
+  RAZORPAY
+  BANK_TRANSFER_NEFT_RTGS
+  CASH_ON_DELIVERY
+}
+
+enum TransactionStatus {
+  CREATED
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model PaymentTransaction {
+  id               String            @id @default(uuid())
+  orderId          String            @map("order_id")
+  gateway          PaymentGateway
+  gatewayOrderId   String?           @map("gateway_order_id")
+  gatewayPaymentId String?           @map("gateway_payment_id")
+  gatewaySignature String?           @map("gateway_signature")
+  utrNumber        String?           @map("utr_number")
+  bankReference    String?           @map("bank_reference")
+  senderBankName   String?           @map("sender_bank_name")
+  amountInr        Decimal           @map("amount_inr") @db.Decimal(14, 2)
+  currency         String            @default("INR")
+  status           TransactionStatus @default(CREATED)
+  paymentMethod    String?           @map("payment_method")
+  metadata         Json?
+  failureReason    String?           @map("failure_reason")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([gatewayOrderId])
+  @@index([utrNumber])
+  @@map("payment_transactions")
 }
 
 model OrderLineItem {

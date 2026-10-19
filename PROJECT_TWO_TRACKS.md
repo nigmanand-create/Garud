@@ -31,6 +31,8 @@ See `frontend/README.md` — start Postgres, backend (`:3000`), then `npm run de
 
 | Doc | Purpose |
 |-----|---------|
+| [`docs/ADMIN_P0_PLAN.md`](docs/ADMIN_P0_PLAN.md) | **Admin P0** — listing moderation & publish gates (implementation plan) |
+| [`docs/PROJECT_STATUS_DETAILED.md`](docs/PROJECT_STATUS_DETAILED.md) | **Current status** — UI / UX / backend tables, admin deep-dive, done vs remaining (Oct 2026) |
 | [`docs/UI_UX_AND_SCALE_AUDIT_REPORT.md`](docs/UI_UX_AND_SCALE_AUDIT_REPORT.md) | UI/UX scan of built pages + scalability / P0–P2 recommendations (Oct 2026) |
 | [`docs/CHECKOUT_AND_PARTNER_CATALOG_DESIGN.md`](docs/CHECKOUT_AND_PARTNER_CATALOG_DESIGN.md) | Commerce catalog fields, cart/checkout phases |
 | [`PROJECT_WORKING_PRINCIPLES.md`](PROJECT_WORKING_PRINCIPLES.md) | Build order, phases, agent principles |

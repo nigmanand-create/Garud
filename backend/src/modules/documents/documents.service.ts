@@ -6,11 +6,14 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApplicationDocumentType, VerificationStatus } from '@prisma/client';
 import {
-  ApplicationDocumentType,
-  VerificationStatus,
-} from '@prisma/client';
-import { createReadStream, existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
 import { join, extname } from 'path';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../shared/prisma/prisma.service';

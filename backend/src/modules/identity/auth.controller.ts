@@ -32,7 +32,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register by account type (creates user + organization)' })
+  @ApiOperation({
+    summary: 'Register by account type (creates user + organization)',
+  })
   @ApiOkResponse({ type: AuthTokensResponse })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);

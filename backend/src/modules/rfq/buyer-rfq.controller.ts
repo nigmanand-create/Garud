@@ -1,16 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../identity/decorators/current-user.decorator';
 import { Roles } from '../identity/decorators/roles.decorator';
@@ -31,10 +20,7 @@ export class BuyerRfqController {
 
   @Post()
   @ApiOperation({ summary: 'Post a requirement (matches verified vendors)' })
-  create(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CreateRfqDto,
-  ) {
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateRfqDto) {
     return this.rfqService.createRfq(user.userId, user.role, dto);
   }
 
@@ -51,7 +37,9 @@ export class BuyerRfqController {
   }
 
   @Get(':id/quotations')
-  @ApiOperation({ summary: 'Compare vendor quotations (includes contact details)' })
+  @ApiOperation({
+    summary: 'Compare vendor quotations (includes contact details)',
+  })
   compare(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.rfqService.compareQuotations(user.userId, id);
   }

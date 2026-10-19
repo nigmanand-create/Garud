@@ -35,10 +35,7 @@ export class BuyerCartController {
 
   @Post('items')
   @ApiOperation({ summary: 'Add listing to cart' })
-  addItem(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: AddCartItemDto,
-  ) {
+  addItem(@CurrentUser() user: AuthenticatedUser, @Body() dto: AddCartItemDto) {
     return this.cartService.addItem(user.userId, dto);
   }
 

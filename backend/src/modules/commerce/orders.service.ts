@@ -10,6 +10,9 @@ import { CheckoutService } from './checkout.service';
 const orderDetailInclude = {
   vendorOrganization: { select: { id: true, companyName: true } },
   lineItems: true,
+  transactions: {
+    orderBy: { createdAt: 'desc' as const },
+  },
 };
 
 @Injectable()

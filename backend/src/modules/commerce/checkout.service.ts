@@ -3,10 +3,19 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { PaymentTransaction, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CartService } from './cart.service';
 import { CheckoutAddressDto, PlaceCheckoutDto } from './dto/commerce.dto';
+
+export type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    vendorOrganization: { select: { id: true; companyName: true } };
+    lineItems: true;
+  };
+}> & {
+  transactions?: PaymentTransaction[];
+};
 
 @Injectable()
 export class CheckoutService {
@@ -105,14 +114,76 @@ export class CheckoutService {
     return dto.shipping;
   }
 
-  serializeOrder(
-    order: Prisma.OrderGetPayload<{
-      include: {
-        vendorOrganization: { select: { id: true; companyName: true } };
-        lineItems: true;
+  async getSavedAddress(buyerUserId: string) {
+    const org = await this.prisma.organization.findUnique({
+      where: { ownerId: buyerUserId },
+    });
+
+    const lastOrder = await this.prisma.order.findFirst({
+      where: { buyerUserId },
+      orderBy: { placedAt: 'desc' },
+    });
+
+    if (lastOrder) {
+      const isSame =
+        lastOrder.shippingAddressLine1 === lastOrder.billingAddressLine1 &&
+        lastOrder.shippingPincode === lastOrder.billingPincode;
+
+      return {
+        hasSavedAddress: true,
+        address: {
+          companyName: lastOrder.companyName,
+          contactName: lastOrder.contactName,
+          contactPhone: lastOrder.contactPhone,
+          addressLine1: lastOrder.shippingAddressLine1,
+          addressLine2: lastOrder.shippingAddressLine2 || '',
+          city: lastOrder.shippingCity,
+          state: lastOrder.shippingState,
+          pincode: lastOrder.shippingPincode,
+          country: lastOrder.shippingCountry,
+          billingAddressLine1: lastOrder.billingAddressLine1,
+          billingAddressLine2: lastOrder.billingAddressLine2 || '',
+          billingCity: lastOrder.billingCity,
+          billingState: lastOrder.billingState,
+          billingPincode: lastOrder.billingPincode,
+          billingCountry: lastOrder.billingCountry,
+          billingSameAsShipping: isSame,
+          gstin: lastOrder.gstin || org?.gst || '',
+          purchaseOrderNumber: lastOrder.purchaseOrderNumber || '',
+        },
       };
-    }>,
-  ) {
+    }
+
+    if (org) {
+      return {
+        hasSavedAddress: false,
+        address: {
+          companyName: org.companyName,
+          contactName: org.contactPersonName || '',
+          contactPhone: org.contactMobile || '',
+          addressLine1: '',
+          addressLine2: '',
+          city: org.city || '',
+          state: org.state || '',
+          pincode: '',
+          country: org.country || 'India',
+          billingAddressLine1: '',
+          billingAddressLine2: '',
+          billingCity: org.city || '',
+          billingState: org.state || '',
+          billingPincode: '',
+          billingCountry: org.country || 'India',
+          billingSameAsShipping: true,
+          gstin: org.gst || '',
+          purchaseOrderNumber: '',
+        },
+      };
+    }
+
+    return { hasSavedAddress: false, address: null };
+  }
+
+  serializeOrder(order: OrderWithRelations) {
     return {
       id: order.id,
       status: order.status,
@@ -145,6 +216,23 @@ export class CheckoutService {
       gstin: order.gstin,
       purchaseOrderNumber: order.purchaseOrderNumber,
       vendorOrganization: order.vendorOrganization,
+      transactions: order.transactions
+        ? order.transactions.map((t) => ({
+            id: t.id,
+            gateway: t.gateway,
+            gatewayOrderId: t.gatewayOrderId,
+            gatewayPaymentId: t.gatewayPaymentId,
+            utrNumber: t.utrNumber,
+            senderBankName: t.senderBankName,
+            amountInr: t.amountInr.toFixed(2),
+            currency: t.currency,
+            status: t.status,
+            paymentMethod: t.paymentMethod,
+            failureReason: t.failureReason,
+            metadata: t.metadata,
+            createdAt: t.createdAt.toISOString(),
+          }))
+        : [],
       lineItems: order.lineItems.map((li) => ({
         id: li.id,
         listingId: li.listingId,

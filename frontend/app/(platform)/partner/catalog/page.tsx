@@ -13,7 +13,7 @@ import {
   LISTING_TYPE_LABELS,
   formatPrice,
 } from '@/lib/platform/labels';
-import type { CatalogCategory, ListingType, VerificationStatus } from '@/lib/api/types';
+import type { CatalogCategory, ListingReviewStatus, ListingType, VerificationStatus } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
 type Listing = {
@@ -22,6 +22,9 @@ type Listing = {
   listingType: ListingType;
   category: CatalogCategory;
   isPublished: boolean;
+  reviewStatus: ListingReviewStatus;
+  rejectionReason?: string | null;
+  primaryImageUrl?: string | null;
   priceOnRequest: boolean;
   priceInr?: string | null;
 };
@@ -93,8 +96,9 @@ function CatalogInner() {
   const [listings, setListings] = useState<Listing[] | null>(null);
   const [partner, setPartner] = useState<PartnerMe | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function loadListings() {
     Promise.all([
       apiRequest<Listing[]>('/partner/catalog/listings', { auth: true }),
       apiRequest<PartnerMe>('/partner/me', { auth: true }),
@@ -106,7 +110,27 @@ function CatalogInner() {
       .catch((e) =>
         setError(e instanceof ApiError ? e.message : 'Failed to load listings'),
       );
+  }
+
+  useEffect(() => {
+    loadListings();
   }, []);
+
+  async function handleSubmitForReview(id: string) {
+    setSubmittingId(id);
+    setError(null);
+    try {
+      await apiRequest(`/partner/catalog/listings/${id}/submit-for-review`, {
+        method: 'POST',
+        auth: true,
+      });
+      loadListings();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Submission failed');
+    } finally {
+      setSubmittingId(null);
+    }
+  }
 
   const canCreate = partner?.canListProducts ?? false;
 
@@ -115,7 +139,7 @@ function CatalogInner() {
       <div className="platform-partner-form-page">
         <PlatformPageHeader
           title="Catalog"
-          subtitle="Manage items visible on the public marketplace once your company is verified."
+          subtitle="Manage items visible on the public marketplace once approved by platform admin."
           actions={
             canCreate ? (
               <Link
@@ -156,7 +180,7 @@ function CatalogInner() {
                   <th>Category</th>
                   <th>Price</th>
                   <th>Status</th>
-                  <th />
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,30 +188,99 @@ function CatalogInner() {
                   <tr key={l.id}>
                     <td>
                       <div className="platform-catalog-name-cell">
-                        <div className="platform-catalog-thumb" aria-hidden>
-                          <span>✦</span>
+                        {l.primaryImageUrl ? (
+                          <img
+                            src={l.primaryImageUrl}
+                            alt=""
+                            style={{
+                              width: 36,
+                              height: 36,
+                              objectFit: 'cover',
+                              borderRadius: 4,
+                            }}
+                          />
+                        ) : (
+                          <div className="platform-catalog-thumb" aria-hidden>
+                            <span>✦</span>
+                          </div>
+                        )}
+                        <div>
+                          <strong style={{ fontSize: '0.925rem' }}>{l.name}</strong>
+                          {l.reviewStatus === 'REJECTED' && l.rejectionReason && (
+                            <div
+                              style={{
+                                color: '#991b1b',
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                padding: '2px 8px',
+                                borderRadius: 4,
+                                fontSize: '0.775rem',
+                                marginTop: 4,
+                                maxWidth: '320px',
+                              }}
+                            >
+                              <strong>Issue:</strong> {l.rejectionReason}
+                            </div>
+                          )}
                         </div>
-                        <strong>{l.name}</strong>
                       </div>
                     </td>
                     <td>{LISTING_TYPE_LABELS[l.listingType]}</td>
                     <td>{CATEGORY_LABELS[l.category]}</td>
                     <td>{formatPrice(l.priceOnRequest, l.priceInr)}</td>
                     <td>
-                      <StatusBadge
-                        status={l.isPublished ? 'PUBLISHED' : 'DRAFT'}
-                        label={l.isPublished ? 'Live on marketplace' : 'Draft'}
-                      />
+                      <StatusBadge status={l.reviewStatus} />
                     </td>
-                    <td className="platform-link-row">
-                      <Link href={`/partner/catalog/${l.id}`}>Edit</Link>
-                      {l.isPublished && (
+                    <td className="platform-link-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <Link
+                        href={`/partner/catalog/${l.id}`}
+                        style={{
+                          fontSize: '0.825rem',
+                          fontWeight: 600,
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          background: '#f1f5f9',
+                          color: '#334155',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        Edit
+                      </Link>
+
+                      {(l.reviewStatus === 'DRAFT' || l.reviewStatus === 'REJECTED') && (
+                        <button
+                          type="button"
+                          onClick={() => handleSubmitForReview(l.id)}
+                          disabled={submittingId === l.id}
+                          className="platform-btn platform-btn-primary"
+                          style={{
+                            padding: '3px 8px',
+                            fontSize: '0.775rem',
+                            borderRadius: 4,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {submittingId === l.id ? 'Submitting…' : 'Submit for review'}
+                        </button>
+                      )}
+
+                      {l.isPublished && l.reviewStatus === 'APPROVED' && (
                         <Link
                           href={`/marketplace/listings/${l.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          style={{
+                            fontSize: '0.825rem',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: 4,
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
-                          View on marketplace
+                          View live ↗
                         </Link>
                       )}
                     </td>

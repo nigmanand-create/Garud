@@ -10,7 +10,9 @@ import type { AuthenticatedUser } from '../../identity/types/auth.types';
 @Injectable()
 export class VerifiedPartnerGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const { user } = context.switchToHttp().getRequest<{ user: AuthenticatedUser }>();
+    const { user } = context
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
     if (!user) {
       throw new ForbiddenException();
     }

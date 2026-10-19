@@ -10,10 +10,7 @@ export class ListingMediaController {
   @Get(':orgId/:fileName')
   @ApiOperation({ summary: 'Serve listing image (public)' })
   @Header('Cache-Control', 'public, max-age=86400')
-  serve(
-    @Param('orgId') orgId: string,
-    @Param('fileName') fileName: string,
-  ) {
+  serve(@Param('orgId') orgId: string, @Param('fileName') fileName: string) {
     return this.listingMediaService.serveListingImage(orgId, fileName);
   }
 }

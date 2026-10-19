@@ -1,8 +1,4 @@
-import {
-  AccountType,
-  UserRole,
-  VerificationStatus,
-} from '@prisma/client';
+import { AccountType, UserRole, VerificationStatus } from '@prisma/client';
 
 const PARTNER_ACCOUNT_TYPES: AccountType[] = [
   AccountType.MANUFACTURER,

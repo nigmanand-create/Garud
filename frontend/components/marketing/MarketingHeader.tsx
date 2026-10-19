@@ -170,6 +170,11 @@ export function MarketingHeader() {
                           {dash.label}
                         </Link>
                       )}
+                      {(user.role === 'BUYER' || user.role === 'GOVERNMENT') && (
+                        <Link href="/buyer/orders" className="header-auth-link">
+                          My Orders
+                        </Link>
+                      )}
                       <span className="header-auth-email">{user.email}</span>
                       <button type="button" className="header-auth-link header-auth-btn" onClick={() => logout()}>
                         Sign out

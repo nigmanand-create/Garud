@@ -4,7 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CatalogCategory, ListingType, Prisma, VerificationStatus } from '@prisma/client';
+import {
+  CatalogCategory,
+  ListingReviewStatus,
+  ListingType,
+  Prisma,
+  VerificationStatus,
+} from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateListingDto, UpdateListingDto } from './dto/listing.dto';
 
@@ -39,7 +45,8 @@ export class CatalogService {
             ? new Prisma.Decimal(dto.priceInr)
             : null,
         warranty: dto.warranty,
-        isPublished: dto.isPublished ?? false,
+        isPublished: false,
+        reviewStatus: ListingReviewStatus.DRAFT,
       },
     });
   }
@@ -65,6 +72,12 @@ export class CatalogService {
     const existing = await this.getMine(userId, listingId);
     await this.requireApprovedPartnerOrg(userId);
 
+    if (existing.reviewStatus === ListingReviewStatus.PENDING_REVIEW) {
+      throw new BadRequestException(
+        'Listing is currently pending admin review and cannot be edited. Please wait for review completion.',
+      );
+    }
+
     const priceOnRequest = dto.priceOnRequest ?? existing.priceOnRequest;
     const priceInr =
       dto.priceInr ??
@@ -72,6 +85,9 @@ export class CatalogService {
     if (dto.priceOnRequest !== undefined || dto.priceInr !== undefined) {
       this.validatePricing(priceOnRequest, priceInr);
     }
+
+    // Material edits to an already approved live listing reset it to DRAFT for safety
+    const wasApproved = existing.reviewStatus === ListingReviewStatus.APPROVED;
 
     return this.prisma.partnerListing.update({
       where: { id: listingId },
@@ -90,8 +106,12 @@ export class CatalogService {
         city: dto.city,
         minOrderQuantity: dto.minOrderQuantity,
         warranty: dto.warranty,
-        isPublished: dto.isPublished,
         priceOnRequest: dto.priceOnRequest,
+        reviewStatus: wasApproved
+          ? ListingReviewStatus.DRAFT
+          : existing.reviewStatus,
+        isPublished: wasApproved ? false : existing.isPublished,
+        rejectionReason: null,
         priceInr:
           dto.priceOnRequest === true
             ? null
@@ -100,6 +120,30 @@ export class CatalogService {
               : dto.priceOnRequest === false
                 ? existing.priceInr
                 : undefined,
+      },
+    });
+  }
+
+  async submitForReview(userId: string, listingId: string) {
+    const listing = await this.getMine(userId, listingId);
+    await this.requireApprovedPartnerOrg(userId);
+
+    if (listing.reviewStatus === ListingReviewStatus.PENDING_REVIEW) {
+      throw new BadRequestException('Listing is already pending review');
+    }
+    if (
+      listing.reviewStatus === ListingReviewStatus.APPROVED &&
+      listing.isPublished
+    ) {
+      throw new BadRequestException('Listing is already approved and live');
+    }
+
+    return this.prisma.partnerListing.update({
+      where: { id: listingId },
+      data: {
+        reviewStatus: ListingReviewStatus.PENDING_REVIEW,
+        submittedForReviewAt: new Date(),
+        isPublished: false,
       },
     });
   }
@@ -122,6 +166,7 @@ export class CatalogService {
     return this.prisma.partnerListing.findMany({
       where: {
         isPublished: true,
+        reviewStatus: ListingReviewStatus.APPROVED,
         listingType: filters.listingType,
         category: filters.category,
         organization: { verificationStatus: VerificationStatus.APPROVED },
@@ -148,6 +193,7 @@ export class CatalogService {
       where: {
         id: listingId,
         isPublished: true,
+        reviewStatus: ListingReviewStatus.APPROVED,
         organization: { verificationStatus: VerificationStatus.APPROVED },
       },
       include: {
@@ -187,7 +233,12 @@ export class CatalogService {
         productsServicesDescription: true,
         _count: {
           select: {
-            listings: { where: { isPublished: true } },
+            listings: {
+              where: {
+                isPublished: true,
+                reviewStatus: ListingReviewStatus.APPROVED,
+              },
+            },
           },
         },
       },

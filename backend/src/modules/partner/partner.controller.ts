@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -31,8 +24,12 @@ export class PartnerController {
   constructor(private readonly partnerService: PartnerService) {}
 
   @Get('me')
-  @ApiOperation({ summary: 'Partner profile, verification status, capability flags' })
-  @ApiOkResponse({ description: 'Organization application + canEdit / canListProducts' })
+  @ApiOperation({
+    summary: 'Partner profile, verification status, capability flags',
+  })
+  @ApiOkResponse({
+    description: 'Organization application + canEdit / canListProducts',
+  })
   getMe(@CurrentUser() user: AuthenticatedUser) {
     return this.partnerService.getMyApplication(user.userId, user.role);
   }

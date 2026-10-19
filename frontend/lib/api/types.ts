@@ -19,6 +19,78 @@ export type VerificationStatus =
   | 'APPROVED'
   | 'REJECTED';
 
+export type ListingReviewStatus =
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'UNPUBLISHED';
+
+export type ListingModerationAuditLog = {
+  id: string;
+  listingId: string;
+  actorUserId: string;
+  fromStatus: ListingReviewStatus;
+  toStatus: ListingReviewStatus;
+  note?: string | null;
+  createdAt: string;
+};
+
+export type AdminListingSummary = {
+  id: string;
+  name: string;
+  brand?: string | null;
+  sku?: string | null;
+  listingType: ListingType;
+  category: CatalogCategory;
+  primaryImageUrl?: string | null;
+  priceOnRequest: boolean;
+  priceInr?: string | null;
+  isPublished: boolean;
+  reviewStatus: ListingReviewStatus;
+  rejectionReason?: string | null;
+  submittedForReviewAt?: string | null;
+  reviewedAt?: string | null;
+  updatedAt: string;
+  organization: {
+    id: string;
+    companyName: string;
+    contactPersonName: string;
+    contactEmail: string;
+    contactMobile: string;
+    city?: string | null;
+    state?: string | null;
+    country: string;
+    verificationStatus: VerificationStatus;
+  };
+};
+
+export type AdminListingsResponse = {
+  items: AdminListingSummary[];
+  total: number;
+  skip: number;
+  take: number;
+  statusCounts?: Record<string, number>;
+};
+
+export type AdminListingDetail = AdminListingSummary & {
+  description?: string | null;
+  technicalSpecs?: string | null;
+  applications: string[];
+  galleryImageUrls: string[];
+  minOrderQuantity?: number | null;
+  warranty?: string | null;
+  organization: AdminListingSummary['organization'] & {
+    owner: {
+      id: string;
+      email: string;
+      role: UserRole;
+      accountType: AccountType;
+    };
+  };
+  moderationLogs: ListingModerationAuditLog[];
+};
+
 export type ListingType = 'PRODUCT' | 'SERVICE';
 
 export type CatalogCategory =
@@ -50,6 +122,35 @@ export type FulfillmentStatus =
   | 'FULFILLED';
 
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+
+export type PaymentGateway =
+  | 'RAZORPAY'
+  | 'BANK_TRANSFER_NEFT_RTGS'
+  | 'CASH_ON_DELIVERY';
+
+export type TransactionStatus =
+  | 'CREATED'
+  | 'PROCESSING'
+  | 'SUCCESS'
+  | 'FAILED'
+  | 'REFUNDED';
+
+export type PaymentTransaction = {
+  id: string;
+  orderId: string;
+  gateway: PaymentGateway;
+  gatewayOrderId?: string | null;
+  gatewayPaymentId?: string | null;
+  utrNumber?: string | null;
+  senderBankName?: string | null;
+  amountInr: string;
+  currency: string;
+  status: TransactionStatus;
+  paymentMethod?: string | null;
+  failureReason?: string | null;
+  metadata?: any;
+  createdAt: string;
+};
 
 export type CartLineItem = {
   id: string;
@@ -95,6 +196,109 @@ export type PartnerOrderListItem = {
   lineItemCount: number;
 };
 
+export type AdminOrderListItem = {
+  id: string;
+  status: OrderStatus;
+  fulfillmentStatus: FulfillmentStatus;
+  paymentStatus: PaymentStatus;
+  subtotalInr: string;
+  taxInr: string;
+  shippingInr: string;
+  totalInr: string;
+  companyName: string;
+  contactName: string;
+  contactPhone: string;
+  purchaseOrderNumber?: string | null;
+  placedAt: string;
+  buyerUser: { id: string; email: string };
+  buyerOrganization: { id: string; companyName: string; city?: string | null; state?: string | null };
+  vendorOrganization: { id: string; companyName: string; city?: string | null; state?: string | null };
+  lineItemCount: number;
+};
+
+export type AdminOrdersResponse = {
+  items: AdminOrderListItem[];
+  total: number;
+  skip: number;
+  take: number;
+  metrics: {
+    totalGMV: number;
+    totalConfirmedOrders: number;
+    pendingFulfillmentCount: number;
+    pendingPaymentCount: number;
+  };
+};
+
+export type AdminOrderDetail = {
+  id: string;
+  status: OrderStatus;
+  fulfillmentStatus: FulfillmentStatus;
+  paymentStatus: PaymentStatus;
+  subtotalInr: string;
+  taxInr: string;
+  shippingInr: string;
+  totalInr: string;
+  companyName: string;
+  contactName: string;
+  contactPhone: string;
+  shippingAddressLine1: string;
+  shippingAddressLine2?: string | null;
+  shippingCity: string;
+  shippingState: string;
+  shippingPincode: string;
+  shippingCountry: string;
+  billingAddressLine1: string;
+  billingAddressLine2?: string | null;
+  billingCity: string;
+  billingState: string;
+  billingPincode: string;
+  billingCountry: string;
+  gstin?: string | null;
+  purchaseOrderNumber?: string | null;
+  placedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  buyerUser: { id: string; email: string; role: UserRole; accountType: AccountType };
+  buyerOrganization: {
+    id: string;
+    companyName: string;
+    city?: string | null;
+    state?: string | null;
+    country: string;
+    contactEmail: string;
+    contactMobile: string;
+    owner: { id: string; email: string };
+  };
+  vendorOrganization: {
+    id: string;
+    companyName: string;
+    city?: string | null;
+    state?: string | null;
+    country: string;
+    contactEmail: string;
+    contactMobile: string;
+    verificationStatus: VerificationStatus;
+    owner: { id: string; email: string };
+  };
+  lineItems: {
+    id: string;
+    listingId: string;
+    snapshotName: string;
+    snapshotSku?: string | null;
+    unitPriceInr: string;
+    quantity: number;
+    lineTotalInr: string;
+    listing?: {
+      id: string;
+      name: string;
+      brand?: string | null;
+      primaryImageUrl?: string | null;
+      category: CatalogCategory;
+    };
+  }[];
+  transactions?: PaymentTransaction[];
+};
+
 export type OrderDetail = {
   id: string;
   status: OrderStatus;
@@ -127,6 +331,7 @@ export type OrderDetail = {
   gstin?: string | null;
   purchaseOrderNumber?: string | null;
   vendorOrganization: { id: string; companyName: string };
+  transactions?: PaymentTransaction[];
   lineItems: {
     id: string;
     listingId: string;

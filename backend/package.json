@@ -85,6 +85,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@nestjs/config)/"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

@@ -1,8 +1,4 @@
-import {
-  AccountType,
-  UserRole,
-  VerificationStatus,
-} from '@prisma/client';
+import { AccountType, UserRole, VerificationStatus } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -105,7 +101,10 @@ export class AuthUserResponse {
   @ApiProperty({ enum: AccountType, enumName: 'AccountType' })
   accountType: AccountType;
 
-  @ApiPropertyOptional({ enum: VerificationStatus, enumName: 'VerificationStatus' })
+  @ApiPropertyOptional({
+    enum: VerificationStatus,
+    enumName: 'VerificationStatus',
+  })
   verificationStatus?: VerificationStatus;
 
   @ApiPropertyOptional()

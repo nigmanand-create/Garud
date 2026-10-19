@@ -112,11 +112,6 @@ export class CreateListingDto {
   @IsString()
   @MaxLength(500)
   warranty?: string;
-
-  @ApiPropertyOptional({ default: false })
-  @IsOptional()
-  @IsBoolean()
-  isPublished?: boolean;
 }
 
 export class UpdateListingDto {
@@ -216,9 +211,4 @@ export class UpdateListingDto {
   @IsString()
   @MaxLength(500)
   warranty?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isPublished?: boolean;
 }

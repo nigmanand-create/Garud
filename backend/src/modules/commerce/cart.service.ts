@@ -4,7 +4,11 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { Prisma, VerificationStatus } from '@prisma/client';
+import {
+  ListingReviewStatus,
+  Prisma,
+  VerificationStatus,
+} from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { AddCartItemDto, UpdateCartItemDto } from './dto/commerce.dto';
 
@@ -20,6 +24,7 @@ const cartInclude = {
           priceInr: true,
           priceOnRequest: true,
           isPublished: true,
+          reviewStatus: true,
           minOrderQuantity: true,
           primaryImageUrl: true,
           organizationId: true,
@@ -155,15 +160,18 @@ export class CartService {
     return cart;
   }
 
-  private assertPurchasable(
-    listing: {
-      isPublished: boolean;
-      priceOnRequest: boolean;
-      priceInr: Prisma.Decimal | null;
-      organization?: { verificationStatus: VerificationStatus };
-    },
-  ) {
-    if (!listing.isPublished) {
+  private assertPurchasable(listing: {
+    isPublished: boolean;
+    reviewStatus?: ListingReviewStatus;
+    priceOnRequest: boolean;
+    priceInr: Prisma.Decimal | null;
+    organization?: { verificationStatus: VerificationStatus };
+  }) {
+    if (
+      !listing.isPublished ||
+      (listing.reviewStatus &&
+        listing.reviewStatus !== ListingReviewStatus.APPROVED)
+    ) {
       throw new UnprocessableEntityException('Listing is not available');
     }
     if (listing.priceOnRequest) {

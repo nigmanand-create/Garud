@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
@@ -13,7 +14,7 @@ import {
   CATEGORY_LABELS,
   LISTING_TYPE_LABELS,
 } from '@/lib/platform/labels';
-import type { CatalogCategory, ListingType } from '@/lib/api/types';
+import type { CatalogCategory, ListingReviewStatus, ListingType } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 import {
   formatGalleryImageUrls,
@@ -34,6 +35,8 @@ type Listing = {
   priceOnRequest: boolean;
   priceInr?: string | null;
   isPublished: boolean;
+  reviewStatus: ListingReviewStatus;
+  rejectionReason?: string | null;
 };
 
 type ListingForm = Listing & { galleryImageUrlsText: string };
@@ -79,10 +82,9 @@ function EditListingInner() {
     if (!form) return;
     setError(null);
     setMessage(null);
-    const publish = canListProducts ? form.isPublished : false;
     setSaving(true);
     try {
-      await apiRequest(`/partner/catalog/listings/${id}`, {
+      const updated = await apiRequest<Listing>(`/partner/catalog/listings/${id}`, {
         method: 'PATCH',
         auth: true,
         body: {
@@ -99,13 +101,42 @@ function EditListingInner() {
             : form.priceInr != null
               ? Number(form.priceInr)
               : undefined,
-          isPublished: publish,
         },
       });
-      setForm((f) => (f ? { ...f, isPublished: publish } : f));
-      setMessage('Saved.');
+      setForm((f) => (f ? {
+        ...f,
+        ...updated,
+        galleryImageUrlsText: formatGalleryImageUrls(updated.galleryImageUrls),
+      } : f));
+      setMessage(
+        updated.reviewStatus === 'DRAFT' && form.reviewStatus === 'APPROVED'
+          ? 'Changes saved. Because details were updated, the listing is back in Draft and must be submitted for review again.'
+          : 'Saved successfully.'
+      );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitForReview() {
+    setError(null);
+    setMessage(null);
+    setSaving(true);
+    try {
+      const updated = await apiRequest<Listing>(`/partner/catalog/listings/${id}/submit-for-review`, {
+        method: 'POST',
+        auth: true,
+      });
+      setForm((f) => (f ? {
+        ...f,
+        ...updated,
+        galleryImageUrlsText: formatGalleryImageUrls(updated.galleryImageUrls),
+      } : f));
+      setMessage('Listing submitted for admin review.');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Submission failed');
     } finally {
       setSaving(false);
     }
@@ -167,12 +198,7 @@ function EditListingInner() {
             ]}
             title={form.name}
             subtitle={`${LISTING_TYPE_LABELS[form.listingType]} · ${CATEGORY_LABELS[form.category]}`}
-            badge={
-              <StatusBadge
-                status={form.isPublished ? 'PUBLISHED' : 'DRAFT'}
-                label={form.isPublished ? 'Live on marketplace' : 'Draft'}
-              />
-            }
+            badge={<StatusBadge status={form.reviewStatus} />}
           />
         )}
         <div className="platform-form-layout">
@@ -180,10 +206,139 @@ function EditListingInner() {
           {message && (
             <div className="platform-card platform-success">{message}</div>
           )}
-          {!canListProducts && form && (
-            <div className="platform-callout platform-callout--partner">
-              Marketplace publishing unlocks after partner verification. Your listing
-              stays as a draft until then.
+          {form?.reviewStatus === 'REJECTED' && form.rejectionReason && (
+            <div
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 10,
+                padding: '1.25rem',
+                marginBottom: '1.25rem',
+                boxShadow: '0 2px 8px -2px rgba(185, 28, 28, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+                <strong style={{ color: '#991b1b', fontSize: '0.95rem' }}>
+                  Changes requested by Admin
+                </strong>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    background: '#fee2e2',
+                    color: '#b91c1c',
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  ACTION REQUIRED
+                </span>
+              </div>
+              <div
+                style={{
+                  background: '#fff',
+                  border: '1px solid #fed7d7',
+                  borderLeft: '4px solid #b91c1c',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 6,
+                  fontSize: '0.9rem',
+                  color: '#7f1d1d',
+                  margin: '0.5rem 0',
+                }}
+              >
+                &quot;{form.rejectionReason}&quot;
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
+                <p style={{ margin: 0, fontSize: '0.825rem', color: '#991b1b' }}>
+                  Please update the required information below and re-submit for review.
+                </p>
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-primary"
+                  onClick={submitForReview}
+                  disabled={saving || !canListProducts}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Submit for review now
+                </button>
+              </div>
+            </div>
+          )}
+
+          {form?.reviewStatus === 'PENDING_REVIEW' && (
+            <div
+              style={{
+                background: '#f0f9ff',
+                border: '1px solid #bae6fd',
+                borderRadius: 10,
+                padding: '1.15rem 1.25rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.85rem',
+              }}
+            >
+              <span style={{ fontSize: '1.5rem' }}>⏳</span>
+              <div>
+                <strong style={{ color: '#0369a1', fontSize: '0.95rem', display: 'block' }}>
+                  Listing is under moderation review
+                </strong>
+                <p style={{ margin: '0.2rem 0 0', color: '#0284c7', fontSize: '0.85rem' }}>
+                  Submitted to Garud admin team. Typical review turnaround is 24 business hours. Edits are temporarily locked during inspection.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {form?.reviewStatus === 'APPROVED' && (
+            <div
+              style={{
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: 10,
+                padding: '1.15rem 1.25rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>✓</span>
+                <div>
+                  <strong style={{ color: '#15803d', fontSize: '0.95rem', display: 'block' }}>
+                    Approved & Active on Marketplace
+                  </strong>
+                  <p style={{ margin: '0.2rem 0 0', color: '#16a34a', fontSize: '0.85rem' }}>
+                    This listing is live for discovery, RFQ inquiries, and direct buyer orders.
+                  </p>
+                </div>
+              </div>
+              {form.isPublished && (
+                <Link
+                  href={`/marketplace/listings/${form.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    background: '#dcfce7',
+                    color: '#15803d',
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: 6,
+                    fontWeight: 600,
+                    fontSize: '0.825rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  View on marketplace ↗
+                </Link>
+              )}
             </div>
           )}
           {form && (
@@ -310,32 +465,45 @@ function EditListingInner() {
           </fieldset>
 
           <fieldset className="platform-form-section">
-            <legend className="platform-form-section-title">Visibility</legend>
-            <label className="platform-checkbox-row">
-              <input
-                type="checkbox"
-                checked={form.isPublished}
-                disabled={!canListProducts}
-                onChange={(e) =>
-                  setForm((f) =>
-                    f ? { ...f, isPublished: e.target.checked } : f,
-                  )
-                }
-              />
-              <span>
-                Publish on marketplace
-                {!canListProducts && (
-                  <span className="platform-muted"> (requires verification)</span>
-                )}
-              </span>
-            </label>
+            <legend className="platform-form-section-title">Moderation & Publish Status</legend>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '0.5rem 0' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <strong>Status:</strong>
+                  <StatusBadge status={form.reviewStatus} />
+                  {form.isPublished && (
+                    <span style={{ fontSize: '0.8rem', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                      LIVE ON MARKETPLACE
+                    </span>
+                  )}
+                </div>
+                <p className="platform-form-section-desc" style={{ marginTop: '0.25rem' }}>
+                  {form.reviewStatus === 'DRAFT' && 'Ready to go live? Submit your listing for platform admin review.'}
+                  {form.reviewStatus === 'PENDING_REVIEW' && 'Submitted and waiting for admin review.'}
+                  {form.reviewStatus === 'APPROVED' && 'Your listing is active on the marketplace.'}
+                  {form.reviewStatus === 'REJECTED' && 'Fix any issues noted above and re-submit for review.'}
+                  {form.reviewStatus === 'UNPUBLISHED' && 'This listing was taken down. Submit again to request reactivation.'}
+                </p>
+              </div>
+
+              {(form.reviewStatus === 'DRAFT' || form.reviewStatus === 'REJECTED' || form.reviewStatus === 'UNPUBLISHED') && (
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-primary"
+                  onClick={submitForReview}
+                  disabled={saving || !canListProducts}
+                >
+                  Submit for review
+                </button>
+              )}
+            </div>
           </fieldset>
 
               <div className="platform-form-sticky-footer">
                 <button
                   type="submit"
                   className="platform-btn platform-btn-cta"
-                  disabled={saving}
+                  disabled={saving || form.reviewStatus === 'PENDING_REVIEW'}
                   aria-busy={saving}
                 >
                   {saving ? 'Saving…' : 'Save changes'}
@@ -344,6 +512,7 @@ function EditListingInner() {
                   type="button"
                   className="platform-btn platform-btn-danger"
                   onClick={remove}
+                  disabled={saving || form.reviewStatus === 'PENDING_REVIEW'}
                 >
                   Delete listing
                 </button>

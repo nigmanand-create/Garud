@@ -20,3 +20,7 @@ uploads/
 
 # OS
 .DS_Store
+
+.rzp-key.csv
+rzp-key.csv
+*.csv

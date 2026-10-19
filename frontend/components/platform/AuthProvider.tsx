@@ -11,6 +11,7 @@ import {
 import { authApi } from '@/lib/api/client';
 import { clearTokens, getAccessToken, setTokens } from '@/lib/api/auth-storage';
 import type { AuthTokensResponse, AuthUser } from '@/lib/api/types';
+import Link from 'next/link';
 
 type AuthState = {
   user: AuthUser | null;
@@ -133,9 +134,9 @@ export function RequireAuth({
     return (
       <div className="platform-card">
         <p>Please sign in to continue.</p>
-        <a href="/auth/login" className="platform-btn">
+        <Link href="/auth/login" className="platform-btn">
           Sign in
-        </a>
+        </Link>
       </div>
     );
   }

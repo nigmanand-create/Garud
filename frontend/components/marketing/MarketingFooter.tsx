@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   CONTACT_EMAIL,
   CONTACT_PHONE,
@@ -38,29 +39,29 @@ export function MarketingFooter() {
             <div className="ctype-column">
               <h4 className="ctype-column-title">Services</h4>
               <ul className="ctype-column-links">
-                <li><a href="/dgca-compliance">DGCA Compliance</a></li>
-                <li><a href="/drone-training">Drone Training</a></li>
-                <li><a href="/marketplace">Marketplace</a></li>
-                <li><a href="/marketplace?section=accessories">Accessories</a></li>
-                <li><a href="/repairs-maintenance">Repairs Maintenance</a></li>
+                <li><Link href="/dgca-compliance">DGCA Compliance</Link></li>
+                <li><Link href="/drone-training">Drone Training</Link></li>
+                <li><Link href="/marketplace">Marketplace</Link></li>
+                <li><Link href="/marketplace?section=accessories">Accessories</Link></li>
+                <li><Link href="/repairs-maintenance">Repairs Maintenance</Link></li>
               </ul>
             </div>
             <div className="ctype-column">
               <h4 className="ctype-column-title">Company</h4>
               <ul className="ctype-column-links">
-                <li><a href="/about-us">About Us</a></li>
-                <li><a href="/drone-jobs-career">Careers / Jobs</a></li>
-                <li><a href="/government-projects-schemes">Government Projects</a></li>
-                <li><a href="/finance-insurance">Loans Insurance</a></li>
-                <li><a href="/scrap-recycling">Scrap Recycling</a></li>
+                <li><Link href="/about-us">About Us</Link></li>
+                <li><Link href="/drone-jobs-career">Careers / Jobs</Link></li>
+                <li><Link href="/government-projects-schemes">Government Projects</Link></li>
+                <li><Link href="/finance-insurance">Loans Insurance</Link></li>
+                <li><Link href="/scrap-recycling">Scrap Recycling</Link></li>
               </ul>
             </div>
             <div className="ctype-column">
               <h4 className="ctype-column-title">Resources</h4>
               <ul className="ctype-column-links">
-                <li><a href="/about-us">About Us</a></li>
-                <li><a href="/enquiry.php">Contact Us</a></li>
-                <li><a href="/drone-jobs-career">Careers</a></li>
+                <li><Link href="/about-us">About Us</Link></li>
+                <li><Link href="/enquiry.php">Contact Us</Link></li>
+                <li><Link href="/drone-jobs-career">Careers</Link></li>
               </ul>
             </div>
             <div className="ctype-column">

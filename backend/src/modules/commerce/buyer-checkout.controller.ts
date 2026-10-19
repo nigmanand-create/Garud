@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
@@ -18,12 +18,17 @@ import { PlaceCheckoutDto } from './dto/commerce.dto';
 export class BuyerCheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
+  @Get('saved-address')
+  @ApiOperation({
+    summary: 'Get buyer default saved address from profile or previous order',
+  })
+  getSavedAddress(@CurrentUser() user: AuthenticatedUser) {
+    return this.checkoutService.getSavedAddress(user.userId);
+  }
+
   @Post('place')
   @ApiOperation({ summary: 'Place order from cart (pay later / offline)' })
-  place(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: PlaceCheckoutDto,
-  ) {
+  place(@CurrentUser() user: AuthenticatedUser, @Body() dto: PlaceCheckoutDto) {
     return this.checkoutService.placeOrder(user.userId, user.role, dto);
   }
 }

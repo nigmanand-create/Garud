@@ -1,4 +1,10 @@
-import { AccountType, CatalogCategory, ListingType, UserRole, VerificationStatus } from '@prisma/client';
+import {
+  AccountType,
+  CatalogCategory,
+  ListingType,
+  UserRole,
+  VerificationStatus,
+} from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 

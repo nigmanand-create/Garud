@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
+import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { formatEnumLabel } from '@/lib/platform/labels';
@@ -47,6 +48,7 @@ function AdminInner() {
         title="Partner applications"
         subtitle="Review and approve verification requests from the admin queue."
       />
+      <AdminSubnav />
       <div className="platform-card platform-form platform-filter-bar">
         <div>
         <label>Filter by status</label>

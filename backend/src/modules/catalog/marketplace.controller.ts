@@ -1,5 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CatalogCategory, ListingType } from '@prisma/client';
 import { CatalogService } from './catalog.service';
 
@@ -36,7 +41,9 @@ export class MarketplaceController {
 
   @Get('partners/:orgId')
   @ApiOperation({ summary: 'Public verified partner profile' })
-  @ApiOkResponse({ description: 'Organization summary and published listing count' })
+  @ApiOkResponse({
+    description: 'Organization summary and published listing count',
+  })
   getPartner(@Param('orgId') orgId: string) {
     return this.catalogService.getPublicPartnerProfile(orgId);
   }

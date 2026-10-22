@@ -34,6 +34,10 @@ export class RfqService {
       throw new NotFoundException('Buyer organization not found');
     }
 
+    if (dto.deadlineAt && new Date(dto.deadlineAt) <= new Date()) {
+      throw new BadRequestException('RFQ deadline must be in the future');
+    }
+
     const vendorIds = await this.matching.findVendorOrganizationIds(
       dto.category,
       dto.listingType,
@@ -221,8 +225,17 @@ export class RfqService {
     if (invite.rfq.status !== RfqStatus.OPEN) {
       throw new BadRequestException('RFQ is no longer open');
     }
+    if (invite.rfq.deadlineAt && new Date() > new Date(invite.rfq.deadlineAt)) {
+      throw new BadRequestException('RFQ submission deadline has expired');
+    }
     if (invite.status === RfqInviteStatus.DECLINED) {
       throw new BadRequestException('You declined this RFQ');
+    }
+
+    if (dto.validUntil && new Date(dto.validUntil) <= new Date()) {
+      throw new BadRequestException(
+        'Quotation validity date must be in the future',
+      );
     }
 
     const priceOnRequest = dto.priceOnRequest ?? false;
@@ -291,11 +304,13 @@ export class RfqService {
       where: {
         id: quotationId,
         vendorOrganizationId: org.id,
-        status: QuotationStatus.SUBMITTED,
       },
     });
     if (!quote) {
       throw new NotFoundException('Quotation not found');
+    }
+    if (quote.status === QuotationStatus.WITHDRAWN) {
+      throw new BadRequestException('Quotation is already withdrawn');
     }
 
     return this.prisma.quotation.update({

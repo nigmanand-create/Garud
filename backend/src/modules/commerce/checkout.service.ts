@@ -15,6 +15,16 @@ export type OrderWithRelations = Prisma.OrderGetPayload<{
   };
 }> & {
   transactions?: PaymentTransaction[];
+  lineItems?: Array<
+    Prisma.OrderLineItemGetPayload<{}> & {
+      listing?: {
+        id: string;
+        name: string;
+        sku: string | null;
+        primaryImageUrl: string | null;
+      } | null;
+    }
+  >;
 };
 
 @Injectable()
@@ -52,6 +62,7 @@ export class CheckoutService {
         listingId: item.listing.id,
         snapshotName: item.listing.name,
         snapshotSku: item.listing.sku,
+        snapshotImageUrl: item.listing.primaryImageUrl ?? null,
         unitPriceInr: unit,
         quantity: item.quantity,
         lineTotalInr: lineTotal,
@@ -186,6 +197,8 @@ export class CheckoutService {
   serializeOrder(order: OrderWithRelations) {
     return {
       id: order.id,
+      rfqId: order.rfqId ?? null,
+      quotationId: order.quotationId ?? null,
       status: order.status,
       fulfillmentStatus: order.fulfillmentStatus,
       paymentStatus: order.paymentStatus,
@@ -194,6 +207,16 @@ export class CheckoutService {
       taxInr: order.taxInr.toFixed(2),
       shippingInr: order.shippingInr.toFixed(2),
       totalInr: order.totalInr.toFixed(2),
+      carrierName: order.carrierName ?? null,
+      trackingNumber: order.trackingNumber ?? null,
+      trackingUrl: order.trackingUrl ?? null,
+      dispatchedAt: order.dispatchedAt ? order.dispatchedAt.toISOString() : null,
+      deliveredAt: order.deliveredAt ? order.deliveredAt.toISOString() : null,
+      estimatedDeliveryAt: order.estimatedDeliveryAt
+        ? order.estimatedDeliveryAt.toISOString()
+        : null,
+      hardwareSerialNumbers: order.hardwareSerialNumbers || [],
+      fulfillmentNotes: order.fulfillmentNotes ?? null,
       companyName: order.companyName,
       contactName: order.contactName,
       contactPhone: order.contactPhone,
@@ -233,15 +256,19 @@ export class CheckoutService {
             createdAt: t.createdAt.toISOString(),
           }))
         : [],
-      lineItems: order.lineItems.map((li) => ({
-        id: li.id,
-        listingId: li.listingId,
-        name: li.snapshotName,
-        sku: li.snapshotSku,
-        unitPriceInr: li.unitPriceInr.toFixed(2),
-        quantity: li.quantity,
-        lineTotalInr: li.lineTotalInr.toFixed(2),
-      })),
+      lineItems: order.lineItems
+        ? order.lineItems.map((li: any) => ({
+            id: li.id,
+            listingId: li.listingId,
+            name: li.snapshotName,
+            sku: li.snapshotSku,
+            imageUrl:
+              li.snapshotImageUrl || li.listing?.primaryImageUrl || null,
+            unitPriceInr: li.unitPriceInr.toFixed(2),
+            quantity: li.quantity,
+            lineTotalInr: li.lineTotalInr.toFixed(2),
+          }))
+        : [],
     };
   }
 }

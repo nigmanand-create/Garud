@@ -11,6 +11,8 @@ import { PaymentGatewayModal } from '@/components/platform/PaymentGatewayModal';
 import { ESCROW_BANK_DETAILS } from '@/lib/api/payments';
 import { formatPrice } from '@/lib/platform/labels';
 import { fulfillmentTimelineText } from '@/lib/platform/fulfillment';
+import { OrderProgressStepper } from '@/components/platform/OrderProgressStepper';
+import { ShipmentTrackingCard } from '@/components/platform/ShipmentTrackingCard';
 import type { OrderDetail } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
@@ -112,8 +114,14 @@ function BuyerOrderDetailInner() {
         </div>
       )}
 
+      {/* Visual Fulfillment Progress Stepper */}
+      <OrderProgressStepper order={order} />
+
       <div className="platform-detail-layout">
         <div>
+          {/* Live Shipment Tracking Card */}
+          <ShipmentTrackingCard order={order} />
+
           {/* Main Items Card */}
           <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
             <p style={{ margin: '0 0 0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -141,16 +149,49 @@ function BuyerOrderDetailInner() {
                   {order.lineItems.map((li) => (
                     <tr key={li.id}>
                       <td>
-                        {li.listingId ? (
-                          <Link href={`/marketplace/listings/${li.listingId}`}>{li.name}</Link>
-                        ) : (
-                          <span style={{ fontWeight: 600 }}>{li.name}</span>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                          <div
+                            style={{
+                              width: 46,
+                              height: 46,
+                              borderRadius: 8,
+                              border: '1px solid #e2e8f0',
+                              background: '#f8fafc',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {li.imageUrl ? (
+                              <img
+                                src={li.imageUrl}
+                                alt={li.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: '1.25rem' }}>🛸</span>
+                            )}
+                          </div>
+                          <div>
+                            {li.listingId ? (
+                              <Link
+                                href={`/marketplace/listings/${li.listingId}`}
+                                style={{ fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
+                              >
+                                {li.name}
+                              </Link>
+                            ) : (
+                              <span style={{ fontWeight: 600, color: '#0f172a' }}>{li.name}</span>
+                            )}
+                          </div>
+                        </div>
                       </td>
-                      <td>{li.sku ?? '—'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{li.sku ?? '—'}</td>
                       <td>{li.quantity}</td>
                       <td>{formatPrice(false, li.unitPriceInr)}</td>
-                      <td>{formatPrice(false, li.lineTotalInr)}</td>
+                      <td style={{ fontWeight: 600 }}>{formatPrice(false, li.lineTotalInr)}</td>
                     </tr>
                   ))}
                 </tbody>

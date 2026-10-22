@@ -232,6 +232,32 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
       expect(step3.fulfillmentStatus).toBe(FulfillmentStatus.FULFILLED);
     });
 
+    it('updates fulfillment with carrier, tracking number, serial numbers and auto-records timestamps', async () => {
+      const order = await createTestOrder();
+      const updated = await ordersService.updatePartnerOrderFulfillment(
+        partnerUserId,
+        order.id,
+        {
+          fulfillmentStatus: FulfillmentStatus.SHIPPED,
+          carrierName: 'Delhivery Surface',
+          trackingNumber: 'DEL1234567890',
+          trackingUrl: 'https://delhivery.com/track/DEL1234567890',
+          hardwareSerialNumbers: ['SN-DRONE-883', 'SN-BAT-001'],
+          fulfillmentNotes: 'Dispatched via insured express shipment',
+          estimatedDeliveryAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+        },
+      );
+
+      expect(updated.fulfillmentStatus).toBe(FulfillmentStatus.SHIPPED);
+      expect(updated.carrierName).toBe('Delhivery Surface');
+      expect(updated.trackingNumber).toBe('DEL1234567890');
+      expect(updated.trackingUrl).toBe('https://delhivery.com/track/DEL1234567890');
+      expect(updated.hardwareSerialNumbers).toEqual(['SN-DRONE-883', 'SN-BAT-001']);
+      expect(updated.fulfillmentNotes).toBe('Dispatched via insured express shipment');
+      expect(updated.dispatchedAt).toBeDefined();
+      expect(typeof updated.dispatchedAt).toBe('string');
+    });
+
     it('rejects fulfillment status updates on a CANCELLED order', async () => {
       const order = await createTestOrder({ status: OrderStatus.CANCELLED });
 

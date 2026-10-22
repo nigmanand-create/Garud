@@ -332,6 +332,14 @@ export type OrderDetail = {
   purchaseOrderNumber?: string | null;
   rfqId?: string | null;
   quotationId?: string | null;
+  carrierName?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  dispatchedAt?: string | null;
+  deliveredAt?: string | null;
+  estimatedDeliveryAt?: string | null;
+  hardwareSerialNumbers?: string[];
+  fulfillmentNotes?: string | null;
   vendorOrganization: { id: string; companyName: string };
   transactions?: PaymentTransaction[];
   lineItems: {
@@ -339,10 +347,21 @@ export type OrderDetail = {
     listingId?: string | null;
     name: string;
     sku?: string | null;
+    imageUrl?: string | null;
     unitPriceInr: string;
     quantity: number;
     lineTotalInr: string;
   }[];
+};
+
+export type UpdateOrderFulfillmentPayload = {
+  fulfillmentStatus: FulfillmentStatus;
+  carrierName?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  estimatedDeliveryAt?: string;
+  hardwareSerialNumbers?: string[];
+  fulfillmentNotes?: string;
 };
 
 export type RfqStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';

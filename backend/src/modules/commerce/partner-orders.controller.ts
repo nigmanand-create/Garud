@@ -35,7 +35,7 @@ export class PartnerOrdersController {
     return this.ordersService.updatePartnerOrderFulfillment(
       user.userId,
       id,
-      dto.fulfillmentStatus,
+      dto,
     );
   }
 

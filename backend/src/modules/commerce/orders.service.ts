@@ -3,13 +3,25 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { FulfillmentStatus, OrderStatus } from '@prisma/client';
+import { FulfillmentStatus, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CheckoutService } from './checkout.service';
+import { UpdateOrderFulfillmentDto } from './dto/update-fulfillment.dto';
 
 const orderDetailInclude = {
   vendorOrganization: { select: { id: true, companyName: true } },
-  lineItems: true,
+  lineItems: {
+    include: {
+      listing: {
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          primaryImageUrl: true,
+        },
+      },
+    },
+  },
   transactions: {
     orderBy: { createdAt: 'desc' as const },
   },
@@ -88,8 +100,11 @@ export class OrdersService {
   async updatePartnerOrderFulfillment(
     partnerUserId: string,
     orderId: string,
-    fulfillmentStatus: FulfillmentStatus,
+    payload: UpdateOrderFulfillmentDto | FulfillmentStatus,
   ) {
+    const dto: UpdateOrderFulfillmentDto =
+      typeof payload === 'string' ? { fulfillmentStatus: payload } : payload;
+
     const org = await this.prisma.organization.findUnique({
       where: { ownerId: partnerUserId },
     });
@@ -107,9 +122,51 @@ export class OrdersService {
         'Cannot update fulfillment on a cancelled order',
       );
     }
+
+    const now = new Date();
+    const updateData: Prisma.OrderUpdateInput = {
+      fulfillmentStatus: dto.fulfillmentStatus,
+    };
+
+    if (dto.carrierName !== undefined) {
+      updateData.carrierName = dto.carrierName?.trim() || null;
+    }
+    if (dto.trackingNumber !== undefined) {
+      updateData.trackingNumber = dto.trackingNumber?.trim() || null;
+    }
+    if (dto.trackingUrl !== undefined) {
+      updateData.trackingUrl = dto.trackingUrl?.trim() || null;
+    }
+    if (dto.fulfillmentNotes !== undefined) {
+      updateData.fulfillmentNotes = dto.fulfillmentNotes?.trim() || null;
+    }
+    if (dto.hardwareSerialNumbers !== undefined) {
+      updateData.hardwareSerialNumbers = dto.hardwareSerialNumbers;
+    }
+    if (dto.estimatedDeliveryAt !== undefined) {
+      updateData.estimatedDeliveryAt = dto.estimatedDeliveryAt
+        ? new Date(dto.estimatedDeliveryAt)
+        : null;
+    }
+
+    if (
+      dto.fulfillmentStatus === FulfillmentStatus.SHIPPED &&
+      !order.dispatchedAt
+    ) {
+      updateData.dispatchedAt = now;
+    }
+    if (dto.fulfillmentStatus === FulfillmentStatus.FULFILLED) {
+      if (!order.dispatchedAt) {
+        updateData.dispatchedAt = now;
+      }
+      if (!order.deliveredAt) {
+        updateData.deliveredAt = now;
+      }
+    }
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { fulfillmentStatus },
+      data: updateData,
       include: orderDetailInclude,
     });
     return this.checkoutService.serializeOrder(updated);

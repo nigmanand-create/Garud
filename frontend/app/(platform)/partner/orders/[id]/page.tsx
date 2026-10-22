@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/platform/labels';
 import type { OrderDetail } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 import { PartnerOrderFulfillmentPanel } from '@/components/platform/PartnerOrderFulfillmentPanel';
+import { OrderProgressStepper } from '@/components/platform/OrderProgressStepper';
 import { formatEnumLabel } from '@/lib/platform/labels';
 
 export default function PartnerOrderDetailPage() {
@@ -80,6 +81,9 @@ function PartnerOrderDetailInner() {
         backLabel="Incoming orders"
       />
 
+      {/* Progress Milestone Stepper */}
+      <OrderProgressStepper order={order} />
+
       <PartnerOrderFulfillmentPanel order={order} onUpdated={setOrder} />
 
       <div className="platform-detail-layout">
@@ -108,16 +112,46 @@ function PartnerOrderDetailInner() {
                 {order.lineItems.map((li) => (
                   <tr key={li.id}>
                     <td>
-                      {li.listingId ? (
-                        <Link href={`/partner/catalog/${li.listingId}`}>{li.name}</Link>
-                      ) : (
-                        <span style={{ fontWeight: 600 }}>{li.name}</span>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                        <div
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 8,
+                            border: '1px solid #e2e8f0',
+                            background: '#f8fafc',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {li.imageUrl ? (
+                            <img
+                              src={li.imageUrl}
+                              alt={li.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <span style={{ fontSize: '1.2rem' }}>🛸</span>
+                          )}
+                        </div>
+                        <div>
+                          {li.listingId ? (
+                            <Link href={`/partner/catalog/${li.listingId}`} style={{ fontWeight: 600 }}>
+                              {li.name}
+                            </Link>
+                          ) : (
+                            <span style={{ fontWeight: 600 }}>{li.name}</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
-                    <td>{li.sku ?? '—'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{li.sku ?? '—'}</td>
                     <td>{li.quantity}</td>
                     <td>{formatPrice(false, li.unitPriceInr)}</td>
-                    <td>{formatPrice(false, li.lineTotalInr)}</td>
+                    <td style={{ fontWeight: 600 }}>{formatPrice(false, li.lineTotalInr)}</td>
                   </tr>
                 ))}
               </tbody>

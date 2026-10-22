@@ -36,6 +36,11 @@ type RfqDetail = {
   category: CatalogCategory;
   quantity?: number | null;
   deadlineAt?: string | null;
+  payloadCapacityKg?: string | number | null;
+  enduranceMinutes?: number | null;
+  isDgcaRequired?: boolean | null;
+  targetBudgetInr?: string | number | null;
+  specsDocumentUrl?: string | null;
   createdAt: string;
   _count: { invites: number; quotations: number };
   orders?: RfqOrderInfo[];
@@ -51,6 +56,10 @@ type QuotationRow = {
   status: QuotationStatus;
   validUntil?: string | null;
   createdAt?: string;
+  quotedPayloadKg?: string | number | null;
+  quotedEnduranceMin?: number | null;
+  dgcaModelNumber?: string | null;
+  warrantyMonths?: number | null;
   vendorOrganization: {
     id: string;
     companyName: string;
@@ -79,6 +88,7 @@ function DetailInner() {
   const [quotes, setQuotes] = useState<QuotationRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'matrix' | 'cards'>('matrix');
 
   // Award Modal state
   const [awardingQuote, setAwardingQuote] = useState<QuotationRow | null>(null);
@@ -185,6 +195,23 @@ function DetailInner() {
 
   const generatedOrder = rfq?.orders && rfq.orders.length > 0 ? rfq.orders[0] : null;
 
+  // Find lowest price and fastest delivery for comparison badges
+  const validQuotes = quotes.filter((q) => !q.priceOnRequest && q.priceInr != null);
+  const lowestPriceQuoteId =
+    validQuotes.length > 1
+      ? [...validQuotes].sort(
+          (a, b) => Number(a.priceInr) - Number(b.priceInr),
+        )[0]?.id
+      : null;
+
+  const validLeadTimeQuotes = quotes.filter((q) => q.leadTimeDays != null);
+  const fastestDeliveryQuoteId =
+    validLeadTimeQuotes.length > 1
+      ? [...validLeadTimeQuotes].sort(
+          (a, b) => Number(a.leadTimeDays) - Number(b.leadTimeDays),
+        )[0]?.id
+      : null;
+
   return (
     <>
       {error && <div className="platform-card platform-error">{error}</div>}
@@ -250,17 +277,84 @@ function DetailInner() {
             badge={<StatusBadge status={rfq.status} />}
           />
 
+          {/* Technical Specs Dossier Card */}
           <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '1.1rem' }}>
-              Requirement Details
+              Procurement Scope & Technical Requirements
             </h3>
-            <p style={{ whiteSpace: 'pre-wrap', color: '#334155', lineHeight: 1.6 }}>
+            <p style={{ whiteSpace: 'pre-wrap', color: '#334155', lineHeight: 1.6, margin: '0 0 1rem' }}>
               {rfq.description}
             </p>
-            {rfq.quantity != null && (
-              <p style={{ marginTop: '0.75rem', fontSize: '0.95rem' }}>
-                <strong>Required Quantity:</strong> {rfq.quantity} units
-              </p>
+
+            {/* Technical Highlights Badges */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.75rem',
+                background: '#f8fafc',
+                padding: '1rem',
+                borderRadius: 8,
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Required Quantity</span>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                  {rfq.quantity != null ? `${rfq.quantity} units` : 'Not specified'}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Min. Payload Capacity</span>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                  {rfq.payloadCapacityKg ? `${Number(rfq.payloadCapacityKg)} kg` : 'Standard'}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Min. Flight Endurance</span>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                  {rfq.enduranceMinutes ? `${rfq.enduranceMinutes} mins` : 'Standard'}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>DGCA Type Certification</span>
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    marginTop: 2,
+                    color: rfq.isDgcaRequired ? '#166534' : '#64748b',
+                  }}
+                >
+                  {rfq.isDgcaRequired ? '✓ Mandatory' : 'Optional'}
+                </div>
+              </div>
+
+              {rfq.targetBudgetInr && (
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Target Budget</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                    {formatPrice(false, rfq.targetBudgetInr)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {rfq.specsDocumentUrl && (
+              <div style={{ marginTop: '0.75rem' }}>
+                <a
+                  href={rfq.specsDocumentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="platform-btn platform-btn-secondary platform-btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
+                >
+                  📄 View Attached Tender Document / Specs ↗
+                </a>
+              </div>
             )}
 
             {rfq.status === 'OPEN' && (
@@ -283,71 +377,340 @@ function DetailInner() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2rem 0 1rem' }}>
-            <h2 style={{ fontSize: '1.35rem', margin: 0 }}>
-              Vendor Quotations & Bids ({quotes.length})
-            </h2>
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-              Compare pricing, lead times, and award directly
-            </span>
-          </div>
+          {/* Quotations Header with View Switcher */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              margin: '2rem 0 1rem',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}
+          >
+            <div>
+              <h2 style={{ fontSize: '1.35rem', margin: 0 }}>
+                Vendor Proposals & Quotations ({quotes.length})
+              </h2>
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                Evaluate technical specs, compare commercial terms, and award directly to trigger order fulfillment.
+              </p>
+            </div>
 
-          <div className="platform-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-            {quotes.map((q) => {
-              const isAccepted = q.status === 'ACCEPTED';
-              const isRejected = q.status === 'REJECTED';
-              const isSubmitted = q.status === 'SUBMITTED';
-
-              const unitPriceNum = q.priceInr ? Number(q.priceInr) : 0;
-              const qtyNum = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
-              const calculatedTotal = unitPriceNum * qtyNum;
-
-              return (
-                <article
-                  key={q.id}
-                  className="platform-card"
+            {quotes.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: 4, borderRadius: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('matrix')}
                   style={{
-                    border: isAccepted ? '2px solid #22c55e' : isRejected ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
-                    background: isAccepted ? '#f0fdf4' : isRejected ? '#f8fafc' : '#ffffff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    position: 'relative',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: 6,
+                    border: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.825rem',
+                    cursor: 'pointer',
+                    background: viewMode === 'matrix' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'matrix' ? '#0f172a' : '#64748b',
+                    boxShadow: viewMode === 'matrix' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
                   }}
                 >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>
-                        {q.vendorOrganization.companyName}
-                      </h3>
-                      <StatusBadge status={q.status} />
-                    </div>
+                  📊 Comparison Matrix
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('cards')}
+                  style={{
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: 6,
+                    border: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.825rem',
+                    cursor: 'pointer',
+                    background: viewMode === 'cards' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'cards' ? '#0f172a' : '#64748b',
+                    boxShadow: viewMode === 'cards' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  🗂️ Cards View
+                </button>
+              </div>
+            )}
+          </div>
 
-                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: isAccepted ? '#dcfce7' : '#f1f5f9', borderRadius: 8 }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
-                        {formatPrice(q.priceOnRequest, q.priceInr)}
-                        {!q.priceOnRequest && (
-                          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}> / unit</span>
+          {/* VIEW 1: COMPARISON MATRIX TABLE */}
+          {viewMode === 'matrix' && quotes.length > 0 && (
+            <div className="platform-card" style={{ padding: 0, overflow: 'hidden', marginBottom: '1.5rem' }}>
+              <div className="platform-table-wrap">
+                <table className="platform-table">
+                  <thead>
+                    <tr>
+                      <th>Vendor Organization</th>
+                      <th>Quoted Price (Unit)</th>
+                      <th>Total Value</th>
+                      <th>Lead Time</th>
+                      <th>Offered Payload</th>
+                      <th>Endurance</th>
+                      <th>DGCA Type Certified</th>
+                      <th>Warranty</th>
+                      <th>Status & Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quotes.map((q) => {
+                      const isAccepted = q.status === 'ACCEPTED';
+                      const isRejected = q.status === 'REJECTED';
+                      const isSubmitted = q.status === 'SUBMITTED';
+                      const isLowest = q.id === lowestPriceQuoteId;
+                      const isFastest = q.id === fastestDeliveryQuoteId;
+
+                      const unitPriceNum = q.priceInr ? Number(q.priceInr) : 0;
+                      const qtyNum = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
+                      const totalVal = unitPriceNum * qtyNum;
+
+                      return (
+                        <tr
+                          key={q.id}
+                          style={{
+                            background: isAccepted
+                              ? '#f0fdf4'
+                              : isRejected
+                              ? '#f8fafc'
+                              : isLowest
+                              ? '#fefce8'
+                              : '#ffffff',
+                          }}
+                        >
+                          <td>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                              {q.vendorOrganization.companyName}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                              {[q.vendorOrganization.city, q.vendorOrganization.state].filter(Boolean).join(', ') || 'India'}
+                            </div>
+                          </td>
+
+                          <td>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                              {formatPrice(q.priceOnRequest, q.priceInr)}
+                            </div>
+                            {isLowest && (
+                              <span
+                                style={{
+                                  fontSize: '0.675rem',
+                                  fontWeight: 700,
+                                  background: '#dcfce7',
+                                  color: '#166534',
+                                  padding: '1px 6px',
+                                  borderRadius: 4,
+                                  display: 'inline-block',
+                                  marginTop: 2,
+                                }}
+                              >
+                                🏷️ Lowest Price
+                              </span>
+                            )}
+                          </td>
+
+                          <td style={{ fontWeight: 600 }}>
+                            {q.priceOnRequest ? '—' : `₹${totalVal.toLocaleString('en-IN')}`}
+                          </td>
+
+                          <td>
+                            <div style={{ fontWeight: 600 }}>
+                              {q.leadTimeDays != null ? `${q.leadTimeDays} days` : '—'}
+                            </div>
+                            {isFastest && (
+                              <span
+                                style={{
+                                  fontSize: '0.675rem',
+                                  fontWeight: 700,
+                                  background: '#e0f2fe',
+                                  color: '#0369a1',
+                                  padding: '1px 6px',
+                                  borderRadius: 4,
+                                  display: 'inline-block',
+                                  marginTop: 2,
+                                }}
+                              >
+                                ⚡ Fastest
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            {q.quotedPayloadKg != null ? (
+                              <strong>{Number(q.quotedPayloadKg)} kg</strong>
+                            ) : (
+                              <span style={{ color: '#94a3b8' }}>—</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {q.quotedEnduranceMin != null ? (
+                              <strong>{q.quotedEnduranceMin} mins</strong>
+                            ) : (
+                              <span style={{ color: '#94a3b8' }}>—</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {q.dgcaModelNumber ? (
+                              <span style={{ color: '#166534', fontWeight: 600, fontSize: '0.8rem' }}>
+                                ✓ {q.dgcaModelNumber}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Uncertified / Standard</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {q.warrantyMonths != null ? `${q.warrantyMonths} mos` : 'Standard'}
+                          </td>
+
+                          <td>
+                            {isAccepted ? (
+                              <div>
+                                <span style={{ color: '#166534', fontWeight: 700, fontSize: '0.825rem' }}>
+                                  ✓ Awarded
+                                </span>
+                                {generatedOrder && (
+                                  <Link
+                                    href={`/buyer/orders/${generatedOrder.id}`}
+                                    style={{ display: 'block', fontSize: '0.75rem', color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
+                                  >
+                                    View Order #{generatedOrder.id.slice(0, 8)} ↗
+                                  </Link>
+                                )}
+                              </div>
+                            ) : isRejected ? (
+                              <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Declined</span>
+                            ) : rfq.status === 'OPEN' && isSubmitted ? (
+                              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                <button
+                                  type="button"
+                                  className="platform-btn platform-btn-cta platform-btn-sm"
+                                  disabled={q.priceOnRequest || !q.priceInr}
+                                  onClick={() => {
+                                    setAwardingQuote(q);
+                                    setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
+                                  }}
+                                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
+                                >
+                                  Award RFQ
+                                </button>
+                                <button
+                                  type="button"
+                                  className="platform-btn platform-btn-secondary platform-btn-sm"
+                                  onClick={() => handleRejectQuotation(q.id)}
+                                  style={{ padding: '0.35rem 0.55rem', fontSize: '0.8rem' }}
+                                >
+                                  Decline
+                                </button>
+                              </div>
+                            ) : (
+                              <StatusBadge status={q.status} />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 2: CARDS GRID VIEW */}
+          {viewMode === 'cards' && (
+            <div className="platform-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+              {quotes.map((q) => {
+                const isAccepted = q.status === 'ACCEPTED';
+                const isRejected = q.status === 'REJECTED';
+                const isSubmitted = q.status === 'SUBMITTED';
+
+                const unitPriceNum = q.priceInr ? Number(q.priceInr) : 0;
+                const qtyNum = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
+                const calculatedTotal = unitPriceNum * qtyNum;
+
+                return (
+                  <article
+                    key={q.id}
+                    className="platform-card"
+                    style={{
+                      border: isAccepted ? '2px solid #22c55e' : isRejected ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
+                      background: isAccepted ? '#f0fdf4' : isRejected ? '#f8fafc' : '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>
+                          {q.vendorOrganization.companyName}
+                        </h3>
+                        <StatusBadge status={q.status} />
+                      </div>
+
+                      <div style={{ marginBottom: '1rem', padding: '0.75rem', background: isAccepted ? '#dcfce7' : '#f1f5f9', borderRadius: 8 }}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                          {formatPrice(q.priceOnRequest, q.priceInr)}
+                          {!q.priceOnRequest && (
+                            <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}> / unit</span>
+                          )}
+                        </div>
+                        {!q.priceOnRequest && qtyNum > 1 && (
+                          <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '0.25rem' }}>
+                            Total for {qtyNum} units: <strong>₹{calculatedTotal.toLocaleString('en-IN')}</strong>
+                          </div>
                         )}
                       </div>
-                      {!q.priceOnRequest && qtyNum > 1 && (
-                        <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '0.25rem' }}>
-                          Total for {qtyNum} units: <strong>₹{calculatedTotal.toLocaleString('en-IN')}</strong>
-                        </div>
-                      )}
-                    </div>
 
-                    <div style={{ fontSize: '0.875rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
-                      {q.leadTimeDays != null && (
+                      {/* Technical Specs on Card */}
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '0.5rem',
+                          background: '#f8fafc',
+                          padding: '0.65rem',
+                          borderRadius: 6,
+                          marginBottom: '0.75rem',
+                          fontSize: '0.8rem',
+                        }}
+                      >
                         <div>
-                          <strong>Lead Time:</strong> {q.leadTimeDays} business days
+                          <span style={{ color: '#64748b' }}>Payload:</span>{' '}
+                          <strong>{q.quotedPayloadKg ? `${Number(q.quotedPayloadKg)} kg` : '—'}</strong>
                         </div>
-                      )}
-                      {q.minOrderQuantity != null && (
                         <div>
-                          <strong>Min Order Qty:</strong> {q.minOrderQuantity} units
+                          <span style={{ color: '#64748b' }}>Endurance:</span>{' '}
+                          <strong>{q.quotedEnduranceMin ? `${q.quotedEnduranceMin}m` : '—'}</strong>
                         </div>
-                      )}
+                        <div>
+                          <span style={{ color: '#64748b' }}>DGCA:</span>{' '}
+                          <strong style={{ color: q.dgcaModelNumber ? '#166534' : '#64748b' }}>
+                            {q.dgcaModelNumber ? '✓ Certified' : 'Standard'}
+                          </strong>
+                        </div>
+                        <div>
+                          <span style={{ color: '#64748b' }}>Warranty:</span>{' '}
+                          <strong>{q.warrantyMonths ? `${q.warrantyMonths} mo` : 'Standard'}</strong>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '0.875rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
+                        {q.leadTimeDays != null && (
+                          <div>
+                            <strong>Lead Time:</strong> {q.leadTimeDays} business days
+                          </div>
+                        )}
+                        {q.minOrderQuantity != null && (
+                          <div>
+                            <strong>Min Order Qty:</strong> {q.minOrderQuantity} units
+                          </div>
+                        )}
                       {q.notes && (
                         <div style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#475569', whiteSpace: 'pre-wrap' }}>
                           &ldquo;{q.notes}&rdquo;
@@ -421,6 +784,7 @@ function DetailInner() {
               );
             })}
           </div>
+        )}
 
           {quotes.length === 0 && (
             <div className="platform-card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>

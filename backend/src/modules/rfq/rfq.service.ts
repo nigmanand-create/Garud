@@ -66,6 +66,17 @@ export class RfqService {
           city: dto.city,
           deadlineAt: dto.deadlineAt ? new Date(dto.deadlineAt) : undefined,
           status: RfqStatus.OPEN,
+          payloadCapacityKg:
+            dto.payloadCapacityKg != null
+              ? new Prisma.Decimal(dto.payloadCapacityKg)
+              : undefined,
+          enduranceMinutes: dto.enduranceMinutes,
+          isDgcaRequired: dto.isDgcaRequired ?? false,
+          targetBudgetInr:
+            dto.targetBudgetInr != null
+              ? new Prisma.Decimal(dto.targetBudgetInr)
+              : undefined,
+          specsDocumentUrl: dto.specsDocumentUrl,
         },
       });
 
@@ -510,6 +521,13 @@ export class RfqService {
           leadTimeDays: dto.leadTimeDays,
           notes: dto.notes,
           validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
+          quotedPayloadKg:
+            dto.quotedPayloadKg != null
+              ? new Prisma.Decimal(dto.quotedPayloadKg)
+              : undefined,
+          quotedEnduranceMin: dto.quotedEnduranceMin,
+          dgcaModelNumber: dto.dgcaModelNumber,
+          warrantyMonths: dto.warrantyMonths,
         },
       });
 

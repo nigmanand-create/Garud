@@ -384,6 +384,10 @@ export type PartnerQuotation = {
   minOrderQuantity?: number | null;
   validUntil?: string | null;
   status?: QuotationStatus;
+  quotedPayloadKg?: string | number | null;
+  quotedEnduranceMin?: number | null;
+  dgcaModelNumber?: string | null;
+  warrantyMonths?: number | null;
 };
 
 export type PartnerRfqInviteDetail = {
@@ -396,6 +400,11 @@ export type PartnerRfqInviteDetail = {
     status: RfqStatus;
     category: CatalogCategory;
     quantity?: number | null;
+    payloadCapacityKg?: string | number | null;
+    enduranceMinutes?: number | null;
+    isDgcaRequired?: boolean | null;
+    targetBudgetInr?: string | number | null;
+    specsDocumentUrl?: string | null;
     buyerOrganization: {
       companyName: string;
       city?: string | null;

@@ -74,6 +74,32 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
           {quotation.leadTimeDays} days
         </p>
       )}
+      {quotation.quotedPayloadKg != null && (
+        <p className="platform-detail-fact">
+          <span className="platform-detail-fact-label">Quoted Payload:</span>{' '}
+          <strong>{Number(quotation.quotedPayloadKg)} kg</strong>
+        </p>
+      )}
+      {quotation.quotedEnduranceMin != null && (
+        <p className="platform-detail-fact">
+          <span className="platform-detail-fact-label">Quoted Endurance:</span>{' '}
+          <strong>{quotation.quotedEnduranceMin} mins</strong>
+        </p>
+      )}
+      {quotation.dgcaModelNumber && (
+        <p className="platform-detail-fact">
+          <span className="platform-detail-fact-label">DGCA Certification:</span>{' '}
+          <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#166534' }}>
+            ✓ {quotation.dgcaModelNumber}
+          </span>
+        </p>
+      )}
+      {quotation.warrantyMonths != null && (
+        <p className="platform-detail-fact">
+          <span className="platform-detail-fact-label">Warranty:</span>{' '}
+          {quotation.warrantyMonths} months
+        </p>
+      )}
       {quotation.notes && (
         <p className="platform-detail-fact" style={{ whiteSpace: 'pre-wrap' }}>
           <span className="platform-detail-fact-label">Notes:</span>{' '}
@@ -132,6 +158,10 @@ function DetailInner() {
     priceInr: '',
     leadTimeDays: '',
     notes: '',
+    quotedPayloadKg: '',
+    quotedEnduranceMin: '',
+    dgcaModelNumber: '',
+    warrantyMonths: '',
   });
 
   const reload = useCallback(() => {
@@ -167,6 +197,16 @@ function DetailInner() {
               ? Number(quote.leadTimeDays)
               : undefined,
             notes: quote.notes || undefined,
+            quotedPayloadKg: quote.quotedPayloadKg
+              ? Number(quote.quotedPayloadKg)
+              : undefined,
+            quotedEnduranceMin: quote.quotedEnduranceMin
+              ? Number(quote.quotedEnduranceMin)
+              : undefined,
+            dgcaModelNumber: quote.dgcaModelNumber.trim() || undefined,
+            warrantyMonths: quote.warrantyMonths
+              ? Number(quote.warrantyMonths)
+              : undefined,
           },
         },
       );
@@ -278,8 +318,76 @@ function DetailInner() {
                 {invite.rfq.quantity != null && (
                   <p className="platform-detail-fact">
                     <span className="platform-detail-fact-label">Quantity:</span>{' '}
-                    {invite.rfq.quantity}
+                    <strong>{invite.rfq.quantity} units</strong>
                   </p>
+                )}
+              </div>
+
+              {/* Technical RFP Specifications */}
+              <div
+                className="platform-card"
+                style={{
+                  marginTop: '1rem',
+                  border: '1px solid #bfdbfe',
+                  background: '#f8fafc',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🛸</span>
+                  <h3 style={{ margin: 0, fontSize: '1rem', color: '#1e3a8a' }}>
+                    Required Technical Specifications
+                  </h3>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Min. Payload</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                      {invite.rfq.payloadCapacityKg ? `${Number(invite.rfq.payloadCapacityKg)} kg` : 'Standard'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Min. Endurance</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                      {invite.rfq.enduranceMinutes ? `${invite.rfq.enduranceMinutes} mins` : 'Standard'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>DGCA Type Certified</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, marginTop: 2, color: invite.rfq.isDgcaRequired ? '#166534' : '#64748b' }}>
+                      {invite.rfq.isDgcaRequired ? '✓ Mandatory' : 'Optional'}
+                    </div>
+                  </div>
+
+                  {invite.rfq.targetBudgetInr && (
+                    <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Target Budget</div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                        {formatPrice(false, invite.rfq.targetBudgetInr)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {invite.rfq.specsDocumentUrl && (
+                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0' }}>
+                    <a
+                      href={invite.rfq.specsDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none' }}
+                    >
+                      📄 Download Technical Tender Specs Document ↗
+                    </a>
+                  </div>
                 )}
               </div>
             </div>
@@ -309,7 +417,7 @@ function DetailInner() {
                     Your quotation
                   </legend>
                   <p className="platform-form-section-desc">
-                    Submit pricing and lead time for this buyer requirement.
+                    Submit pricing, lead time, and technical parameters for this requirement.
                   </p>
                   <label className="platform-checkbox-row">
                     <input
@@ -354,6 +462,73 @@ function DetailInner() {
                       }
                     />
                   </div>
+
+                  {/* Technical Parameters */}
+                  <div className="platform-field">
+                    <label htmlFor="quotedPayload">Offered Payload (kg)</label>
+                    <input
+                      id="quotedPayload"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      placeholder="e.g. 16.0"
+                      value={quote.quotedPayloadKg}
+                      onChange={(e) =>
+                        setQuote((q) => ({
+                          ...q,
+                          quotedPayloadKg: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="platform-field">
+                    <label htmlFor="quotedEndurance">Flight Endurance (mins)</label>
+                    <input
+                      id="quotedEndurance"
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 40"
+                      value={quote.quotedEnduranceMin}
+                      onChange={(e) =>
+                        setQuote((q) => ({
+                          ...q,
+                          quotedEnduranceMin: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="platform-field">
+                    <label htmlFor="dgcaModel">DGCA Model / Certificate #</label>
+                    <input
+                      id="dgcaModel"
+                      type="text"
+                      placeholder="e.g. DGCA-TC-2024-UAV-001"
+                      value={quote.dgcaModelNumber}
+                      onChange={(e) =>
+                        setQuote((q) => ({
+                          ...q,
+                          dgcaModelNumber: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="platform-field">
+                    <label htmlFor="warranty">Warranty (Months)</label>
+                    <input
+                      id="warranty"
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 12 or 24"
+                      value={quote.warrantyMonths}
+                      onChange={(e) =>
+                        setQuote((q) => ({
+                          ...q,
+                          warrantyMonths: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
                   <div className="platform-field">
                     <label htmlFor="notes">Notes</label>
                     <textarea

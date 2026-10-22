@@ -62,6 +62,34 @@ export class CreateRfqDto {
   @IsOptional()
   @IsDateString()
   deadlineAt?: string;
+
+  @ApiPropertyOptional({ example: 10.5, description: 'Minimum payload capacity in kg' })
+  @IsOptional()
+  @Type(() => Number)
+  payloadCapacityKg?: number;
+
+  @ApiPropertyOptional({ example: 45, description: 'Minimum flight endurance in minutes' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  enduranceMinutes?: number;
+
+  @ApiPropertyOptional({ example: true, description: 'Whether DGCA Type Certification is mandatory' })
+  @IsOptional()
+  @IsBoolean()
+  isDgcaRequired?: boolean;
+
+  @ApiPropertyOptional({ example: 500000, description: 'Target budget in INR' })
+  @IsOptional()
+  @Type(() => Number)
+  targetBudgetInr?: number;
+
+  @ApiPropertyOptional({ example: 'https://specs.garudhub.com/tender-doc.pdf' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  specsDocumentUrl?: string;
 }
 
 export class SubmitQuotationDto {
@@ -99,6 +127,31 @@ export class SubmitQuotationDto {
   @IsOptional()
   @IsDateString()
   validUntil?: string;
+
+  @ApiPropertyOptional({ example: 12.0, description: 'Quoted drone payload capacity in kg' })
+  @IsOptional()
+  @Type(() => Number)
+  quotedPayloadKg?: number;
+
+  @ApiPropertyOptional({ example: 50, description: 'Quoted flight time in minutes' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  quotedEnduranceMin?: number;
+
+  @ApiPropertyOptional({ example: 'DGCA-TC-2024-UAV-092' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  dgcaModelNumber?: string;
+
+  @ApiPropertyOptional({ example: 24, description: 'Warranty period in months' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  warrantyMonths?: number;
 }
 
 export class RfqOrderAddressDto {

@@ -433,6 +433,13 @@ model Rfq {
   createdAt            DateTime        @default(now()) @map("created_at")
   updatedAt            DateTime        @updatedAt @map("updated_at")
 
+  // Drone RFP Specifications (Phase 3)
+  payloadCapacityKg    Decimal?        @map("payload_capacity_kg") @db.Decimal(8, 2)
+  enduranceMinutes     Int?            @map("endurance_minutes")
+  isDgcaRequired       Boolean         @default(false) @map("is_dgca_required")
+  targetBudgetInr      Decimal?        @map("target_budget_inr") @db.Decimal(14, 2)
+  specsDocumentUrl     String?         @map("specs_document_url")
+
   buyerUser         User           @relation("RfqBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
   buyerOrganization Organization   @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
   invites           RfqInvite[]
@@ -474,6 +481,12 @@ model Quotation {
   status               QuotationStatus  @default(SUBMITTED)
   createdAt            DateTime         @default(now()) @map("created_at")
   updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  // Technical Quotation Attributes (Phase 3)
+  quotedPayloadKg      Decimal?         @map("quoted_payload_kg") @db.Decimal(8, 2)
+  quotedEnduranceMin   Int?             @map("quoted_endurance_min")
+  dgcaModelNumber      String?          @map("dgca_model_number")
+  warrantyMonths       Int?             @map("warranty_months")
 
   rfq                Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)

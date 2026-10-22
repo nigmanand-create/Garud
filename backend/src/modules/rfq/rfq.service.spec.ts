@@ -603,5 +603,48 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
       });
       expect(dbQuote?.status).toBe(QuotationStatus.REJECTED);
     });
+
+    it('creates RFQ with drone technical specs and submits quotation with payload, endurance and DGCA compliance', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 15);
+
+      const rfq = await service.createRfq(buyerUserId, UserRole.BUYER, {
+        title: 'Agricultural Spraying Drone RFP',
+        description:
+          'Heavy payload precision agri sprayer with DGCA certification',
+        category: CatalogCategory.COMPONENT,
+        quantity: 10,
+        deadlineAt: futureDate.toISOString(),
+        payloadCapacityKg: 16.5,
+        enduranceMinutes: 35,
+        isDgcaRequired: true,
+        targetBudgetInr: 4500000,
+        specsDocumentUrl: 'https://specs.garudhub.com/agri-spec-2026.pdf',
+      });
+      createdRfqIds.push(rfq.id);
+
+      expect(Number(rfq.payloadCapacityKg)).toBe(16.5);
+      expect(rfq.enduranceMinutes).toBe(35);
+      expect(rfq.isDgcaRequired).toBe(true);
+      expect(Number(rfq.targetBudgetInr)).toBe(4500000);
+      expect(rfq.specsDocumentUrl).toBe(
+        'https://specs.garudhub.com/agri-spec-2026.pdf',
+      );
+
+      const quote = await service.submitQuotation(partnerUserId, rfq.id, {
+        priceInr: 420000,
+        minOrderQuantity: 5,
+        leadTimeDays: 20,
+        quotedPayloadKg: 18.0,
+        quotedEnduranceMin: 40,
+        dgcaModelNumber: 'DGCA-UAV-AGRI-9901',
+        warrantyMonths: 24,
+      });
+
+      expect(Number(quote.quotedPayloadKg)).toBe(18.0);
+      expect(quote.quotedEnduranceMin).toBe(40);
+      expect(quote.dgcaModelNumber).toBe('DGCA-UAV-AGRI-9901');
+      expect(quote.warrantyMonths).toBe(24);
+    });
   });
 });

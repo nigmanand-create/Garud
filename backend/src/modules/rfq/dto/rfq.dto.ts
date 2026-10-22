@@ -10,6 +10,7 @@ import {
   IsString,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateRfqDto {
@@ -98,4 +99,105 @@ export class SubmitQuotationDto {
   @IsOptional()
   @IsDateString()
   validUntil?: string;
+}
+
+export class RfqOrderAddressDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  companyName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  contactName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  contactPhone?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  addressLine1?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  addressLine2?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  state?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(12)
+  pincode?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  country?: string;
+}
+
+export class AcceptQuotationDto {
+  @ApiPropertyOptional({ type: () => RfqOrderAddressDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RfqOrderAddressDto)
+  shipping?: RfqOrderAddressDto;
+
+  @ApiPropertyOptional({ type: () => RfqOrderAddressDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RfqOrderAddressDto)
+  billing?: RfqOrderAddressDto;
+
+  @ApiPropertyOptional({ default: true })
+  @IsOptional()
+  @IsBoolean()
+  billingSameAsShipping?: boolean;
+
+  @ApiPropertyOptional({ example: '29ABCDE1234F1Z5' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  gstin?: string;
+
+  @ApiPropertyOptional({ example: 'PO-RFQ-2026-001' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  purchaseOrderNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
+}
+
+export class RejectQuotationDto {
+  @ApiPropertyOptional({ example: 'Price exceeds project budget' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  rejectionReason?: string;
 }

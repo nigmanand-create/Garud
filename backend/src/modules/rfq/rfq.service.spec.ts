@@ -467,5 +467,141 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
         service.compareQuotations(otherBuyerUserId, rfq.id),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('buyer accepts quotation: awards quote, rejects other quotes, closes RFQ, and creates Order', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 10);
+
+      // 1. Create RFQ
+      const rfq = await service.createRfq(buyerUserId, UserRole.BUYER, {
+        title: 'High-Torque Drone Propulsion Fleet',
+        description: 'Motors for heavy lift cargo drone testing',
+        category: CatalogCategory.COMPONENT,
+        quantity: 5,
+        deadlineAt: futureDate.toISOString(),
+      });
+      createdRfqIds.push(rfq.id);
+
+      // 2. Partner submits quote #1
+      const quote1 = await service.submitQuotation(partnerUserId, rfq.id, {
+        priceInr: 32000,
+        minOrderQuantity: 1,
+        leadTimeDays: 7,
+      });
+
+      // 3. Ensure other partner is invited and submits quote #2
+      const otherPartnerUser = await prisma.user.findUnique({
+        where: { id: otherPartnerUserId },
+        include: { organization: true },
+      });
+      if (otherPartnerUser?.organization) {
+        await prisma.rfqInvite.upsert({
+          where: {
+            rfqId_vendorOrganizationId: {
+              rfqId: rfq.id,
+              vendorOrganizationId: otherPartnerUser.organization.id,
+            },
+          },
+          create: {
+            rfqId: rfq.id,
+            vendorOrganizationId: otherPartnerUser.organization.id,
+            status: RfqInviteStatus.INVITED,
+          },
+          update: {},
+        });
+      }
+
+      const quote2 = await service.submitQuotation(otherPartnerUserId, rfq.id, {
+        priceInr: 35000,
+        minOrderQuantity: 1,
+        leadTimeDays: 14,
+      });
+
+      // 4. Foreign buyer cannot accept quote
+      await expect(
+        service.acceptQuotation(otherBuyerUserId, rfq.id, quote1.id),
+      ).rejects.toThrow(ForbiddenException);
+
+      // 5. RFQ owner accepts quote #1
+      const acceptResult = await service.acceptQuotation(
+        buyerUserId,
+        rfq.id,
+        quote1.id,
+        {
+          purchaseOrderNumber: 'PO-TEST-0099',
+        },
+      );
+
+      expect(acceptResult.success).toBe(true);
+      expect(acceptResult.orderId).toBeDefined();
+
+      // Check Quote #1 is ACCEPTED
+      const dbQuote1 = await prisma.quotation.findUnique({
+        where: { id: quote1.id },
+      });
+      expect(dbQuote1?.status).toBe(QuotationStatus.ACCEPTED);
+
+      // Check Quote #2 is REJECTED
+      const dbQuote2 = await prisma.quotation.findUnique({
+        where: { id: quote2.id },
+      });
+      expect(dbQuote2?.status).toBe(QuotationStatus.REJECTED);
+
+      // Check RFQ is CLOSED
+      const dbRfq = await prisma.rfq.findUnique({ where: { id: rfq.id } });
+      expect(dbRfq?.status).toBe(RfqStatus.CLOSED);
+
+      // Check Order created and linked correctly
+      const dbOrder = await prisma.order.findUnique({
+        where: { id: acceptResult.orderId },
+        include: { lineItems: true },
+      });
+      expect(dbOrder).toBeDefined();
+      expect(dbOrder?.rfqId).toBe(rfq.id);
+      expect(dbOrder?.quotationId).toBe(quote1.id);
+      expect(dbOrder?.status).toBe('CONFIRMED');
+      expect(dbOrder?.paymentStatus).toBe('PENDING');
+      expect(dbOrder?.purchaseOrderNumber).toBe('PO-TEST-0099');
+      expect(Number(dbOrder?.totalInr)).toBe(32000 * 5);
+      expect(dbOrder?.lineItems.length).toBe(1);
+      expect(dbOrder?.lineItems[0].quantity).toBe(5);
+
+      // Check Partner cannot withdraw ACCEPTED quote
+      await expect(
+        service.withdrawQuotation(partnerUserId, quote1.id),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('buyer can reject a specific quotation', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 10);
+
+      const rfq = await service.createRfq(buyerUserId, UserRole.BUYER, {
+        title: 'Battery Pack Procurement',
+        description: '6S 22000mAh Lipo Packs',
+        category: CatalogCategory.COMPONENT,
+        quantity: 2,
+        deadlineAt: futureDate.toISOString(),
+      });
+      createdRfqIds.push(rfq.id);
+
+      const quote = await service.submitQuotation(partnerUserId, rfq.id, {
+        priceInr: 18000,
+        minOrderQuantity: 1,
+        leadTimeDays: 5,
+      });
+
+      const rejectResult = await service.rejectQuotation(
+        buyerUserId,
+        rfq.id,
+        quote.id,
+      );
+      expect(rejectResult.success).toBe(true);
+
+      const dbQuote = await prisma.quotation.findUnique({
+        where: { id: quote.id },
+      });
+      expect(dbQuote?.status).toBe(QuotationStatus.REJECTED);
+    });
   });
 });

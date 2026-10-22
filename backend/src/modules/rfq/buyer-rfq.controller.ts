@@ -7,7 +7,11 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { RolesGuard } from '../identity/guards/roles.guard';
 import type { AuthenticatedUser } from '../identity/types/auth.types';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
-import { CreateRfqDto } from './dto/rfq.dto';
+import {
+  AcceptQuotationDto,
+  CreateRfqDto,
+  RejectQuotationDto,
+} from './dto/rfq.dto';
 import { RfqService } from './rfq.service';
 
 @ApiTags('RFQ (Buyer)')
@@ -42,6 +46,41 @@ export class BuyerRfqController {
   })
   compare(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.rfqService.compareQuotations(user.userId, id);
+  }
+
+  @Post(':id/quotations/:quotationId/accept')
+  @ApiOperation({
+    summary:
+      'Award RFQ to a vendor quotation and automatically generate an order',
+  })
+  acceptQuotation(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') rfqId: string,
+    @Param('quotationId') quotationId: string,
+    @Body() dto: AcceptQuotationDto,
+  ) {
+    return this.rfqService.acceptQuotation(
+      user.userId,
+      rfqId,
+      quotationId,
+      dto,
+    );
+  }
+
+  @Post(':id/quotations/:quotationId/reject')
+  @ApiOperation({ summary: 'Reject a vendor quotation' })
+  rejectQuotation(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') rfqId: string,
+    @Param('quotationId') quotationId: string,
+    @Body() dto: RejectQuotationDto,
+  ) {
+    return this.rfqService.rejectQuotation(
+      user.userId,
+      rfqId,
+      quotationId,
+      dto,
+    );
   }
 
   @Post(':id/close')

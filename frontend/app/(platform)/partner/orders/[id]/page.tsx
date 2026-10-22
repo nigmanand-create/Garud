@@ -63,6 +63,17 @@ function PartnerOrderDetailInner() {
           <>
             Placed {new Date(order.placedAt).toLocaleString('en-IN')} ·{' '}
             {order.companyName} · {order.contactName}
+            {order.rfqId && (
+              <>
+                {' '}·{' '}
+                <Link
+                  href={`/partner/rfqs/${order.rfqId}`}
+                  style={{ color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Procured via RFQ ↗
+                </Link>
+              </>
+            )}
           </>
         }
         backHref="/partner/orders"
@@ -97,7 +108,11 @@ function PartnerOrderDetailInner() {
                 {order.lineItems.map((li) => (
                   <tr key={li.id}>
                     <td>
-                      <Link href={`/partner/catalog/${li.listingId}`}>{li.name}</Link>
+                      {li.listingId ? (
+                        <Link href={`/partner/catalog/${li.listingId}`}>{li.name}</Link>
+                      ) : (
+                        <span style={{ fontWeight: 600 }}>{li.name}</span>
+                      )}
                     </td>
                     <td>{li.sku ?? '—'}</td>
                     <td>{li.quantity}</td>

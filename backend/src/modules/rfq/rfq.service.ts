@@ -10,9 +10,17 @@ import {
   RfqInviteStatus,
   RfqStatus,
   UserRole,
+  OrderStatus,
+  PaymentStatus,
+  FulfillmentStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { CreateRfqDto, SubmitQuotationDto } from './dto/rfq.dto';
+import {
+  CreateRfqDto,
+  SubmitQuotationDto,
+  AcceptQuotationDto,
+  RejectQuotationDto,
+} from './dto/rfq.dto';
 import { RfqMatchingService } from './rfq-matching.service';
 
 @Injectable()
@@ -94,6 +102,17 @@ export class RfqService {
       where: { id: rfqId, buyerUserId },
       include: {
         _count: { select: { invites: true, quotations: true } },
+        orders: {
+          select: {
+            id: true,
+            status: true,
+            paymentStatus: true,
+            fulfillmentStatus: true,
+            totalInr: true,
+            quotationId: true,
+            placedAt: true,
+          },
+        },
       },
     });
     if (!rfq) {
@@ -108,7 +127,7 @@ export class RfqService {
     return this.prisma.quotation.findMany({
       where: {
         rfqId,
-        status: QuotationStatus.SUBMITTED,
+        status: { not: QuotationStatus.WITHDRAWN },
       },
       include: {
         vendorOrganization: {
@@ -126,6 +145,228 @@ export class RfqService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async acceptQuotation(
+    buyerUserId: string,
+    rfqId: string,
+    quotationId: string,
+    dto: AcceptQuotationDto = {},
+  ) {
+    const rfq = await this.prisma.rfq.findFirst({
+      where: { id: rfqId },
+      include: {
+        buyerOrganization: true,
+        buyerUser: true,
+      },
+    });
+
+    if (!rfq) {
+      throw new NotFoundException('RFQ not found');
+    }
+    if (rfq.buyerUserId !== buyerUserId) {
+      throw new ForbiddenException('You can only manage your own RFQs');
+    }
+    if (rfq.status !== RfqStatus.OPEN) {
+      throw new BadRequestException('RFQ is no longer open');
+    }
+
+    const quotation = await this.prisma.quotation.findFirst({
+      where: {
+        id: quotationId,
+        rfqId,
+      },
+      include: {
+        vendorOrganization: true,
+      },
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Quotation not found for this RFQ');
+    }
+    if (quotation.status !== QuotationStatus.SUBMITTED) {
+      throw new BadRequestException(
+        `Quotation cannot be accepted because it is ${quotation.status}`,
+      );
+    }
+    if (quotation.priceOnRequest || quotation.priceInr == null) {
+      throw new BadRequestException(
+        'Cannot place an order on a Price-on-Request quotation without a specified price',
+      );
+    }
+
+    // Resolve Shipping & Billing addresses
+    const buyerOrg = rfq.buyerOrganization;
+    const shipping = {
+      companyName: dto.shipping?.companyName || buyerOrg.companyName,
+      contactName:
+        dto.shipping?.contactName ||
+        buyerOrg.contactPersonName ||
+        'Procurement Officer',
+      contactPhone:
+        dto.shipping?.contactPhone || buyerOrg.contactMobile || '0000000000',
+      addressLine1: dto.shipping?.addressLine1 || 'Corporate Headquarters',
+      addressLine2: dto.shipping?.addressLine2 || undefined,
+      city: dto.shipping?.city || buyerOrg.city || 'Bengaluru',
+      state: dto.shipping?.state || buyerOrg.state || 'Karnataka',
+      pincode: dto.shipping?.pincode || '560001',
+      country: dto.shipping?.country || buyerOrg.country || 'India',
+    };
+
+    const billing =
+      dto.billingSameAsShipping !== false && !dto.billing
+        ? shipping
+        : {
+            companyName: dto.billing?.companyName || shipping.companyName,
+            contactName: dto.billing?.contactName || shipping.contactName,
+            contactPhone: dto.billing?.contactPhone || shipping.contactPhone,
+            addressLine1: dto.billing?.addressLine1 || shipping.addressLine1,
+            addressLine2: dto.billing?.addressLine2 || shipping.addressLine2,
+            city: dto.billing?.city || shipping.city,
+            state: dto.billing?.state || shipping.state,
+            pincode: dto.billing?.pincode || shipping.pincode,
+            country: dto.billing?.country || shipping.country,
+          };
+
+    const quantity = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
+    const unitPrice = quotation.priceInr;
+    const subtotal = new Prisma.Decimal(unitPrice).mul(quantity);
+    const tax = new Prisma.Decimal(0);
+    const shippingFee = new Prisma.Decimal(0);
+    const total = subtotal.add(tax).add(shippingFee);
+
+    // Atomically accept quotation, reject others, close RFQ, and create Order
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Mark winning quotation as ACCEPTED
+      const acceptedQuote = await tx.quotation.update({
+        where: { id: quotationId },
+        data: { status: QuotationStatus.ACCEPTED },
+      });
+
+      // 2. Mark other submitted quotations for this RFQ as REJECTED
+      await tx.quotation.updateMany({
+        where: {
+          rfqId,
+          id: { not: quotationId },
+          status: QuotationStatus.SUBMITTED,
+        },
+        data: { status: QuotationStatus.REJECTED },
+      });
+
+      // 3. Mark RFQ as CLOSED
+      await tx.rfq.update({
+        where: { id: rfqId },
+        data: {
+          status: RfqStatus.CLOSED,
+          closedAt: new Date(),
+        },
+      });
+
+      // 4. Create the Order
+      const createdOrder = await tx.order.create({
+        data: {
+          buyerUserId,
+          buyerOrganizationId: rfq.buyerOrganizationId,
+          vendorOrganizationId: quotation.vendorOrganizationId,
+          rfqId: rfq.id,
+          quotationId: quotation.id,
+          subtotalInr: subtotal,
+          taxInr: tax,
+          shippingInr: shippingFee,
+          totalInr: total,
+          companyName: shipping.companyName,
+          contactName: shipping.contactName,
+          contactPhone: shipping.contactPhone,
+          shippingAddressLine1: shipping.addressLine1,
+          shippingAddressLine2: shipping.addressLine2,
+          shippingCity: shipping.city,
+          shippingState: shipping.state,
+          shippingPincode: shipping.pincode,
+          shippingCountry: shipping.country,
+          billingAddressLine1: billing.addressLine1,
+          billingAddressLine2: billing.addressLine2,
+          billingCity: billing.city,
+          billingState: billing.state,
+          billingPincode: billing.pincode,
+          billingCountry: billing.country,
+          gstin: dto.gstin || buyerOrg.gst || undefined,
+          purchaseOrderNumber:
+            dto.purchaseOrderNumber ||
+            `PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`,
+          status: OrderStatus.CONFIRMED,
+          paymentStatus: PaymentStatus.PENDING,
+          fulfillmentStatus: FulfillmentStatus.PENDING,
+          lineItems: {
+            create: [
+              {
+                snapshotName: rfq.title,
+                snapshotSku: `RFQ-${rfq.id.slice(0, 8).toUpperCase()}`,
+                unitPriceInr: unitPrice,
+                quantity,
+                lineTotalInr: subtotal,
+              },
+            ],
+          },
+        },
+        include: {
+          vendorOrganization: { select: { id: true, companyName: true } },
+          lineItems: true,
+        },
+      });
+
+      return {
+        order: createdOrder,
+        quotation: acceptedQuote,
+      };
+    });
+
+    return {
+      success: true,
+      message: 'Quotation accepted and order created successfully',
+      orderId: result.order.id,
+      order: result.order,
+      quotation: result.quotation,
+    };
+  }
+
+  async rejectQuotation(
+    buyerUserId: string,
+    rfqId: string,
+    quotationId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dto: RejectQuotationDto = {},
+  ) {
+    const rfq = await this.prisma.rfq.findFirst({
+      where: { id: rfqId },
+    });
+    if (!rfq) {
+      throw new NotFoundException('RFQ not found');
+    }
+    if (rfq.buyerUserId !== buyerUserId) {
+      throw new ForbiddenException('You can only manage your own RFQs');
+    }
+    const quotation = await this.prisma.quotation.findFirst({
+      where: { id: quotationId, rfqId },
+    });
+    if (!quotation) {
+      throw new NotFoundException('Quotation not found for this RFQ');
+    }
+    if (quotation.status !== QuotationStatus.SUBMITTED) {
+      throw new BadRequestException(
+        `Quotation cannot be rejected because it is ${quotation.status}`,
+      );
+    }
+
+    const updated = await this.prisma.quotation.update({
+      where: { id: quotationId },
+      data: { status: QuotationStatus.REJECTED },
+    });
+
+    return {
+      success: true,
+      message: 'Quotation rejected',
+      quotation: updated,
+    };
   }
 
   async closeRfq(buyerUserId: string, rfqId: string) {
@@ -311,6 +552,11 @@ export class RfqService {
     }
     if (quote.status === QuotationStatus.WITHDRAWN) {
       throw new BadRequestException('Quotation is already withdrawn');
+    }
+    if (quote.status === QuotationStatus.ACCEPTED) {
+      throw new BadRequestException(
+        'Cannot withdraw a quotation that has already been accepted and awarded',
+      );
     }
 
     return this.prisma.quotation.update({

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
@@ -45,9 +46,22 @@ export default function PartnerRfqDetailPage() {
 }
 
 function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
+  const isAccepted = quotation.status === 'ACCEPTED';
+  const isRejected = quotation.status === 'REJECTED';
+
   return (
-    <div className="platform-card platform-form-card">
-      <h3 className="platform-card-section-title">Your quotation</h3>
+    <div
+      className="platform-card platform-form-card"
+      style={{
+        border: isAccepted ? '2px solid #22c55e' : isRejected ? '1px dashed #cbd5e1' : undefined,
+        background: isAccepted ? '#f0fdf4' : undefined,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <h3 className="platform-card-section-title" style={{ margin: 0 }}>Your quotation</h3>
+        {quotation.status && <StatusBadge status={quotation.status} />}
+      </div>
+
       <p className="platform-detail-fact">
         <span className="platform-detail-fact-label">Price:</span>{' '}
         {quotation.priceOnRequest
@@ -66,9 +80,38 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
           {quotation.notes}
         </p>
       )}
-      <p className="platform-muted platform-detail-fact">
-        Submitted — the buyer can compare your quote with other partners.
-      </p>
+
+      {isAccepted && (
+        <div style={{ background: '#dcfce7', border: '1px solid #86efac', padding: '1rem', borderRadius: 8, marginTop: '1rem' }}>
+          <strong style={{ color: '#166534', display: 'block', fontSize: '1rem', marginBottom: '0.25rem' }}>
+            🎉 Quotation Awarded!
+          </strong>
+          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: '#166534' }}>
+            Congratulations! The buyer accepted your quotation and a Purchase Order has been placed with your organization.
+          </p>
+          <Link
+            href="/partner/orders"
+            className="platform-btn platform-btn-cta platform-btn-sm"
+            style={{ textDecoration: 'none', display: 'inline-block' }}
+          >
+            View Incoming Orders →
+          </Link>
+        </div>
+      )}
+
+      {isRejected && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '0.75rem', borderRadius: 8, marginTop: '1rem' }}>
+          <span style={{ color: '#991b1b', fontSize: '0.875rem' }}>
+            This quotation was not awarded by the buyer.
+          </span>
+        </div>
+      )}
+
+      {!isAccepted && !isRejected && (
+        <p className="platform-muted platform-detail-fact">
+          Submitted — the buyer is reviewing bids and will award the contract.
+        </p>
+      )}
     </div>
   );
 }

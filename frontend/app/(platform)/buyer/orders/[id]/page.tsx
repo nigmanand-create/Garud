@@ -67,6 +67,17 @@ function BuyerOrderDetailInner() {
           <>
             Placed {new Date(order.placedAt).toLocaleString('en-IN')} ·{' '}
             {order.vendorOrganization.companyName}
+            {order.rfqId && (
+              <>
+                {' '}·{' '}
+                <Link
+                  href={`/buyer/rfqs/${order.rfqId}`}
+                  style={{ color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Procured via RFQ ↗
+                </Link>
+              </>
+            )}
           </>
         }
         backHref="/buyer/orders"
@@ -130,7 +141,11 @@ function BuyerOrderDetailInner() {
                   {order.lineItems.map((li) => (
                     <tr key={li.id}>
                       <td>
-                        <Link href={`/marketplace/listings/${li.listingId}`}>{li.name}</Link>
+                        {li.listingId ? (
+                          <Link href={`/marketplace/listings/${li.listingId}`}>{li.name}</Link>
+                        ) : (
+                          <span style={{ fontWeight: 600 }}>{li.name}</span>
+                        )}
                       </td>
                       <td>{li.sku ?? '—'}</td>
                       <td>{li.quantity}</td>

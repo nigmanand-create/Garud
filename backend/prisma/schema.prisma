@@ -307,6 +307,8 @@ model Order {
   billingCountry        String        @map("billing_country")
   gstin                 String?
   purchaseOrderNumber   String?       @map("purchase_order_number")
+  rfqId                 String?       @map("rfq_id")
+  quotationId           String?       @map("quotation_id")
   placedAt              DateTime      @default(now()) @map("placed_at")
   createdAt             DateTime      @default(now()) @map("created_at")
   updatedAt             DateTime      @updatedAt @map("updated_at")
@@ -314,11 +316,15 @@ model Order {
   buyerUser          User         @relation("OrderBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
   buyerOrganization  Organization @relation("OrderBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation("OrderVendor", fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+  rfq                Rfq?         @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  quotation          Quotation?   @relation(fields: [quotationId], references: [id], onDelete: SetNull)
   lineItems          OrderLineItem[]
   transactions       PaymentTransaction[]
 
   @@index([buyerUserId])
   @@index([vendorOrganizationId])
+  @@index([rfqId])
+  @@index([quotationId])
   @@index([placedAt])
   @@map("orders")
 }
@@ -367,15 +373,15 @@ model PaymentTransaction {
 model OrderLineItem {
   id            String  @id @default(uuid())
   orderId       String  @map("order_id")
-  listingId     String  @map("listing_id")
+  listingId     String? @map("listing_id")
   snapshotName  String  @map("snapshot_name")
   snapshotSku   String? @map("snapshot_sku")
   unitPriceInr  Decimal @map("unit_price_inr") @db.Decimal(14, 2)
   quantity      Int
   lineTotalInr  Decimal @map("line_total_inr") @db.Decimal(14, 2)
 
-  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  listing PartnerListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing PartnerListing? @relation(fields: [listingId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@map("order_line_items")
@@ -396,6 +402,8 @@ enum RfqInviteStatus {
 enum QuotationStatus {
   SUBMITTED
   WITHDRAWN
+  ACCEPTED
+  REJECTED
 }
 
 model Rfq {
@@ -420,6 +428,7 @@ model Rfq {
   buyerOrganization Organization   @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
   invites           RfqInvite[]
   quotations        Quotation[]
+  orders            Order[]
 
   @@index([buyerUserId])
   @@index([status, category])
@@ -459,6 +468,7 @@ model Quotation {
 
   rfq                Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+  orders             Order[]
 
   @@index([rfqId])
   @@index([vendorOrganizationId])

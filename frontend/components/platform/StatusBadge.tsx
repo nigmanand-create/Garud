@@ -22,6 +22,8 @@ const TONE_MAP: Record<string, StatusTone> = {
   PAID: 'success',
   FAILED: 'danger',
   REFUNDED: 'neutral',
+  ACCEPTED: 'success',
+  WITHDRAWN: 'neutral',
 };
 
 function toneForStatus(status: string): StatusTone {

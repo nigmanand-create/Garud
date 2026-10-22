@@ -330,11 +330,13 @@ export type OrderDetail = {
   };
   gstin?: string | null;
   purchaseOrderNumber?: string | null;
+  rfqId?: string | null;
+  quotationId?: string | null;
   vendorOrganization: { id: string; companyName: string };
   transactions?: PaymentTransaction[];
   lineItems: {
     id: string;
-    listingId: string;
+    listingId?: string | null;
     name: string;
     sku?: string | null;
     unitPriceInr: string;
@@ -347,6 +349,12 @@ export type RfqStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';
 
 export type RfqInviteStatus = 'INVITED' | 'QUOTED' | 'DECLINED';
 
+export type QuotationStatus =
+  | 'SUBMITTED'
+  | 'WITHDRAWN'
+  | 'ACCEPTED'
+  | 'REJECTED';
+
 /** Partner's submitted quotation on an RFQ (POST response / list embed). */
 export type PartnerQuotation = {
   id: string;
@@ -356,7 +364,7 @@ export type PartnerQuotation = {
   notes?: string | null;
   minOrderQuantity?: number | null;
   validUntil?: string | null;
-  status?: string;
+  status?: QuotationStatus;
 };
 
 export type PartnerRfqInviteDetail = {

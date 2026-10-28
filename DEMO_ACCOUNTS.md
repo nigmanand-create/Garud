@@ -40,7 +40,7 @@ Backend API (if running): `POST http://localhost:3000/api/v1/auth/login` with JS
 
 ## Demo listings (partner@garudhub.local)
 
-All catalog items below belong to **Demo Drone Manufacturing Pvt Ltd**. Re-seed with `cd backend && npm run prisma:seed`.
+All catalog items below belong to **Demo Drone Manufacturing Pvt Ltd**. Re-seed with `cd backend && npm run prisma:seed`. Published SKUs include **technical specs** and **application tags** for marketplace PDPs and the upcoming drone assistant scorer.
 
 | SKU | Name | Type | Category | Checkout |
 |-----|------|------|----------|----------|

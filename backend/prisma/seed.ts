@@ -125,6 +125,8 @@ type DemoListingSeed = {
   priceInr: number | null;
   minOrderQuantity: number;
   description: string;
+  technicalSpecs: string;
+  applications: string[];
   primaryImageUrl: string;
   isPublished?: boolean;
   reviewStatus?: ListingReviewStatus;
@@ -148,7 +150,10 @@ async function seedDemoCatalogListings() {
       priceInr: 285000,
       minOrderQuantity: 1,
       description:
-        '16L agriculture spraying platform with RTK, terrain follow, and DGCA-friendly ops kit for contract spraying teams.',
+        'Fixed-price agriculture spray drone for pesticide and crop protection in Punjab-style contract spraying. 16L tank, RTK terrain follow, and DGCA type-cert friendly documentation kit. Ideal for teams needing a sub-₹3 lakh platform with published list price for cart checkout.',
+      technicalSpecs:
+        'Tank capacity: 16 L | Max payload (spray + battery): 18 kg | Endurance: 22 min (full tank) | RTK GPS + terrain follow | Spray width: 4–6 m | DGCA model reference: GD-AGRI-X1',
+      applications: ['Agriculture Spraying'],
       primaryImageUrl: DEMO_LISTING_IMAGE,
     },
     {
@@ -160,7 +165,14 @@ async function seedDemoCatalogListings() {
       priceInr: null,
       minOrderQuantity: 2,
       description:
-        'Long-endurance mapping UAV with PPK workflow — quote includes base/rover options and training days.',
+        'Enterprise survey and mapping UAV for construction site photogrammetry, PPK/RTK workflows, and lidar-ready mounts. Price on request — RFQ includes base/rover kit options, calibration, and on-site training days. MOQ 2 for fleet deployments.',
+      technicalSpecs:
+        'Endurance: 40 min (mapping payload) | PPK/RTK ready (base + rover quoted separately) | Max payload: 2.5 kg | Camera: 42 MP RGB (optional multispectral mount) | Wind tolerance: 12 m/s | Survey grade: cm-level with PPK post-processing',
+      applications: [
+        'Topographic Survey & Mapping',
+        'Mining & Volumetric Estimation',
+        'Industrial & Infrastructure Inspection',
+      ],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80',
     },
@@ -173,7 +185,14 @@ async function seedDemoCatalogListings() {
       priceInr: 1250000,
       minOrderQuantity: 1,
       description:
-        'Heavy-lift enterprise hexacopter for logistics yards and inspection payloads up to 5 kg.',
+        'Heavy-lift industrial hexacopter for yard logistics, thermal inspection, and enterprise payloads up to 5 kg. Fixed list price ~₹12.5 lakh — suited to PSU and factory buyers comparing endurance and payload against survey or agri platforms.',
+      technicalSpecs:
+        'Max payload: 5 kg | Endurance: 28 min @ 3 kg payload | Propulsion: hexacopter, redundant ESC | Thermal gimbal mount (optional) | DGCA enterprise ops documentation available on request',
+      applications: [
+        'Industrial & Infrastructure Inspection',
+        'Delivery & Logistics Payload',
+        'Powerline & Solar Panel Monitoring',
+      ],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1524443164165-7d786564b350?w=800&q=80',
     },
@@ -186,7 +205,10 @@ async function seedDemoCatalogListings() {
       priceInr: 89500,
       minOrderQuantity: 1,
       description:
-        'Compact 4K cinema drone with 3-axis gimbal, obstacle sensing, and broadcast-friendly ND filters.',
+        'Compact 4K cinema and photo drone with 3-axis gimbal, obstacle sensing, and ND filters for Indian film, wedding, and broadcast crews. Fixed MRP under ₹1 lakh on GarudHub — DGCA remote pilot rules apply; not a survey, agri spray, or enterprise inspection platform.',
+      technicalSpecs:
+        'Video: 4K/60, 10-bit D-Log | Gimbal: 3-axis mechanical | Endurance: 34 min | Obstacle sensing: omnidirectional | Max speed: 21 m/s | Max payload: ~250 g (camera only)',
+      applications: [],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1508610048650-a6472333995a?w=800&q=80',
     },
@@ -199,7 +221,10 @@ async function seedDemoCatalogListings() {
       priceInr: 12800,
       minOrderQuantity: 5,
       description:
-        'Redundant IMU flight controller module with CAN ESC support for custom multirotor builds.',
+        'Redundant IMU flight controller for custom multirotor builds — CAN ESC, RTK survey rigs, and agri spray integrator BOMs. MOQ 5; list price ₹12,800 per unit for Karnataka/OEM batch orders. Pair with marketplace airframes or DGCA type-cert documentation via RFQ.',
+      technicalSpecs:
+        'Dual IMU redundancy | CAN bus ESC support | Inputs: GPS, RTK UART, telemetry | Firmware: ArduPilot-compatible | Operating temp: -10°C to 50°C | Weight: 38 g | Typical use: 2–5 kg custom payloads',
+      applications: ['Topographic Survey & Mapping', 'Agriculture Spraying'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
     },
@@ -212,7 +237,10 @@ async function seedDemoCatalogListings() {
       priceInr: 18500,
       minOrderQuantity: 2,
       description:
-        'Smart 88Wh Li-ion pack with charge hub cable — compatible with Garud survey and agri airframes.',
+        'Smart 88Wh Li-ion battery kit with charge hub — extends flight time for Garud SurveyMapper and AgriSpray fleets across India. B2B accessory add-on (MOQ 2); not a standalone drone listing.',
+      technicalSpecs:
+        'Capacity: 88 Wh | Charge time: 45 min (hub) | Compatible: SurveyMapper Lite 25, AgriSpray X1 | Endurance boost: +8–12 min vs stock pack | Cycle rating: 300+ | Includes: hub cable, fire-safe case',
+      applications: ['Agriculture Spraying', 'Topographic Survey & Mapping'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1609091839311-9a942d692196?w=800&q=80',
     },
@@ -225,7 +253,10 @@ async function seedDemoCatalogListings() {
       priceInr: null,
       minOrderQuantity: 1,
       description:
-        'Multispectral camera payload for crop health indices — pricing depends on lens set and calibration.',
+        'Multispectral NDVI payload for crop health, agri spray prescription mapping, and precision farming. Price on request — lens set and radiometric calibration quoted per use case. Mounts on survey or agri platforms.',
+      technicalSpecs:
+        'Bands: RGB + Red Edge + NIR | NDVI/NDRE indices | Mount: standard Garud payload rail | Weight: 420 g | Trigger: PPK-sync capable | Calibration: factory + field target (RFQ)',
+      applications: ['Agriculture Spraying', 'Topographic Survey & Mapping'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
     },
@@ -238,7 +269,10 @@ async function seedDemoCatalogListings() {
       priceInr: 425000,
       minOrderQuantity: 1,
       description:
-        'Mid-range photogrammetry drone with 25 min flight time — fixed list price for quick cart checkout tests.',
+        'Mid-range photogrammetry and PPK-ready mapping drone — 25 min endurance, fixed ₹4,25,000 list price for construction survey and cart checkout demos. Lighter alternative to SurveyMapper Pro 40 when budget is under ₹5 lakh.',
+      technicalSpecs:
+        'Endurance: 25 min | Camera: 20 MP RGB | PPK workflow supported (rover optional) | Max payload: 1.2 kg | Mapping accuracy: 2–5 cm GSD @ 100 m AGL | Wind: 10 m/s',
+      applications: ['Topographic Survey & Mapping', 'Mining & Volumetric Estimation'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80',
     },
@@ -251,7 +285,10 @@ async function seedDemoCatalogListings() {
       priceInr: null,
       minOrderQuantity: 3,
       description:
-        'Entry agri sprayer for smallholder cooperatives — MOQ 3 units, RFQ for fleet pricing.',
+        'Entry-level agri spray drone for smallholder cooperatives — lighter tank than AgriSpray X1, fleet MOQ 3. Price on request; use RFQ for Punjab/Haryana spraying programs and DGCA compliance paperwork.',
+      technicalSpecs:
+        'Tank capacity: 10 L | Endurance: 18 min (full tank) | Max payload: 12 kg | RTK optional | Spray width: 3–5 m | DGCA documentation support via RFQ',
+      applications: ['Agriculture Spraying'],
       primaryImageUrl: DEMO_LISTING_IMAGE,
     },
     {
@@ -263,7 +300,10 @@ async function seedDemoCatalogListings() {
       priceInr: 45000,
       minOrderQuantity: 1,
       description:
-        '5-day remote pilot training including simulator hours and GarudHub certificate of completion.',
+        'DGCA-aligned remote pilot category training — 5-day Bengaluru cohort with simulator hours, Drone Rules 2021 overview, and GarudHub completion certificate. Fixed ₹45,000 per seat for agri spray, survey, or enterprise buyers onboarding pilots before fleet RFQs.',
+      technicalSpecs:
+        'Duration: 5 days (40 hrs) | Format: classroom + simulator | Topics: DGCA Drone Rules 2021, NPNT basics, airspace, agri/survey SOP intro | Certificate: GarudHub completion | Batch size: 8–20 | Language: English + Hindi briefing',
+      applications: ['Agriculture Spraying', 'Topographic Survey & Mapping'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80',
     },
@@ -276,7 +316,14 @@ async function seedDemoCatalogListings() {
       priceInr: null,
       minOrderQuantity: 1,
       description:
-        'On-site AMC for enterprise fleets — RFQ includes spare parts tier and SLA response window.',
+        'Annual maintenance contract (AMC) for enterprise agri, survey, and industrial fleets — on-site repair, spare parts tier, and SLA response. RFQ for payload calibration and DGCA logbook support.',
+      technicalSpecs:
+        'Coverage: airframe, propulsion, payload mount | SLA: 48 hr on-site (metro) | Spares: tiered BOM in RFQ | Excludes: crash damage beyond wear items',
+      applications: [
+        'Industrial & Infrastructure Inspection',
+        'Agriculture Spraying',
+        'Topographic Survey & Mapping',
+      ],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
     },
@@ -289,7 +336,14 @@ async function seedDemoCatalogListings() {
       priceInr: null,
       minOrderQuantity: 1,
       description:
-        'BVLOS readiness, SOP design, and regulatory filing support for state PSU and enterprise buyers.',
+        'BVLOS readiness, SOP design, DGCA filing, and compliance consultancy for state PSU and enterprise drone programs — pairs with marketplace hardware RFQs for agri spray or survey fleets.',
+      technicalSpecs:
+        'Deliverables: SOP pack, risk assessment, DGCA application support | BVLOS: feasibility + test plan | Timeline: 4–12 weeks (RFQ scoped) | On-site workshops available',
+      applications: [
+        'Industrial & Infrastructure Inspection',
+        'Security & Surveillance',
+        'Disaster Management & Search & Rescue',
+      ],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
     },
@@ -303,6 +357,8 @@ async function seedDemoCatalogListings() {
       priceInr: 99000,
       minOrderQuantity: 1,
       description: 'Work-in-progress listing for partner catalog editor and save-draft flows.',
+      technicalSpecs: '',
+      applications: [],
       primaryImageUrl: DEMO_LISTING_IMAGE,
       isPublished: false,
       reviewStatus: ListingReviewStatus.DRAFT,
@@ -317,6 +373,9 @@ async function seedDemoCatalogListings() {
       minOrderQuantity: 1,
       description:
         'Submitted for platform admin approval — use admin moderation UI to approve or reject.',
+      technicalSpecs:
+        'Thermal payload placeholder | Endurance: TBD | Pending moderation — specs not shown on marketplace',
+      applications: ['Industrial & Infrastructure Inspection'],
       primaryImageUrl:
         'https://images.unsplash.com/photo-1524443164165-7d786564b350?w=800&q=80',
       isPublished: false,
@@ -334,6 +393,8 @@ async function seedDemoCatalogListings() {
       sku: sample.sku,
       brand: 'Garud Demo',
       description: sample.description,
+      technicalSpecs: sample.technicalSpecs.trim() || null,
+      applications: sample.applications,
       primaryImageUrl: sample.primaryImageUrl,
       galleryImageUrls: [] as string[],
       minOrderQuantity: sample.minOrderQuantity,

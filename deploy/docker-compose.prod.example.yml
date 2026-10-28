@@ -1,0 +1,32 @@
+# GarudHub — production-oriented compose example (Postgres only; apps run on host)
+#
+# The repo's root docker-compose.yml is identical in spirit; this file documents
+# production tweaks. NestJS and Next.js are NOT containerized here — use systemd/pm2
+# and docs/DEPLOY_CLOUDFLARE_TUNNEL.md until Dockerfiles exist.
+#
+# Usage:
+#   docker compose -f deploy/docker-compose.prod.example.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: garudhub-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: garud
+      POSTGRES_PASSWORD: CHANGE_ME_STRONG_PASSWORD
+      POSTGRES_DB: garudhub
+    ports:
+      # Bind to localhost only if API runs on same host
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - garudhub_pg_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U garud -d garudhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  garudhub_pg_prod_data:

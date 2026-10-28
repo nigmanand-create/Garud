@@ -1,0 +1,37 @@
+# GarudHub — Cloudflare Tunnel ingress example (no secrets)
+#
+# Copy to ~/.cloudflared/config.yml (or /etc/cloudflared/config.yml on Linux).
+# Replace:
+#   - TUNNEL_UUID
+#   - path to credentials JSON from `cloudflared tunnel create`
+#   - hostnames with your real domain
+#
+# Docs: docs/DEPLOY_CLOUDFLARE_TUNNEL.md
+
+tunnel: TUNNEL_UUID
+credentials-file: /path/to/TUNNEL_UUID.json
+
+# Optional: send cloudflared logs somewhere useful
+# loglevel: info
+
+ingress:
+  # --- Production app (Next.js) — primary entrypoint
+  # Browser → /platform-api/v1/* → Next proxy → Nest on 127.0.0.1:3000
+  - hostname: app.garudhub.example
+    service: http://127.0.0.1:3001
+
+  # --- Optional: direct API (Swagger, Razorpay webhook without Next)
+  - hostname: api.garudhub.example
+    service: http://127.0.0.1:3000
+
+  # --- Staging (use a second tunnel + config file on another host, or swap hostnames)
+  # Example second file: config.dev.yml with tunnel: DEV_TUNNEL_UUID
+  #
+  # - hostname: dev.garudhub.example
+  #   service: http://127.0.0.1:3001
+  #
+  # - hostname: api-dev.garudhub.example
+  #   service: http://127.0.0.1:3000
+
+  # Required catch-all
+  - service: http_status:404

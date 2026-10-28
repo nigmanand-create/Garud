@@ -5458,4 +5458,296 @@ a.platform-section-tab {
   height: 0.875rem;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* —— Ask Garud assistant widget —— */
+.platform-assistant-root {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  z-index: 900;
+  font-size: 0.9375rem;
+}
+
+.platform-assistant-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--platform-accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--platform-shadow-card-hover);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .platform-assistant-launcher:hover {
+    transform: translateY(-1px);
+    background: var(--platform-accent-hover);
+  }
+}
+
+.platform-assistant-launcher-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.platform-assistant-launcher-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .platform-assistant-launcher-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+}
+
+.platform-assistant-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  border: none;
+  background: rgb(15 23 42 / 0.35);
+  cursor: default;
+}
+
+.platform-assistant-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.75rem);
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 2rem));
+  max-height: min(520px, calc(100vh - 6rem));
+  background: var(--platform-surface);
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  box-shadow: var(--platform-shadow-card-hover);
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .platform-assistant-panel {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-height: min(85vh, 560px);
+    border-radius: var(--platform-radius-lg) var(--platform-radius-lg) 0 0;
+    bottom: 0;
+  }
+
+  .platform-assistant-root[data-open='true'] .platform-assistant-launcher {
+    display: none;
+  }
+}
+
+.platform-assistant-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--platform-border);
+  background: var(--platform-bg);
+}
+
+.platform-assistant-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.platform-assistant-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--platform-muted);
+}
+
+.platform-assistant-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--platform-muted);
+  padding: 0.15rem 0.35rem;
+}
+
+.platform-assistant-banner {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.platform-assistant-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.platform-assistant-bubble {
+  max-width: 95%;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--platform-radius);
+  line-height: 1.45;
+}
+
+.platform-assistant-bubble--user {
+  align-self: flex-end;
+  background: var(--platform-accent);
+  color: #fff;
+}
+
+.platform-assistant-bubble--assistant {
+  align-self: flex-start;
+  background: var(--platform-bg);
+  border: 1px solid var(--platform-border);
+}
+
+.platform-assistant-quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.platform-assistant-chip {
+  border: 1px solid var(--platform-border);
+  background: var(--platform-surface);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: var(--platform-text);
+}
+
+.platform-assistant-chip:hover:not(:disabled) {
+  border-color: var(--platform-accent-secondary);
+}
+
+.platform-assistant-chip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.platform-assistant-listings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.platform-assistant-listings .platform-listing-card {
+  box-shadow: none;
+}
+
+.platform-assistant-listing-block {
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+  overflow: hidden;
+  background: var(--platform-surface);
+}
+
+.platform-assistant-rationale {
+  margin: 0;
+  padding: 0 0.75rem 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--platform-muted);
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.platform-assistant-listing-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0 0.75rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.platform-assistant-listing-links a {
+  color: var(--platform-accent-secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.platform-assistant-show-more {
+  align-self: center;
+  border: 1px dashed var(--platform-border);
+  background: transparent;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--platform-radius);
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.platform-assistant-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.platform-assistant-actions a {
+  font-size: 0.8125rem;
+  color: var(--platform-accent-secondary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.platform-assistant-compose {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--platform-border);
+  background: var(--platform-surface);
+}
+
+.platform-assistant-compose input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+  font: inherit;
+}
+
+.platform-assistant-send {
+  border: none;
+  border-radius: var(--platform-radius);
+  background: var(--platform-cta);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+}
+
+.platform-assistant-send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 

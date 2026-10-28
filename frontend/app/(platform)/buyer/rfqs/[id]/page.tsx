@@ -71,6 +71,17 @@ type QuotationRow = {
   };
 };
 
+function quoteTableRowClass(
+  isAccepted: boolean,
+  isRejected: boolean,
+  isLowest: boolean,
+): string {
+  if (isAccepted) return 'platform-table-row--accepted';
+  if (isRejected) return 'platform-table-row--rejected';
+  if (isLowest) return 'platform-table-row--best-price';
+  return '';
+}
+
 export default function BuyerRfqDetailPage() {
   return (
     <RequireAuth roles={['BUYER', 'GOVERNMENT']}>
@@ -90,7 +101,6 @@ function DetailInner() {
   const [message, setMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'matrix' | 'cards'>('matrix');
 
-  // Award Modal state
   const [awardingQuote, setAwardingQuote] = useState<QuotationRow | null>(null);
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
@@ -158,7 +168,6 @@ function DetailInner() {
       );
       setAwardingQuote(null);
       load();
-      // Navigate to order after brief pause
       router.push(`/buyer/orders/${res.orderId}`);
     } catch (err) {
       setError(
@@ -195,7 +204,6 @@ function DetailInner() {
 
   const generatedOrder = rfq?.orders && rfq.orders.length > 0 ? rfq.orders[0] : null;
 
-  // Find lowest price and fastest delivery for comparison badges
   const validQuotes = quotes.filter((q) => !q.priceOnRequest && q.priceInr != null);
   const lowestPriceQuoteId =
     validQuotes.length > 1
@@ -217,32 +225,16 @@ function DetailInner() {
       {error && <div className="platform-card platform-error">{error}</div>}
       {message && <div className="platform-card platform-success">{message}</div>}
 
-      {/* Generated Order Banner */}
       {generatedOrder && (
-        <div
-          style={{
-            background: '#f0fdf4',
-            border: '2px solid #86efac',
-            borderRadius: 12,
-            padding: '1.25rem 1.5rem',
-            marginBottom: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
+        <div className="platform-banner-success">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '1.25rem' }}>🎉</span>
-              <strong style={{ color: '#166534', fontSize: '1.1rem' }}>
-                RFQ Awarded & Order Created!
-              </strong>
+            <div className="platform-banner-success__head">
+              <span aria-hidden>🎉</span>
+              <strong>RFQ Awarded & Order Created!</strong>
               <StatusBadge status={generatedOrder.status} />
               <StatusBadge status={generatedOrder.paymentStatus} />
             </div>
-            <p style={{ margin: 0, color: '#166534', fontSize: '0.9rem' }}>
+            <p className="platform-banner-success__text">
               Order <strong>#{generatedOrder.id.slice(0, 8)}…</strong> for{' '}
               <strong>{formatPrice(false, generatedOrder.totalInr)}</strong> has been generated and is ready for payment settlement.
             </p>
@@ -250,7 +242,6 @@ function DetailInner() {
           <Link
             href={`/buyer/orders/${generatedOrder.id}`}
             className="platform-btn platform-btn-cta"
-            style={{ textDecoration: 'none', padding: '0.65rem 1.25rem' }}
           >
             Go to Order & Pay Now →
           </Link>
@@ -277,57 +268,40 @@ function DetailInner() {
             badge={<StatusBadge status={rfq.status} />}
           />
 
-          {/* Technical Specs Dossier Card */}
-          <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '1.1rem' }}>
+          <div className="platform-card platform-card--lg">
+            <h3 className="platform-section-heading">
               Procurement Scope & Technical Requirements
             </h3>
-            <p style={{ whiteSpace: 'pre-wrap', color: '#334155', lineHeight: 1.6, margin: '0 0 1rem' }}>
-              {rfq.description}
-            </p>
+            <p className="platform-pre-wrap">{rfq.description}</p>
 
-            {/* Technical Highlights Badges */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '0.75rem',
-                background: '#f8fafc',
-                padding: '1rem',
-                borderRadius: 8,
-                border: '1px solid #e2e8f0',
-              }}
-            >
+            <div className="platform-stat-grid platform-stat-grid--specs">
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Required Quantity</span>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                <span className="platform-stat-spec-label">Required Quantity</span>
+                <div className="platform-stat-spec-value">
                   {rfq.quantity != null ? `${rfq.quantity} units` : 'Not specified'}
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Min. Payload Capacity</span>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                <span className="platform-stat-spec-label">Min. Payload Capacity</span>
+                <div className="platform-stat-spec-value">
                   {rfq.payloadCapacityKg ? `${Number(rfq.payloadCapacityKg)} kg` : 'Standard'}
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Min. Flight Endurance</span>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                <span className="platform-stat-spec-label">Min. Flight Endurance</span>
+                <div className="platform-stat-spec-value">
                   {rfq.enduranceMinutes ? `${rfq.enduranceMinutes} mins` : 'Standard'}
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>DGCA Type Certification</span>
+                <span className="platform-stat-spec-label">DGCA Type Certification</span>
                 <div
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 700,
-                    marginTop: 2,
-                    color: rfq.isDgcaRequired ? '#166534' : '#64748b',
-                  }}
+                  className={`platform-stat-spec-value ${
+                    rfq.isDgcaRequired ? 'platform-stat-spec-value--success' : ''
+                  }`}
                 >
                   {rfq.isDgcaRequired ? '✓ Mandatory' : 'Optional'}
                 </div>
@@ -335,8 +309,8 @@ function DetailInner() {
 
               {rfq.targetBudgetInr && (
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Target Budget</span>
-                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                  <span className="platform-stat-spec-label">Target Budget</span>
+                  <div className="platform-stat-spec-value">
                     {formatPrice(false, rfq.targetBudgetInr)}
                   </div>
                 </div>
@@ -344,13 +318,12 @@ function DetailInner() {
             </div>
 
             {rfq.specsDocumentUrl && (
-              <div style={{ marginTop: '0.75rem' }}>
+              <div className="platform-mt-sm">
                 <a
                   href={rfq.specsDocumentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="platform-btn platform-btn-secondary platform-btn-sm"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
                 >
                   📄 View Attached Tender Document / Specs ↗
                 </a>
@@ -358,7 +331,7 @@ function DetailInner() {
             )}
 
             {rfq.status === 'OPEN' && (
-              <div className="platform-actions" style={{ marginTop: '1.25rem' }}>
+              <div className="platform-actions platform-mt-md">
                 <button
                   type="button"
                   className="platform-btn platform-btn-secondary"
@@ -377,59 +350,37 @@ function DetailInner() {
             )}
           </div>
 
-          {/* Quotations Header with View Switcher */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              margin: '2rem 0 1rem',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-            }}
-          >
+          <div className="platform-section-header">
             <div>
-              <h2 style={{ fontSize: '1.35rem', margin: 0 }}>
+              <h2 className="platform-section-heading platform-section-heading--lg">
                 Vendor Proposals & Quotations ({quotes.length})
               </h2>
-              <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+              <p className="platform-section-header__desc">
                 Evaluate technical specs, compare commercial terms, and award directly to trigger order fulfillment.
               </p>
             </div>
 
             {quotes.length > 0 && (
-              <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: 4, borderRadius: 8 }}>
+              <div className="platform-segmented" role="tablist" aria-label="Quotation view">
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={viewMode === 'matrix'}
                   onClick={() => setViewMode('matrix')}
-                  style={{
-                    padding: '0.35rem 0.85rem',
-                    borderRadius: 6,
-                    border: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.825rem',
-                    cursor: 'pointer',
-                    background: viewMode === 'matrix' ? '#ffffff' : 'transparent',
-                    color: viewMode === 'matrix' ? '#0f172a' : '#64748b',
-                    boxShadow: viewMode === 'matrix' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
-                  }}
+                  className={`platform-segmented-btn ${
+                    viewMode === 'matrix' ? 'platform-segmented-btn--active' : ''
+                  }`}
                 >
                   📊 Comparison Matrix
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={viewMode === 'cards'}
                   onClick={() => setViewMode('cards')}
-                  style={{
-                    padding: '0.35rem 0.85rem',
-                    borderRadius: 6,
-                    border: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.825rem',
-                    cursor: 'pointer',
-                    background: viewMode === 'cards' ? '#ffffff' : 'transparent',
-                    color: viewMode === 'cards' ? '#0f172a' : '#64748b',
-                    boxShadow: viewMode === 'cards' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
-                  }}
+                  className={`platform-segmented-btn ${
+                    viewMode === 'cards' ? 'platform-segmented-btn--active' : ''
+                  }`}
                 >
                   🗂️ Cards View
                 </button>
@@ -437,9 +388,8 @@ function DetailInner() {
             )}
           </div>
 
-          {/* VIEW 1: COMPARISON MATRIX TABLE */}
           {viewMode === 'matrix' && quotes.length > 0 && (
-            <div className="platform-card" style={{ padding: 0, overflow: 'hidden', marginBottom: '1.5rem' }}>
+            <div className="platform-card platform-card--flush">
               <div className="platform-table-wrap">
                 <table className="platform-table">
                   <thead>
@@ -470,68 +420,34 @@ function DetailInner() {
                       return (
                         <tr
                           key={q.id}
-                          style={{
-                            background: isAccepted
-                              ? '#f0fdf4'
-                              : isRejected
-                              ? '#f8fafc'
-                              : isLowest
-                              ? '#fefce8'
-                              : '#ffffff',
-                          }}
+                          className={quoteTableRowClass(isAccepted, isRejected, isLowest)}
                         >
                           <td>
-                            <div style={{ fontWeight: 700, color: '#0f172a' }}>
-                              {q.vendorOrganization.companyName}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                            <div className="platform-stat-spec-value">{q.vendorOrganization.companyName}</div>
+                            <div className="platform-text-muted-sm">
                               {[q.vendorOrganization.city, q.vendorOrganization.state].filter(Boolean).join(', ') || 'India'}
                             </div>
                           </td>
 
                           <td>
-                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                              {formatPrice(q.priceOnRequest, q.priceInr)}
-                            </div>
+                            <div className="platform-stat-spec-value">{formatPrice(q.priceOnRequest, q.priceInr)}</div>
                             {isLowest && (
-                              <span
-                                style={{
-                                  fontSize: '0.675rem',
-                                  fontWeight: 700,
-                                  background: '#dcfce7',
-                                  color: '#166534',
-                                  padding: '1px 6px',
-                                  borderRadius: 4,
-                                  display: 'inline-block',
-                                  marginTop: 2,
-                                }}
-                              >
+                              <span className="platform-badge-pill platform-badge-pill--success">
                                 🏷️ Lowest Price
                               </span>
                             )}
                           </td>
 
-                          <td style={{ fontWeight: 600 }}>
+                          <td className="platform-stat-spec-value">
                             {q.priceOnRequest ? '—' : `₹${totalVal.toLocaleString('en-IN')}`}
                           </td>
 
                           <td>
-                            <div style={{ fontWeight: 600 }}>
+                            <div className="platform-stat-spec-value">
                               {q.leadTimeDays != null ? `${q.leadTimeDays} days` : '—'}
                             </div>
                             {isFastest && (
-                              <span
-                                style={{
-                                  fontSize: '0.675rem',
-                                  fontWeight: 700,
-                                  background: '#e0f2fe',
-                                  color: '#0369a1',
-                                  padding: '1px 6px',
-                                  borderRadius: 4,
-                                  display: 'inline-block',
-                                  marginTop: 2,
-                                }}
-                              >
+                              <span className="platform-badge-pill platform-badge-pill--info">
                                 ⚡ Fastest
                               </span>
                             )}
@@ -541,7 +457,7 @@ function DetailInner() {
                             {q.quotedPayloadKg != null ? (
                               <strong>{Number(q.quotedPayloadKg)} kg</strong>
                             ) : (
-                              <span style={{ color: '#94a3b8' }}>—</span>
+                              <span className="platform-text-faint">—</span>
                             )}
                           </td>
 
@@ -549,17 +465,17 @@ function DetailInner() {
                             {q.quotedEnduranceMin != null ? (
                               <strong>{q.quotedEnduranceMin} mins</strong>
                             ) : (
-                              <span style={{ color: '#94a3b8' }}>—</span>
+                              <span className="platform-text-faint">—</span>
                             )}
                           </td>
 
                           <td>
                             {q.dgcaModelNumber ? (
-                              <span style={{ color: '#166534', fontWeight: 600, fontSize: '0.8rem' }}>
+                              <span className="platform-text-success platform-text-success--sm">
                                 ✓ {q.dgcaModelNumber}
                               </span>
                             ) : (
-                              <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Uncertified / Standard</span>
+                              <span className="platform-text-faint platform-text-success--sm">Uncertified / Standard</span>
                             )}
                           </td>
 
@@ -570,22 +486,22 @@ function DetailInner() {
                           <td>
                             {isAccepted ? (
                               <div>
-                                <span style={{ color: '#166534', fontWeight: 700, fontSize: '0.825rem' }}>
+                                <span className="platform-text-success platform-text-success--sm">
                                   ✓ Awarded
                                 </span>
                                 {generatedOrder && (
                                   <Link
                                     href={`/buyer/orders/${generatedOrder.id}`}
-                                    style={{ display: 'block', fontSize: '0.75rem', color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
+                                    className="platform-inline-link"
                                   >
                                     View Order #{generatedOrder.id.slice(0, 8)} ↗
                                   </Link>
                                 )}
                               </div>
                             ) : isRejected ? (
-                              <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Declined</span>
+                              <span className="platform-text-faint platform-text-success--sm">Declined</span>
                             ) : rfq.status === 'OPEN' && isSubmitted ? (
-                              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <div className="platform-table-actions">
                                 <button
                                   type="button"
                                   className="platform-btn platform-btn-cta platform-btn-sm"
@@ -594,7 +510,6 @@ function DetailInner() {
                                     setAwardingQuote(q);
                                     setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
                                   }}
-                                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
                                 >
                                   Award RFQ
                                 </button>
@@ -602,7 +517,6 @@ function DetailInner() {
                                   type="button"
                                   className="platform-btn platform-btn-secondary platform-btn-sm"
                                   onClick={() => handleRejectQuotation(q.id)}
-                                  style={{ padding: '0.35rem 0.55rem', fontSize: '0.8rem' }}
                                 >
                                   Decline
                                 </button>
@@ -620,9 +534,8 @@ function DetailInner() {
             </div>
           )}
 
-          {/* VIEW 2: CARDS GRID VIEW */}
           {viewMode === 'cards' && (
-            <div className="platform-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+            <div className="platform-grid platform-grid--quote-cards">
               {quotes.map((q) => {
                 const isAccepted = q.status === 'ACCEPTED';
                 const isRejected = q.status === 'REJECTED';
@@ -632,75 +545,63 @@ function DetailInner() {
                 const qtyNum = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
                 const calculatedTotal = unitPriceNum * qtyNum;
 
+                const cardClass = isAccepted
+                  ? 'platform-quote-card--accepted'
+                  : isRejected
+                    ? 'platform-quote-card--rejected'
+                    : '';
+
                 return (
                   <article
                     key={q.id}
-                    className="platform-card"
-                    style={{
-                      border: isAccepted ? '2px solid #22c55e' : isRejected ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
-                      background: isAccepted ? '#f0fdf4' : isRejected ? '#f8fafc' : '#ffffff',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      position: 'relative',
-                    }}
+                    className={`platform-card platform-quote-card ${cardClass}`}
                   >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>
-                          {q.vendorOrganization.companyName}
-                        </h3>
+                      <div className="platform-quote-card__head">
+                        <h3 className="platform-section-heading">{q.vendorOrganization.companyName}</h3>
                         <StatusBadge status={q.status} />
                       </div>
 
-                      <div style={{ marginBottom: '1rem', padding: '0.75rem', background: isAccepted ? '#dcfce7' : '#f1f5f9', borderRadius: 8 }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      <div
+                        className={`platform-quote-price-box ${
+                          isAccepted ? 'platform-quote-price-box--accepted' : ''
+                        }`}
+                      >
+                        <div className="platform-quote-price-main">
                           {formatPrice(q.priceOnRequest, q.priceInr)}
                           {!q.priceOnRequest && (
-                            <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}> / unit</span>
+                            <span className="platform-quote-price-unit"> / unit</span>
                           )}
                         </div>
                         {!q.priceOnRequest && qtyNum > 1 && (
-                          <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '0.25rem' }}>
+                          <div className="platform-muted">
                             Total for {qtyNum} units: <strong>₹{calculatedTotal.toLocaleString('en-IN')}</strong>
                           </div>
                         )}
                       </div>
 
-                      {/* Technical Specs on Card */}
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: '0.5rem',
-                          background: '#f8fafc',
-                          padding: '0.65rem',
-                          borderRadius: 6,
-                          marginBottom: '0.75rem',
-                          fontSize: '0.8rem',
-                        }}
-                      >
+                      <div className="platform-quote-spec-grid">
                         <div>
-                          <span style={{ color: '#64748b' }}>Payload:</span>{' '}
+                          <span className="platform-muted">Payload:</span>{' '}
                           <strong>{q.quotedPayloadKg ? `${Number(q.quotedPayloadKg)} kg` : '—'}</strong>
                         </div>
                         <div>
-                          <span style={{ color: '#64748b' }}>Endurance:</span>{' '}
+                          <span className="platform-muted">Endurance:</span>{' '}
                           <strong>{q.quotedEnduranceMin ? `${q.quotedEnduranceMin}m` : '—'}</strong>
                         </div>
                         <div>
-                          <span style={{ color: '#64748b' }}>DGCA:</span>{' '}
-                          <strong style={{ color: q.dgcaModelNumber ? '#166534' : '#64748b' }}>
+                          <span className="platform-muted">DGCA:</span>{' '}
+                          <strong className={q.dgcaModelNumber ? 'platform-text-success' : 'platform-muted'}>
                             {q.dgcaModelNumber ? '✓ Certified' : 'Standard'}
                           </strong>
                         </div>
                         <div>
-                          <span style={{ color: '#64748b' }}>Warranty:</span>{' '}
+                          <span className="platform-muted">Warranty:</span>{' '}
                           <strong>{q.warrantyMonths ? `${q.warrantyMonths} mo` : 'Standard'}</strong>
                         </div>
                       </div>
 
-                      <div style={{ fontSize: '0.875rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
+                      <div className="platform-quote-meta">
                         {q.leadTimeDays != null && (
                           <div>
                             <strong>Lead Time:</strong> {q.leadTimeDays} business days
@@ -711,87 +612,87 @@ function DetailInner() {
                             <strong>Min Order Qty:</strong> {q.minOrderQuantity} units
                           </div>
                         )}
-                      {q.notes && (
-                        <div style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#475569', whiteSpace: 'pre-wrap' }}>
-                          &ldquo;{q.notes}&rdquo;
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
-                      <div>📧 {q.vendorOrganization.contactEmail}</div>
-                      <div>📞 {q.vendorOrganization.contactMobile}</div>
-                      {q.vendorOrganization.city && (
-                        <div>📍 {q.vendorOrganization.city}, {q.vendorOrganization.state}</div>
-                      )}
-                      {q.vendorOrganization.website && (
-                        <div style={{ marginTop: '0.25rem' }}>
-                          🌐 <a href={q.vendorOrganization.website} target="_blank" rel="noreferrer" style={{ color: '#2f5233' }}>
-                            {q.vendorOrganization.website}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons based on status */}
-                  <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-                    {isAccepted ? (
-                      <div style={{ textAlign: 'center' }}>
-                        <span style={{ color: '#166534', fontWeight: 700, fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>
-                          ✓ Winning Quote Awarded
-                        </span>
-                        {generatedOrder && (
-                          <Link
-                            href={`/buyer/orders/${generatedOrder.id}`}
-                            className="platform-btn platform-btn-cta platform-btn-full"
-                            style={{ textDecoration: 'none', display: 'block', padding: '0.6rem' }}
-                          >
-                            View Order #{generatedOrder.id.slice(0, 8)} →
-                          </Link>
+                        {q.notes && (
+                          <div className="platform-quote-notes">&ldquo;{q.notes}&rdquo;</div>
                         )}
                       </div>
-                    ) : isRejected ? (
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center' }}>
-                        Quotation declined
-                      </p>
-                    ) : rfq.status === 'OPEN' && isSubmitted ? (
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                          type="button"
-                          className="platform-btn platform-btn-cta"
-                          style={{ flex: 2, padding: '0.65rem' }}
-                          disabled={q.priceOnRequest || !q.priceInr}
-                          onClick={() => {
-                            setAwardingQuote(q);
-                            setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
-                          }}
-                        >
-                          🏆 Award & Order
-                        </button>
-                        <button
-                          type="button"
-                          className="platform-btn platform-btn-secondary"
-                          style={{ flex: 1, padding: '0.65rem' }}
-                          onClick={() => handleRejectQuotation(q.id)}
-                        >
-                          Decline
-                        </button>
+
+                      <div className="platform-quote-vendor-footer">
+                        <div>📧 {q.vendorOrganization.contactEmail}</div>
+                        <div>📞 {q.vendorOrganization.contactMobile}</div>
+                        {q.vendorOrganization.city && (
+                          <div>📍 {q.vendorOrganization.city}, {q.vendorOrganization.state}</div>
+                        )}
+                        {q.vendorOrganization.website && (
+                          <div className="platform-mt-sm">
+                            🌐{' '}
+                            <a
+                              href={q.vendorOrganization.website}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="platform-inline-link"
+                            >
+                              {q.vendorOrganization.website}
+                            </a>
+                          </div>
+                        )}
                       </div>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                    </div>
+
+                    <div className="platform-quote-actions">
+                      {isAccepted ? (
+                        <div className="platform-empty-state-card">
+                          <span className="platform-text-success platform-text-success--sm">
+                            ✓ Winning Quote Awarded
+                          </span>
+                          {generatedOrder && (
+                            <Link
+                              href={`/buyer/orders/${generatedOrder.id}`}
+                              className="platform-btn platform-btn-cta platform-btn-full platform-mt-sm"
+                            >
+                              View Order #{generatedOrder.id.slice(0, 8)} →
+                            </Link>
+                          )}
+                        </div>
+                      ) : isRejected ? (
+                        <p className="platform-empty-state-card__desc platform-text-faint">
+                          Quotation declined
+                        </p>
+                      ) : rfq.status === 'OPEN' && isSubmitted ? (
+                        <div className="platform-quote-actions-row">
+                          <button
+                            type="button"
+                            className="platform-btn platform-btn-cta"
+                            disabled={q.priceOnRequest || !q.priceInr}
+                            onClick={() => {
+                              setAwardingQuote(q);
+                              setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
+                            }}
+                          >
+                            🏆 Award & Order
+                          </button>
+                          <button
+                            type="button"
+                            className="platform-btn platform-btn-secondary"
+                            onClick={() => handleRejectQuotation(q.id)}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
 
           {quotes.length === 0 && (
-            <div className="platform-card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
-              <p style={{ fontSize: '1.1rem', color: '#64748b', margin: '0 0 0.5rem' }}>
+            <div className="platform-card platform-empty-state-card">
+              <p className="platform-empty-state-card__title">
                 No vendor quotations submitted yet.
               </p>
-              <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0 }}>
+              <p className="platform-empty-state-card__desc">
                 Verified drone manufacturers in this category have been notified and will submit bids shortly.
               </p>
             </div>
@@ -799,101 +700,76 @@ function DetailInner() {
         </>
       )}
 
-      {/* Award & Order Confirmation Modal */}
       {awardingQuote && rfq && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '1rem',
-          }}
-        >
-          <div
-            className="platform-card"
-            style={{
-              maxWidth: 520,
-              width: '100%',
-              background: '#ffffff',
-              borderRadius: 12,
-              padding: '1.75rem',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>
+        <div className="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="award-modal-title">
+          <div className="platform-card platform-modal-dialog">
+            <div className="platform-modal-header">
+              <h3 id="award-modal-title" className="platform-section-heading">
                 Award RFQ & Generate Order
               </h3>
               <button
                 type="button"
+                className="platform-modal-close"
                 onClick={() => setAwardingQuote(null)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Close"
               >
                 ✕
               </button>
             </div>
 
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+            <p className="platform-muted">
               You are awarding this requirement to <strong>{awardingQuote.vendorOrganization.companyName}</strong>.
               This will automatically close the RFQ, mark other bids as declined, and create an official Purchase Order in your account.
             </p>
 
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1rem', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Item / Requirement:</span>
-                <span style={{ fontWeight: 600 }}>{rfq.title}</span>
+            <div className="platform-summary-panel">
+              <div className="platform-summary-row">
+                <span>Item / Requirement:</span>
+                <span>{rfq.title}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Quantity:</span>
-                <span style={{ fontWeight: 600 }}>{rfq.quantity || 1} units</span>
+              <div className="platform-summary-row">
+                <span>Quantity:</span>
+                <span>{rfq.quantity || 1} units</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Quoted Unit Price:</span>
-                <span style={{ fontWeight: 600 }}>{formatPrice(false, awardingQuote.priceInr)}</span>
+              <div className="platform-summary-row">
+                <span>Quoted Unit Price:</span>
+                <span>{formatPrice(false, awardingQuote.priceInr)}</span>
               </div>
-              <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', fontWeight: 800 }}>
+              <div className="platform-summary-total">
                 <span>Order Total:</span>
-                <span style={{ color: '#166534' }}>
+                <span className="platform-text-success">
                   ₹{((Number(awardingQuote.priceInr) || 0) * (rfq.quantity || 1)).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  Purchase Order (PO) Number (Optional)
-                </label>
+            <div className="platform-stack platform-stack--lg">
+              <div className="platform-field">
+                <label htmlFor="po-number">Purchase Order (PO) Number (Optional)</label>
                 <input
+                  id="po-number"
                   type="text"
                   value={purchaseOrderNumber}
                   onChange={(e) => setPurchaseOrderNumber(e.target.value)}
                   className="platform-input"
                   placeholder="e.g. PO-CORP-2026-0042"
-                  style={{ width: '100%' }}
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  Special Instructions / Delivery Notes (Optional)
-                </label>
+              <div className="platform-field">
+                <label htmlFor="delivery-notes">Special Instructions / Delivery Notes (Optional)</label>
                 <textarea
+                  id="delivery-notes"
                   value={deliveryNotes}
                   onChange={(e) => setDeliveryNotes(e.target.value)}
                   className="platform-input"
                   rows={2}
                   placeholder="e.g. Dispatch to warehouse dock B; contact facility manager before delivery"
-                  style={{ width: '100%', resize: 'vertical' }}
                 />
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <div className="platform-confirm-actions platform-mt-md">
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary"

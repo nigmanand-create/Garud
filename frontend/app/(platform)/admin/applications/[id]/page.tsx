@@ -1,10 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { apiDownload, apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
+import { AdminSubnav } from '@/components/platform/AdminSubnav';
+import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
+import { StatusBadge } from '@/components/platform/StatusBadge';
+import { Button } from '@/components/platform/Button';
+import { FormField } from '@/components/platform/FormField';
 import { ACCOUNT_TYPE_LABELS, formatEnumLabel } from '@/lib/platform/labels';
 import type { AccountType, ApplicationDocumentType, VerificationStatus } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
@@ -83,82 +87,104 @@ function DetailInner() {
   }
 
   if (!app && !error) {
-    return <p className="platform-muted">Loading…</p>;
+    return (
+      <>
+        <PlatformPageHeader title="Partner application" subtitle="Loading application details…" />
+        <AdminSubnav />
+        <p className="platform-muted platform-loading-center">Loading…</p>
+      </>
+    );
   }
 
   return (
     <>
-      <p>
-        <Link href="/admin">← Applications</Link>
-      </p>
+      <PlatformPageHeader
+        title={app?.companyName ?? 'Partner application'}
+        subtitle={
+          app ? (
+            <>
+              <StatusBadge status={app.verificationStatus} /> ·{' '}
+              {ACCOUNT_TYPE_LABELS[app.owner.accountType]} · {app.owner.email}
+            </>
+          ) : (
+            'Application review'
+          )
+        }
+        backHref="/admin"
+        backLabel="Applications"
+      />
+      <AdminSubnav />
+
       {error && <div className="platform-card platform-error">{error}</div>}
       {message && <div className="platform-card platform-success">{message}</div>}
+
       {app && (
-        <>
-          <h1 className="platform-title">{app.companyName}</h1>
-          <p className="platform-subtitle">
-            {formatEnumLabel(app.verificationStatus)} ·{' '}
-            {ACCOUNT_TYPE_LABELS[app.owner.accountType]} · {app.owner.email}
-          </p>
-          <div className="platform-card">
-            {app.gst && <p>GST: {app.gst}</p>}
-            {app.cin && <p>CIN: {app.cin}</p>}
-            {app.productsServicesDescription && (
-              <p style={{ whiteSpace: 'pre-wrap' }}>
-                {app.productsServicesDescription}
-              </p>
-            )}
+        <div className="platform-admin-application-grid">
+          <div className="platform-stack platform-stack--lg">
+            <div className="platform-card">
+              <h2 className="platform-section-heading">Business profile</h2>
+              {app.gst && <p>GST: {app.gst}</p>}
+              {app.cin && <p>CIN: {app.cin}</p>}
+              {app.productsServicesDescription && (
+                <p className="platform-pre-wrap">{app.productsServicesDescription}</p>
+              )}
+              {!app.gst && !app.cin && !app.productsServicesDescription && (
+                <p className="platform-muted">No additional profile details submitted.</p>
+              )}
+            </div>
+
+            <div className="platform-card">
+              <h2 className="platform-section-heading">Documents</h2>
+              <ul>
+                {app.documents.map((d) => (
+                  <li key={d.id}>
+                    {formatEnumLabel(d.documentType)} — {d.fileName}{' '}
+                    <button
+                      type="button"
+                      className="platform-link-btn"
+                      onClick={() =>
+                        apiDownload(
+                          `/admin/documents/${d.id}/download`,
+                          d.fileName,
+                        )
+                      }
+                    >
+                      Download
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {app.documents.length === 0 && (
+                <p className="platform-muted">No documents uploaded.</p>
+              )}
+            </div>
           </div>
-          <div className="platform-card">
-            <h3>Documents</h3>
-            <ul>
-              {app.documents.map((d) => (
-                <li key={d.id}>
-                  {formatEnumLabel(d.documentType)} — {d.fileName}{' '}
-                  <button
-                    type="button"
-                    className="platform-link-btn"
-                    onClick={() =>
-                      apiDownload(
-                        `/admin/documents/${d.id}/download`,
-                        d.fileName,
-                      )
-                    }
-                  >
-                    Download
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {app.documents.length === 0 && (
-              <p className="platform-muted">No documents uploaded.</p>
-            )}
-          </div>
+
           {(app.verificationStatus === 'SUBMITTED' ||
             app.verificationStatus === 'UNDER_REVIEW') && (
-            <div className="platform-card">
+            <div className="platform-card platform-form">
+              <h2 className="platform-section-heading">Verification decision</h2>
               <div className="platform-actions">
-                <button type="button" className="platform-btn" onClick={approve}>
-                  Approve
-                </button>
+                <Button type="button" onClick={approve}>
+                  Approve partner
+                </Button>
               </div>
-              <form className="platform-form" onSubmit={reject} style={{ marginTop: '1rem' }}>
-                <label>Rejection reason</label>
-                <textarea
-                  required
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="platform-btn platform-btn-danger"
-                >
-                  Reject
-                </button>
+              <form className="platform-form platform-mt-md" onSubmit={reject}>
+                <FormField label="Rejection reason" htmlFor="reject-reason">
+                  <textarea
+                    id="reject-reason"
+                    required
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                  />
+                </FormField>
+                <Button type="submit" variant="danger">
+                  Reject application
+                </Button>
               </form>
             </div>
           )}
-        </>
+        </div>
       )}
     </>
   );

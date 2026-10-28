@@ -90,7 +90,7 @@ function OrdersInner() {
       {/* KPI Metric Cards */}
       <div className="mod-kpi-grid">
         <div className="mod-kpi-card" role="region" aria-label="Total GMV">
-          <div className="mod-kpi-icon-wrap" style={{ background: '#dcfce7', color: '#15803d' }}>
+          <div className="mod-kpi-icon-wrap mod-kpi-icon-wrap--gmv">
             ₹
           </div>
           <div className="mod-kpi-data">
@@ -128,13 +128,12 @@ function OrdersInner() {
         </div>
 
         <div
-          className="mod-kpi-card"
+          className={`mod-kpi-card ${paymentFilter === 'PENDING' ? 'mod-kpi-card--filter-active' : ''}`}
           onClick={() => setPaymentFilter(paymentFilter === 'PENDING' ? '' : 'PENDING')}
           role="button"
           tabIndex={0}
-          style={{ borderColor: paymentFilter === 'PENDING' ? 'var(--platform-accent, #2f5233)' : undefined }}
         >
-          <div className="mod-kpi-icon-wrap" style={{ background: '#fee2e2', color: '#b91c1c' }}>
+          <div className="mod-kpi-icon-wrap mod-kpi-icon-wrap--payment">
             💳
           </div>
           <div className="mod-kpi-data">
@@ -168,7 +167,7 @@ function OrdersInner() {
 
       {/* Controls: Search & Filters */}
       <div className="mod-controls-row">
-        <form onSubmit={handleSearchSubmit} className="mod-search-box" style={{ display: 'flex' }}>
+        <form onSubmit={handleSearchSubmit} className="mod-search-box">
           <span className="mod-search-icon">🔍</span>
           <input
             type="text"
@@ -195,13 +194,12 @@ function OrdersInner() {
         {(searchQuery || paymentFilter || activeTab !== 'ALL') && (
           <button
             type="button"
-            className="platform-btn platform-btn--secondary"
+            className="platform-btn platform-btn--secondary platform-btn-sm"
             onClick={() => {
               setSearchQuery('');
               setPaymentFilter('');
               setActiveTab('ALL');
             }}
-            style={{ fontSize: '0.825rem', height: 40, whiteSpace: 'nowrap' }}
           >
             Reset filters
           </button>
@@ -211,9 +209,9 @@ function OrdersInner() {
       {error && <div className="platform-card platform-error">{error}</div>}
 
       {/* Orders Table */}
-      <div className="platform-card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="platform-card platform-card--flush">
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center' }}>
+          <div className="platform-loading-center">
             <p className="platform-muted">Loading platform orders…</p>
           </div>
         ) : (
@@ -229,56 +227,50 @@ function OrdersInner() {
                     <th>Fulfillment</th>
                     <th>Payment</th>
                     <th>Placed On</th>
-                    <th style={{ textAlign: 'right' }}>Action</th>
+                    <th className="platform-table-th-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data?.items.map((order) => (
                     <tr key={order.id}>
                       <td>
-                        <div style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        <div className="platform-table-cell-mono">
                           #{order.id.slice(0, 8)}
                         </div>
                         {order.purchaseOrderNumber && (
-                          <div
-                            style={{
-                              fontSize: '0.75rem',
-                              color: '#64748b',
-                              marginTop: 2,
-                            }}
-                          >
+                          <div className="platform-table-cell-sub">
                             PO: {order.purchaseOrderNumber}
                           </div>
                         )}
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                        <div className="platform-table-cell-faint">
                           {order.lineItemCount} {order.lineItemCount === 1 ? 'item' : 'items'}
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 600, color: 'var(--platform-text, #14150f)' }}>
+                        <div className="platform-table-cell-strong">
                           {order.buyerOrganization.companyName}
                         </div>
-                        <div className="platform-muted" style={{ fontSize: '0.8rem', marginTop: 2 }}>
+                        <div className="platform-muted platform-table-cell-meta">
                           {[order.buyerOrganization.city, order.buyerOrganization.state].filter(Boolean).join(', ')}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        <div className="platform-table-cell-sub">
                           {order.contactName} ({order.buyerUser.email})
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 600, color: 'var(--platform-text, #14150f)' }}>
+                        <div className="platform-table-cell-strong">
                           {order.vendorOrganization.companyName}
                         </div>
-                        <div className="platform-muted" style={{ fontSize: '0.8rem', marginTop: 2 }}>
+                        <div className="platform-muted platform-table-cell-meta">
                           {[order.vendorOrganization.city, order.vendorOrganization.state].filter(Boolean).join(', ')}
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
+                        <div className="platform-table-cell-amount">
                           ₹{Number(order.totalInr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </div>
                         {Number(order.taxInr) > 0 && (
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          <div className="platform-table-cell-sub">
                             Incl. 18% GST (₹{Number(order.taxInr).toLocaleString('en-IN')})
                           </div>
                         )}
@@ -289,14 +281,14 @@ function OrdersInner() {
                       <td>
                         <StatusBadge status={order.paymentStatus} />
                       </td>
-                      <td style={{ fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                      <td className="platform-table-cell-date">
                         {new Date(order.placedAt).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                         })}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td className="platform-td-right">
                         <Link
                           href={`/admin/orders/${order.id}`}
                           className="mod-review-btn"
@@ -311,10 +303,10 @@ function OrdersInner() {
             </div>
 
             {(!data || data.items.length === 0) && !error && (
-              <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
-                <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.1rem' }}>No orders found</h3>
-                <p className="platform-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+              <div className="platform-empty-state platform-empty-state--table">
+                <div className="platform-empty-state-icon" aria-hidden>📦</div>
+                <h3 className="platform-empty-state-title">No orders found</h3>
+                <p className="platform-empty-state-desc">
                   {searchQuery
                     ? `No orders match query "${searchQuery}".`
                     : 'There are currently no orders in this status category.'}
@@ -322,13 +314,12 @@ function OrdersInner() {
                 {(searchQuery || paymentFilter || activeTab !== 'ALL') && (
                   <button
                     type="button"
-                    className="platform-btn platform-btn--secondary"
+                    className="platform-btn platform-btn--secondary platform-btn-sm platform-mt-md"
                     onClick={() => {
                       setSearchQuery('');
                       setPaymentFilter('');
                       setActiveTab('ALL');
                     }}
-                    style={{ marginTop: '1rem', fontSize: '0.85rem' }}
                   >
                     Clear search filters
                   </button>

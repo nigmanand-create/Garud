@@ -90,7 +90,7 @@ export default function PartnerPublicProfilePage() {
           {profile.productsServicesDescription && (
             <>
               <h3>About</h3>
-              <p style={{ whiteSpace: 'pre-wrap' }}>
+              <p className="platform-pre-wrap">
                 {profile.productsServicesDescription}
               </p>
             </>
@@ -99,7 +99,7 @@ export default function PartnerPublicProfilePage() {
 
         <aside className="platform-detail-sidebar">
           <div className="platform-card">
-            <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem' }}>
+            <p className="platform-sidebar-cta-lead">
               Interested in working with {profile.companyName}?
             </p>
             <Link
@@ -108,7 +108,7 @@ export default function PartnerPublicProfilePage() {
             >
               Send enquiry
             </Link>
-            <p style={{ margin: '1rem 0 0' }}>
+            <p className="platform-sidebar-cta-foot">
               <Link href="/marketplace" className="platform-back-link">
                 ← Back to marketplace
               </Link>

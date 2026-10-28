@@ -8,6 +8,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   Min,
   ValidateNested,
@@ -90,6 +91,13 @@ export class CreateRfqDto {
   @IsString()
   @MaxLength(500)
   specsDocumentUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Marketplace listing this RFQ is requesting a quote for',
+  })
+  @IsOptional()
+  @IsUUID()
+  listingId?: string;
 }
 
 export class SubmitQuotationDto {

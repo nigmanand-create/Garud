@@ -1,5 +1,7 @@
 # GarudHub — Detailed Project Status
 
+> **Stale for implementation details.** Use **[`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md)** (2026-10-22, code-verified) for routes, migrations, payments, RFQ→order, and admin console.
+
 **Date:** October 20, 2026  
 **Repository:** [github.com/nigmanand-create/Garud](https://github.com/nigmanand-create/Garud)  
 **Method:** Code-verified inventory across **30 platform `page.tsx` routes**, 50 static marketing HTML snapshots, 15 NestJS API controllers, 15 `schema.prisma` models, 8 database migrations, and verified execution logs.

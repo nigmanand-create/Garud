@@ -1,7 +1,7 @@
 # Admin P0 — Listing moderation & publish gates
 
-**Status:** Planning only (not implemented).  
-**Code verified:** October 2026 against `backend/`, `frontend/app/(platform)/admin/`, `docs/PROJECT_STATUS_DETAILED.md` Table 4, `docs/CHECKOUT_AND_PARTNER_CATALOG_DESIGN.md` §A.7.
+**Status:** **Implemented** (listing review workflow, admin `/admin/listings`, partner submit-for-review, marketplace/cart gates). Use §9 below for manual QA; some P1 items (global audit viewer, user admin) remain out of scope.  
+**Code verified:** October 2026; re-checked after implementation on branch `feature/task-003-004-payments-workflow`.
 
 ---
 

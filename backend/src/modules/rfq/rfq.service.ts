@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  ListingReviewStatus,
   Prisma,
   QuotationStatus,
   RfqInviteStatus,
@@ -13,6 +14,7 @@ import {
   OrderStatus,
   PaymentStatus,
   FulfillmentStatus,
+  VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
@@ -46,20 +48,49 @@ export class RfqService {
       throw new BadRequestException('RFQ deadline must be in the future');
     }
 
-    const vendorIds = await this.matching.findVendorOrganizationIds(
-      dto.category,
-      dto.listingType,
-    );
+    const listingContext = dto.listingId
+      ? await this.resolvePublicListingForRfq(dto.listingId)
+      : null;
+
+    if (listingContext) {
+      if (dto.category !== listingContext.category) {
+        throw new BadRequestException(
+          'RFQ category must match the referenced listing',
+        );
+      }
+      if (
+        dto.listingType != null &&
+        dto.listingType !== listingContext.listingType
+      ) {
+        throw new BadRequestException(
+          'RFQ listing type must match the referenced listing',
+        );
+      }
+    }
+
+    const effectiveListingType =
+      dto.listingType ?? listingContext?.listingType ?? undefined;
+
+    const vendorIds = [
+      ...new Set([
+        ...(await this.matching.findVendorOrganizationIds(
+          dto.category,
+          effectiveListingType,
+        )),
+        ...(listingContext ? [listingContext.organizationId] : []),
+      ]),
+    ];
 
     return this.prisma.$transaction(async (tx) => {
       const rfq = await tx.rfq.create({
         data: {
           buyerUserId,
           buyerOrganizationId: org.id,
+          listingId: listingContext?.id,
           title: dto.title,
           description: dto.description,
           category: dto.category,
-          listingType: dto.listingType,
+          listingType: effectiveListingType,
           quantity: dto.quantity,
           country: dto.country,
           state: dto.state,
@@ -451,6 +482,15 @@ export class RfqService {
                 city: true,
               },
             },
+            listing: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                priceOnRequest: true,
+                priceInr: true,
+              },
+            },
           },
         },
       },
@@ -591,5 +631,26 @@ export class RfqService {
       throw new NotFoundException('Organization not found');
     }
     return org;
+  }
+
+  private async resolvePublicListingForRfq(listingId: string) {
+    const listing = await this.prisma.partnerListing.findFirst({
+      where: {
+        id: listingId,
+        isPublished: true,
+        reviewStatus: ListingReviewStatus.APPROVED,
+        organization: { verificationStatus: VerificationStatus.APPROVED },
+      },
+      select: {
+        id: true,
+        category: true,
+        listingType: true,
+        organizationId: true,
+      },
+    });
+    if (!listing) {
+      throw new NotFoundException('Listing not found or not available');
+    }
+    return listing;
   }
 }

@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
 import { PartnerOnboardingChecklist } from '@/components/platform/PartnerOnboardingChecklist';
+import { PartnerOperationalSummary } from '@/components/platform/PartnerOperationalSummary';
 import { PartnerShortcuts } from '@/components/platform/PartnerShortcuts';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
@@ -51,79 +52,87 @@ function PartnerDashboardInner() {
   }, []);
 
   const primaryCta = data ? getPartnerPrimaryCta(data) : null;
+  const isApproved = data?.verificationStatus === 'APPROVED';
 
   return (
     <PartnerPageShell>
-      <PlatformPageHeader
-        title="Partner dashboard"
-        subtitle={
-          data
-            ? `${data.companyName} — manage verification, catalog, and buyer RFQs.`
-            : 'Your hub for onboarding and marketplace activity.'
-        }
-        badge={data ? <StatusBadge status={data.verificationStatus} /> : undefined}
-      />
-      {error && <div className="platform-card platform-error">{error}</div>}
-      {!data && !error && <PlatformLoading />}
-      {data && (
-        <>
-          {primaryCta && (
-            <div className="platform-partner-cta-banner">
-              <div>
-                <strong>Next step</strong>
-                <p className="platform-muted" style={{ margin: '0.25rem 0 0' }}>
-                  Pick up where you left off in partner onboarding.
-                </p>
-              </div>
-              <Link href={primaryCta.href} className="platform-btn platform-btn-cta">
-                {primaryCta.label}
-              </Link>
-            </div>
-          )}
-
-          <div className="platform-stat-grid">
-            <div className="platform-stat-card">
-              <strong>{data.documentCount}</strong>
-              <span>Documents uploaded</span>
-            </div>
-            <div className="platform-stat-card">
-              <strong>{data.listingCount}</strong>
-              <span>Catalog listings</span>
-            </div>
-            {data.submittedAt && (
-              <div className="platform-stat-card">
-                <strong style={{ fontSize: '1rem' }}>
-                  {new Date(data.submittedAt).toLocaleDateString()}
-                </strong>
-                <span>Submitted on</span>
-              </div>
-            )}
-          </div>
-
-          {data.rejectionReason && (
-            <div className="platform-card platform-error" role="alert">
-              <strong>Application feedback</strong>
-              <p style={{ margin: '0.35rem 0 0' }}>{data.rejectionReason}</p>
-              {data.canEdit && (
-                <Link
-                  href="/partner/application"
-                  className="platform-btn platform-btn-secondary"
-                  style={{ marginTop: '0.75rem' }}
-                >
-                  Update application
-                </Link>
+      <div className="platform-partner-form-page">
+        <PlatformPageHeader
+          title="Partner dashboard"
+          subtitle={
+            data
+              ? `${data.companyName} — manage verification, catalog, and buyer RFQs.`
+              : 'Your hub for onboarding and marketplace activity.'
+          }
+          badge={data ? <StatusBadge status={data.verificationStatus} /> : undefined}
+        />
+        <div className="platform-form-layout platform-form-layout--full platform-partner-page-body">
+          {error && <div className="platform-card platform-error">{error}</div>}
+          {!data && !error && <PlatformLoading />}
+          {data && (
+            <>
+              {!isApproved && primaryCta && (
+                <div className="platform-partner-cta-banner">
+                  <div>
+                    <strong>Next step</strong>
+                    <p className="platform-muted platform-mt-sm">
+                      Pick up where you left off in partner onboarding.
+                    </p>
+                  </div>
+                  <Link href={primaryCta.href} className="platform-btn platform-btn-cta">
+                    {primaryCta.label}
+                  </Link>
+                </div>
               )}
-            </div>
+
+              {isApproved ? (
+                <PartnerOperationalSummary />
+              ) : (
+                <div className="platform-stat-grid">
+                  <div className="platform-stat-card">
+                    <strong>{data.documentCount}</strong>
+                    <span>Documents uploaded</span>
+                  </div>
+                  <div className="platform-stat-card">
+                    <strong>{data.listingCount}</strong>
+                    <span>Catalog listings</span>
+                  </div>
+                  {data.submittedAt && (
+                    <div className="platform-stat-card">
+                      <strong className="platform-stat-date">
+                        {new Date(data.submittedAt).toLocaleDateString()}
+                      </strong>
+                      <span>Submitted on</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {data.rejectionReason && (
+                <div className="platform-card platform-error" role="alert">
+                  <strong>Application feedback</strong>
+                  <p className="platform-mt-sm">{data.rejectionReason}</p>
+                  {data.canEdit && (
+                    <Link
+                      href="/partner/application"
+                      className="platform-btn platform-btn-secondary platform-mt-sm"
+                    >
+                      Update application
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              <PartnerOnboardingChecklist
+                data={data}
+                verificationStatus={data.verificationStatus}
+              />
+
+              <PartnerShortcuts data={data} compact={isApproved} />
+            </>
           )}
-
-          <PartnerOnboardingChecklist
-            data={data}
-            verificationStatus={data.verificationStatus}
-          />
-
-          <PartnerShortcuts data={data} />
-        </>
-      )}
+        </div>
+      </div>
     </PartnerPageShell>
   );
 }

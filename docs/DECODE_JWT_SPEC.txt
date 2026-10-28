@@ -1,0 +1,307 @@
+GARUDHUB
+
+WEBSITE UI WIREFRAME / BLUEPRINT
+
+India’s B2B Drone Ecosystem Platform
+
+Connect. Partner. Sell. Service. Grow.
+
+1. Website Vision
+
+GarudHub should be positioned as a complete B2B Drone Ecosystem Platform connecting Indian and international companies with buyers, distributors, dealers, service providers, training organizations, enterprises and government opportunities.
+
+Core positioning: “India’s B2B Drone Ecosystem Platform.”
+
+2. Overall Website Structure
+
+GARUDHUB│├── HOME├── ABOUT US├── DRONE SERVICES│   ├── Marketplace│   ├── Training│   ├── Compliance│   ├── Repair & Maintenance│   ├── Professional Services│   ├── Finance & Insurance│   ├── Government Projects│   └── Recycling├── MARKETPLACE│   ├── Products│   ├── Components│   ├── Services│   ├── Vendors│   └── RFQ├── B2B PARTNERS│   ├── Manufacturers│   ├── OEMs│   ├── International Companies│   ├── Distributors│   ├── Dealers│   ├── Service Providers│   └── Training Partners├── JOIN GARUDHUB│   ├── Registration│   ├── Verification│   └── Partner Login└── PARTNER DASHBOARD
+
+3. Main Navigation
+
+HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | JOIN GARUDHUB
+
+Header buttons: LOGIN | REGISTER AS B2B PARTNER
+
+PAGE 1 — HOME
+
+┌───────────────────────────────────────────────────────────────┐│ LOGO    HOME ABOUT SERVICES MARKETPLACE B2B PARTNERS          ││                                        LOGIN | REGISTER       │├───────────────────────────────────────────────────────────────┤│                    [DRONE / INDIA / BUSINESS IMAGE]           ││                                                               ││              INDIA'S B2B DRONE ECOSYSTEM                      ││          Connecting Global Drone Technology With India        ││                                                               ││      [BECOME A B2B PARTNER] [EXPLORE SERVICES]               │├───────────────────────────────────────────────────────────────┤│                         WHO WE ARE                             ││              Company introduction + ecosystem graphic         │├───────────────────────────────────────────────────────────────┤│                     OUR ECOSYSTEM                              ││ MANUFACTURER → GARUDHUB → DISTRIBUTOR → DEALER → BUYER        ││                         ↓                                     ││              SERVICE / TRAINING / PROJECTS                    │├───────────────────────────────────────────────────────────────┤│                       OUR SERVICES                             ││ [MARKETPLACE] [TRAINING] [COMPLIANCE] [REPAIR]                ││ [PROFESSIONAL SERVICES] [FINANCE] [PROJECTS] [RECYCLING]      │├───────────────────────────────────────────────────────────────┤│                    WHO CAN JOIN GARUDHUB                       ││ [OEM] [MANUFACTURER] [INTERNATIONAL] [DISTRIBUTOR]            ││ [DEALER] [SERVICE PROVIDER] [TRAINING] [TECH COMPANY]         │├───────────────────────────────────────────────────────────────┤│                    WHY GARUDHUB?                              ││ ✓ Indian Market Access       ✓ Business Leads                 ││ ✓ Distribution Network       ✓ Project Opportunities          │├───────────────────────────────────────────────────────────────┤│                      HOW IT WORKS                             ││ REGISTER → VERIFY → PROFILE → LIST → GET LEADS                │├───────────────────────────────────────────────────────────────┤│                       INDUSTRIES                               ││ AGRICULTURE | INFRA | MINING | POWER | CONSTRUCTION            ││ SURVEY | DEFENCE | LOGISTICS | GOVERNMENT                     │├───────────────────────────────────────────────────────────────┤│                  [REGISTER WITH GARUDHUB]                      │└───────────────────────────────────────────────────────────────┘
+
+Homepage Content Blocks
+
+Hero: India’s B2B Drone Ecosystem
+
+Who We Are
+
+Drone Marketplace, Training, Compliance, Repair, Professional Services, Finance & Insurance, Government Projects and Recycling
+
+Who Can Join GarudHub
+
+Why Partner With GarudHub
+
+How It Works
+
+Industries Served
+
+Primary CTA: Register as B2B Partner
+
+PAGE 2 — ABOUT US
+
+┌───────────────────────────────────────────────────────────────┐│                 CONNECTING THE GLOBAL DRONE                   ││                        INDUSTRY WITH INDIA                     │├───────────────────────────────────────────────────────────────┤│                       [GLOBAL + INDIA IMAGE]                   │├───────────────────────────────────────────────────────────────┤│ OUR STORY                                                     ││ Company introduction / GarudHub story                         │├───────────────────────────────────────────────────────────────┤│ OUR VISION                                                    ││ Build India’s most connected and trusted B2B drone ecosystem. │├───────────────────────────────────────────────────────────────┤│ OUR MISSION                                                   ││ Market Entry | Partnerships | Distribution | Services          ││ Training | Projects | Business Development                     │├───────────────────────────────────────────────────────────────┤│ GARUDHUB ECOSYSTEM                                            ││ MANUFACTURER → GARUDHUB → DISTRIBUTOR → DEALER → BUYER        ││                         ↓                                     ││ TRAINING → COMPLIANCE → SERVICE → MAINTENANCE                 │├───────────────────────────────────────────────────────────────┤│ SECTORS / INDUSTRIES                                          ││ Agriculture | Infrastructure | Mining | Construction           ││ Survey | Power | Government | Defence | Logistics              │└───────────────────────────────────────────────────────────────┘
+
+PAGE 3 — DRONE SERVICES
+
+┌───────────────────────────────────────────────────────────────┐│             COMPLETE DRONE SERVICES                           ││                   UNDER ONE PLATFORM                           │├───────────────────────────────────────────────────────────────┤│ [MARKETPLACE] [TRAINING] [COMPLIANCE] [REPAIR]                ││ [PROFESSIONAL SERVICES] [FINANCE] [PROJECTS] [RECYCLING]      │├───────────────────────────────────────────────────────────────┤│                     SELECT A SERVICE                           ││ [IMAGE] [DESCRIPTION] [APPLICATIONS] [SERVICES]               ││                    [REQUEST SERVICE]                           │├───────────────────────────────────────────────────────────────┤│                  HOW SERVICE WORKS                             ││ SUBMIT REQUIREMENT → MATCH → CONNECT → SERVICE                 │├───────────────────────────────────────────────────────────────┤│                    [REQUEST A SERVICE]                         │└───────────────────────────────────────────────────────────────┘
+
+Service Categories
+
+01 — Drone Marketplace
+
+Agriculture Drones
+
+Survey Drones
+
+Mapping Drones
+
+Industrial / Enterprise Drones
+
+Camera Drones
+
+Components
+
+Accessories
+
+02 — Drone Training
+
+Remote Pilot Training
+
+Drone Technician Training
+
+Specialized Training
+
+Training Institute Network
+
+Corporate Training
+
+03 — DGCA & Compliance
+
+Drone Registration
+
+Documentation
+
+Compliance Support
+
+Regulatory Assistance
+
+04 — Repair & Maintenance
+
+Drone Repair
+
+AMC
+
+Inspection
+
+Spare Parts
+
+Pickup & Delivery
+
+Service Centre Network
+
+05 — Professional Services
+
+Drone Business Consultancy
+
+Project Consultancy
+
+Survey & Mapping
+
+Agriculture Drone Services
+
+Documentation
+
+Technical Consultancy
+
+06 — Finance & Insurance
+
+Drone Financing
+
+EMI
+
+Insurance
+
+Loan Assistance
+
+07 — Government Projects
+
+Tenders
+
+Government Schemes
+
+Subsidies
+
+Procurement Opportunities
+
+Project Opportunities
+
+08 — Scrap & Recycling
+
+Old Drone Evaluation
+
+Scrap
+
+Buyback
+
+Recycling
+
+PAGE 4 — B2B PARTNER NETWORK
+
+┌───────────────────────────────────────────────────────────────┐│                 PARTNER WITH GARUDHUB                         ││             EXPAND YOUR DRONE BUSINESS IN INDIA               ││                 [BECOME A B2B PARTNER]                        │├───────────────────────────────────────────────────────────────┤│                    WHO CAN PARTNER?                            ││ [INTERNATIONAL COMPANY] [MANUFACTURER] [OEM]                  ││ [DISTRIBUTOR] [DEALER] [SERVICE PROVIDER]                     ││ [TRAINING INSTITUTE] [TECHNOLOGY COMPANY] [PROJECT PARTNER]   │├───────────────────────────────────────────────────────────────┤│                  PARTNERSHIP MODELS                            ││ [PRODUCT] [TECHNOLOGY] [DISTRIBUTION]                         ││ [SERVICE] [TRAINING] [PROJECT] [INTERNATIONAL MARKET ENTRY]   │├───────────────────────────────────────────────────────────────┤│                  WHY PARTNER WITH US?                          ││ ✓ Indian Market Access       ✓ Lead Generation                 ││ ✓ Distribution Network       ✓ Business Opportunities          ││ ✓ Service Network            ✓ Project Opportunities            │├───────────────────────────────────────────────────────────────┤│                   [REGISTER NOW]                               │└───────────────────────────────────────────────────────────────┘
+
+Partnership Models
+
+Product Partner — List drones and products on GarudHub.
+
+Technology Partner — Introduce drone technology to the Indian ecosystem.
+
+Distribution Partner — Develop distribution opportunities in India.
+
+Service Partner — Join the repair/service network.
+
+Training Partner — Join the drone training ecosystem.
+
+Project Partner — Collaborate on government and enterprise projects.
+
+International Market Entry Partner — Support international companies exploring India.
+
+PAGE 5 — MARKETPLACE + RFQ
+
+┌───────────────────────────────────────────────────────────────┐│                     DRONE MARKETPLACE                         ││       Find Products. Compare Vendors. Request Quotes.         │├───────────────────────────────────────────────────────────────┤│ [ SEARCH PRODUCTS / SERVICES........................ ] SEARCH  │├───────────────────────────────────────────────────────────────┤│ CATEGORIES                                                     ││ [DRONES] [COMPONENTS] [PAYLOADS] [ACCESSORIES] [SERVICES]     │├───────────────────────────────────────────────────────────────┤│                  FEATURED PRODUCTS                             ││ [PRODUCT] [PRODUCT] [PRODUCT]                                 ││ Manufacturer | Specification | Price / RFQ | [VIEW]           │├───────────────────────────────────────────────────────────────┤│                     B2B RFQ                                   ││            “What are you looking for?”                         ││                [POST YOUR REQUIREMENT]                         │├───────────────────────────────────────────────────────────────┤│                  HOW RFQ WORKS                                ││ REQUIREMENT → VERIFIED VENDORS → QUOTATIONS → COMPARISON      ││                                      ↓                        ││                              BUYER CONNECTION                  │├───────────────────────────────────────────────────────────────┤│ BUSINESS OPPORTUNITIES                                        ││ [DISTRIBUTOR] [DEALERSHIP] [PROJECTS] [PARTNERSHIPS]          │└───────────────────────────────────────────────────────────────┘
+
+Marketplace Product Listing
+
+Product Name
+
+Manufacturer / Brand
+
+Product Category
+
+Technical Specifications
+
+Applications
+
+Available Location
+
+Minimum Order Quantity
+
+Price / Price on Request
+
+Warranty
+
+Technical Documents
+
+Request Quote
+
+Contact Supplier
+
+Send Enquiry
+
+Request Product Demo
+
+Become a Distributor
+
+B2B RFQ Example
+
+Buyer Requirement        ↓GarudHub RFQ        ↓Relevant Verified Vendors        ↓Multiple Quotations        ↓Buyer Compares Offers        ↓Buyer Contacts Supplier        ↓Business Transaction
+
+PAGE 6 — JOIN GARUDHUB
+
+┌───────────────────────────────────────────────────────────────┐│                        JOIN GARUDHUB                            ││ Register Your Business. Connect With Opportunities.            ││                     Grow With the Drone Ecosystem.              │├───────────────────────────────────────────────────────────────┤│ SELECT ACCOUNT TYPE                                            ││ [MANUFACTURER] [INTERNATIONAL] [DISTRIBUTOR]                   ││ [DEALER] [SERVICE PROVIDER] [TRAINING INSTITUTE]               ││ [TECHNOLOGY COMPANY] [BUYER / ENTERPRISE] [GOVERNMENT / PSU]  │├───────────────────────────────────────────────────────────────┤│                 BUSINESS REGISTRATION                          ││ Company Name | Country | State | City | Website               ││ Company Type | Year Established | GST | CIN                   ││ Contact Person | Email | Mobile                               ││ Products / Services | Industries | Partnership Type           ││ Documents: [UPLOAD]                                           ││                  [SUBMIT APPLICATION]                          │├───────────────────────────────────────────────────────────────┤│                  VERIFICATION PROCESS                           ││ SUBMIT → VERIFY → APPROVE → DASHBOARD ACTIVE                   │├───────────────────────────────────────────────────────────────┤│                     PARTNER LOGIN                              ││ Email [____________] Password [____________] [LOGIN]           │└───────────────────────────────────────────────────────────────┘
+
+Partner Dashboard
+
+┌────────────────────────────────────────────────────────────────┐│ GARUDHUB                 PARTNER NAME          PROFILE           │├────────────────┬───────────────────────────────────────────────┤│ DASHBOARD      │                  WELCOME                        ││ MY PROFILE     │  LEADS | RFQs | ENQUIRIES | ORDERS             ││ PRODUCTS       │                                               ││ SERVICES       │              RECENT ACTIVITY                   ││ LEADS          │  New Lead → Agriculture Drone                  ││ RFQs           │  New RFQ → 20 Units                            ││ ENQUIRIES      │  New Enquiry → Distribution Partnership        ││ ORDERS         │                                               ││ PARTNERSHIPS   │              PERFORMANCE                       ││ DOCUMENTS      │      Leads | Views | Enquiries                 ││ MESSAGES       │                                               ││ ANALYTICS      │                                               ││ PAYMENTS       │                                               │└────────────────┴───────────────────────────────────────────────┘
+
+Partner Dashboard Modules
+
+My Profile
+
+Products
+
+Services
+
+Leads
+
+RFQs
+
+Enquiries
+
+Orders
+
+Partnership Requests
+
+Documents
+
+Messages
+
+Analytics
+
+Subscription / Payments
+
+4. Complete User Journey
+
+                         GARUDHUB                            │             ┌──────────────┼──────────────┐             ↓              ↓              ↓           BUYER          PARTNER       SERVICE             │              │           PROVIDER             ↓              ↓              ↓        SEARCH/RFQ      REGISTER        REGISTER             │              │              │             ↓              ↓              ↓        VENDORS         VERIFY         VERIFY             │              │              │             ↓              ↓              ↓        QUOTATIONS       PROFILE        SERVICE             │              │              │             ↓              ↓              ↓          COMPARE      PRODUCTS/        LEADS             │          SERVICES           │             ↓              │              ↓         BUSINESS          LEADS         JOB                            │                            ↓                         GROWTH
+
+International Company Journey
+
+GarudHub → Partner Registration → Verification → Business Profile → Product Listing → Indian Leads → Distributor / Dealer → Projects
+
+Indian Manufacturer Journey
+
+Registration → Product Listing → RFQ → Buyer Enquiry → Quotation → Business
+
+Buyer Journey
+
+Search Product → Compare → RFQ → Vendor Quotes → Contact Vendor
+
+Service Provider Journey
+
+Register → Service Category → Location → Service Request → Lead → Job
+
+Training Institute Journey
+
+Register → Institute Profile → Courses → Batches → Student Leads
+
+5. Recommended Visual Design Direction
+
+Premium technology + aviation + B2B corporate design
+
+Large cinematic drone / industry hero imagery
+
+Clean white or light backgrounds
+
+Dark technology sections for major CTAs
+
+Strong typography
+
+Rounded service cards
+
+Professional icons
+
+India + global connectivity visuals
+
+Subtle drone / technology animations
+
+Strong “Register as B2B Partner” CTA throughout the website
+
+6. Final Site Architecture
+
+GARUDHUB│├── HOME│├── ABOUT US│   ├── Vision│   ├── Mission│   ├── Our Story│   └── Ecosystem│├── DRONE SERVICES│   ├── Marketplace│   ├── Training│   ├── Compliance│   ├── Repair & Maintenance│   ├── Professional Services│   ├── Finance & Insurance│   ├── Government Projects│   └── Recycling│├── MARKETPLACE│   ├── Products│   ├── Components│   ├── Services│   ├── Vendors│   └── RFQ│├── B2B PARTNERS│   ├── Manufacturers│   ├── OEMs│   ├── International Companies│   ├── Distributors│   ├── Dealers│   ├── Service Providers│   └── Training Partners│├── JOIN GARUDHUB│   ├── Registration│   ├── Verification│   └── Partner Login│└── PARTNER DASHBOARD    ├── Profile    ├── Products    ├── Services    ├── Leads    ├── RFQs    ├── Enquiries    ├── Orders    ├── Partnerships    ├── Documents    ├── Messages    ├── Analytics    └── Payments
+
+7. Core Positioning
+
+GarudHub — India’s B2B Drone Ecosystem
+
+Connect Businesses. Enable Technology. Build Partnerships. Grow in India.
+
+8. Website Objective
+
+The website should communicate that GarudHub is not simply a drone information website. It is a business-generation platform where drone manufacturers, OEMs, international companies, distributors, dealers, service providers, training institutes, technology companies and buyers can connect, list products/services, submit RFQs, generate leads and develop partnerships.

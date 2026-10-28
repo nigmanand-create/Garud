@@ -9,7 +9,8 @@ import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
-import { CATEGORY_LABELS, formatEnumLabel } from '@/lib/platform/labels';
+import { CATEGORY_LABELS, RFQ_INVITE_STATUS_LABELS } from '@/lib/platform/labels';
+import type { RfqInviteStatus } from '@/lib/api/types';
 import type { CatalogCategory, RfqStatus } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
@@ -47,14 +48,16 @@ function RfqsInner() {
 
   return (
     <PartnerPageShell>
-      <PlatformPageHeader
-        title="RFQ inbox"
-        subtitle="Buyer requirements matched to your verified catalog and categories."
-      />
-      {error && <div className="platform-card platform-error">{error}</div>}
-      {rows === null && !error && <PlatformLoading />}
-      {rows && rows.length > 0 && (
-        <div className="platform-inbox-list">
+      <div className="platform-partner-form-page">
+        <PlatformPageHeader
+          title="RFQ inbox"
+          subtitle="Buyer requirements matched to your verified catalog and categories."
+        />
+        <div className="platform-form-layout platform-form-layout--full">
+          {error && <div className="platform-card platform-error">{error}</div>}
+          {rows === null && !error && <PlatformLoading />}
+          {rows && rows.length > 0 && (
+            <div className="platform-inbox-list">
           {rows.map((r) => (
             <Link
               key={r.id}
@@ -69,26 +72,29 @@ function RfqsInner() {
                   </span>
                   <StatusBadge status={r.rfq.status} />
                   <span className="platform-muted">
-                    Invite · {formatEnumLabel(r.status)}
+                    {RFQ_INVITE_STATUS_LABELS[r.status as RfqInviteStatus] ??
+                      r.status}
                   </span>
                 </div>
               </div>
-              <div className="platform-muted" style={{ fontSize: '0.8125rem' }}>
+              <div className="platform-muted platform-inbox-date">
                 {new Date(r.rfq.createdAt).toLocaleDateString()}
               </div>
             </Link>
           ))}
+            </div>
+          )}
+          {rows && rows.length === 0 && !error && (
+            <EmptyState
+              title="No RFQ invites yet"
+              description="When buyers post requirements in your categories, matched invites will appear here for quoting."
+              primaryAction={{ label: 'Manage catalog', href: '/partner/catalog' }}
+              secondaryAction={{ label: 'Browse marketplace', href: '/marketplace' }}
+              icon="✉️"
+            />
+          )}
         </div>
-      )}
-      {rows && rows.length === 0 && !error && (
-        <EmptyState
-          title="No RFQ invites yet"
-          description="When buyers post requirements in your categories, matched invites will appear here for quoting."
-          primaryAction={{ label: 'Manage catalog', href: '/partner/catalog' }}
-          secondaryAction={{ label: 'Browse marketplace', href: '/marketplace' }}
-          icon="✉️"
-        />
-      )}
+      </div>
     </PartnerPageShell>
   );
 }

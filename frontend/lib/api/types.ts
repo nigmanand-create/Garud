@@ -390,6 +390,14 @@ export type PartnerQuotation = {
   warrantyMonths?: number | null;
 };
 
+export type PartnerRfqListingSummary = {
+  id: string;
+  name: string;
+  sku?: string | null;
+  priceOnRequest?: boolean;
+  priceInr?: string | number | null;
+};
+
 export type PartnerRfqInviteDetail = {
   id: string;
   status: RfqInviteStatus;
@@ -400,6 +408,9 @@ export type PartnerRfqInviteDetail = {
     status: RfqStatus;
     category: CatalogCategory;
     quantity?: number | null;
+    deadlineAt?: string | null;
+    listingId?: string | null;
+    listing?: PartnerRfqListingSummary | null;
     payloadCapacityKg?: string | number | null;
     enduranceMinutes?: number | null;
     isDgcaRequired?: boolean | null;

@@ -57,8 +57,8 @@ export default function LoginPage() {
 
   return (
     <AuthPage
-      title="Sign in"
-      subtitle="Access your GarudHub partner, buyer, or admin dashboard."
+      title="GarudHub Portal Login"
+      subtitle="Access your B2B Partner Hub, Buyer RFQ proposals, and order dashboard."
       footer={
         <p className="platform-muted">
           No account?{' '}

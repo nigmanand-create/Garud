@@ -206,6 +206,7 @@ model PartnerListing {
   cartItems    CartItem[]
   orderLineItems OrderLineItem[]
   moderationLogs ListingModerationAuditLog[]
+  rfqs         Rfq[]
 
   @@index([organizationId])
   @@index([listingType, category, isPublished])
@@ -439,15 +440,18 @@ model Rfq {
   isDgcaRequired       Boolean         @default(false) @map("is_dgca_required")
   targetBudgetInr      Decimal?        @map("target_budget_inr") @db.Decimal(14, 2)
   specsDocumentUrl     String?         @map("specs_document_url")
+  listingId            String?         @map("listing_id")
 
   buyerUser         User           @relation("RfqBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
   buyerOrganization Organization   @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+  listing           PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
   invites           RfqInvite[]
   quotations        Quotation[]
   orders            Order[]
 
   @@index([buyerUserId])
   @@index([status, category])
+  @@index([listingId])
   @@map("rfqs")
 }
 

@@ -8,6 +8,7 @@ import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
+import { FormField } from '@/components/platform/FormField';
 import { ApiError } from '@/lib/api/types';
 import type { VerificationStatus } from '@/lib/api/types';
 
@@ -232,15 +233,14 @@ function ApplicationInner() {
           <p className="platform-form-section-desc">
             Legal entity information shown to buyers after verification.
           </p>
-          <div className="platform-field">
-            <label htmlFor="companyName">Company name</label>
+          <FormField label="Company name" htmlFor="companyName">
             <input
               id="companyName"
               required
               value={form.companyName}
               onChange={(e) => update('companyName', e.target.value)}
             />
-          </div>
+          </FormField>
           <div className="platform-field-row">
             <div className="platform-field">
               <label htmlFor="country">Country</label>

@@ -157,7 +157,7 @@ function BuyerCheckoutInner() {
   if (!cart) {
     return (
       <div className="platform-grid" aria-busy="true">
-        <div className="platform-skeleton" style={{ height: 28, width: '40%' }} />
+        <div className="platform-skeleton platform-skeleton-line platform-skeleton-line--short platform-skeleton-line--title" />
       </div>
     );
   }
@@ -179,105 +179,62 @@ function BuyerCheckoutInner() {
         <form className="platform-detail-layout" onSubmit={onSubmit}>
           <div className="platform-card platform-form">
             {hasSavedAddress && !isEditingAddress ? (
-              /* Saved Address Card View */
-              <div
-                style={{
-                  background: '#f8fafc',
-                  border: '1.5px solid #cbd5e1',
-                  borderRadius: 12,
-                  padding: '1.25rem',
-                  marginBottom: '1rem',
-                  position: 'relative',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1.2rem' }}>📦</span>
-                    <strong style={{ fontSize: '1.05rem', color: '#0f172a' }}>Delivery Address</strong>
-                    <span
-                      style={{
-                        background: '#dcfce7',
-                        color: '#166534',
-                        fontSize: '0.7rem',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: 12,
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      SAVED ADDRESS
-                    </span>
+              <div className="platform-address-saved">
+                <div className="platform-address-saved__head">
+                  <div className="platform-address-saved__title-row">
+                    <span aria-hidden>📦</span>
+                    <strong className="platform-section-heading">Delivery Address</strong>
+                    <span className="platform-badge-saved">SAVED ADDRESS</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setIsEditingAddress(true)}
-                    className="platform-btn platform-btn-secondary"
-                    style={{
-                      fontSize: '0.825rem',
-                      padding: '0.35rem 0.85rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      background: '#ffffff',
-                      color: '#2f5233',
-                      borderColor: '#2f5233',
-                      fontWeight: 600,
-                    }}
+                    className="platform-btn platform-btn-secondary platform-btn-sm"
                   >
                     ✏️ Change / Edit Address
                   </button>
                 </div>
 
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.2rem' }}>
-                  {form.contactName} · <span style={{ color: '#475569', fontWeight: 500 }}>{form.companyName}</span>
+                <div className="platform-address-saved__name">
+                  {form.contactName} · <span>{form.companyName}</span>
                 </div>
 
-                <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: 1.5, marginBottom: '0.5rem' }}>
+                <div className="platform-address-saved__body">
                   {form.addressLine1}
                   {form.addressLine2 ? `, ${form.addressLine2}` : ''}
                   <br />
                   {form.city}, {form.state} - <strong>{form.pincode}</strong>, {form.country}
                 </div>
 
-                <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: '0.825rem', color: '#0f172a', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                <div className="platform-address-saved__meta">
                   <span>📞 Phone: <strong>{form.contactPhone}</strong></span>
                   {form.gstin && (
                     <span>🧾 GSTIN: <strong>{form.gstin}</strong></span>
                   )}
                 </div>
 
-                <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px dashed #cbd5e1' }}>
-                  <label style={{ fontSize: '0.825rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
-                    Purchase Order (PO) Number (Optional)
-                  </label>
+                <div className="platform-address-saved__po platform-field">
+                  <label htmlFor="saved-po">Purchase Order (PO) Number (Optional)</label>
                   <input
+                    id="saved-po"
                     placeholder="e.g. PO-2026-DRONE-01"
                     value={form.purchaseOrderNumber}
                     onChange={(e) => setForm((f) => ({ ...f, purchaseOrderNumber: e.target.value }))}
-                    style={{ maxWidth: 300 }}
                   />
                 </div>
               </div>
             ) : (
-              /* Address Edit / Entry Form View */
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0 }}>
+                <div className="platform-form-edit-head">
+                  <h3 className="platform-section-heading">
                     {hasSavedAddress ? '✏️ Edit / Change Delivery Address' : 'Shipping Address'}
                   </h3>
                   {hasSavedAddress && (
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#64748b',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className="platform-form-cancel-link"
                     >
                       ✕ Cancel (Keep Saved Address)
                     </button>
@@ -315,18 +272,20 @@ function BuyerCheckoutInner() {
                   value={form.addressLine2}
                   onChange={(e) => setForm((f) => ({ ...f, addressLine2: e.target.value }))}
                 />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label>City</label>
+                <div className="platform-field-row">
+                  <div className="platform-field">
+                    <label htmlFor="ship-city">City</label>
                     <input
+                      id="ship-city"
                       required
                       value={form.city}
                       onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
                     />
                   </div>
-                  <div>
-                    <label>State</label>
+                  <div className="platform-field">
+                    <label htmlFor="ship-state">State</label>
                     <input
+                      id="ship-state"
                       required
                       value={form.state}
                       onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
@@ -334,19 +293,21 @@ function BuyerCheckoutInner() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label>Pincode</label>
+                <div className="platform-field-row">
+                  <div className="platform-field">
+                    <label htmlFor="ship-pincode">Pincode</label>
                     <input
+                      id="ship-pincode"
                       required
                       placeholder="6 digits pincode"
                       value={form.pincode}
                       onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value }))}
                     />
                   </div>
-                  <div>
-                    <label>Country</label>
+                  <div className="platform-field">
+                    <label htmlFor="ship-country">Country</label>
                     <input
+                      id="ship-country"
                       required
                       value={form.country}
                       onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
@@ -354,7 +315,7 @@ function BuyerCheckoutInner() {
                   </div>
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+                <label className="platform-field-checkbox">
                   <input
                     type="checkbox"
                     checked={billingSame}
@@ -365,7 +326,7 @@ function BuyerCheckoutInner() {
 
                 {!billingSame && (
                   <>
-                    <h3 style={{ marginTop: '1.25rem' }}>Billing Address</h3>
+                    <h3 className="platform-section-heading platform-mt-md">Billing Address</h3>
                     <label>Billing address line 1</label>
                     <input
                       required
@@ -381,28 +342,31 @@ function BuyerCheckoutInner() {
                         setForm((f) => ({ ...f, billingAddressLine2: e.target.value }))
                       }
                     />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div>
-                        <label>City</label>
+                    <div className="platform-field-row">
+                      <div className="platform-field">
+                        <label htmlFor="bill-city">City</label>
                         <input
+                          id="bill-city"
                           required
                           value={form.billingCity}
                           onChange={(e) => setForm((f) => ({ ...f, billingCity: e.target.value }))}
                         />
                       </div>
-                      <div>
-                        <label>State</label>
+                      <div className="platform-field">
+                        <label htmlFor="bill-state">State</label>
                         <input
+                          id="bill-state"
                           required
                           value={form.billingState}
                           onChange={(e) => setForm((f) => ({ ...f, billingState: e.target.value }))}
                         />
                       </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div>
-                        <label>Pincode</label>
+                    <div className="platform-field-row">
+                      <div className="platform-field">
+                        <label htmlFor="bill-pincode">Pincode</label>
                         <input
+                          id="bill-pincode"
                           required
                           value={form.billingPincode}
                           onChange={(e) =>
@@ -410,9 +374,10 @@ function BuyerCheckoutInner() {
                           }
                         />
                       </div>
-                      <div>
-                        <label>Country</label>
+                      <div className="platform-field">
+                        <label htmlFor="bill-country">Country</label>
                         <input
+                          id="bill-country"
                           required
                           value={form.billingCountry}
                           onChange={(e) =>
@@ -424,7 +389,7 @@ function BuyerCheckoutInner() {
                   </>
                 )}
 
-                <h3 style={{ marginTop: '1.25rem' }}>Business Details</h3>
+                <h3 className="platform-section-heading platform-mt-md">Business Details</h3>
                 <label>GSTIN (Optional)</label>
                 <input
                   placeholder="e.g. 29ABCDE1234F1Z5"
@@ -452,8 +417,7 @@ function BuyerCheckoutInner() {
                       setHasSavedAddress(true);
                       setIsEditingAddress(false);
                     }}
-                    className="platform-btn platform-btn-secondary"
-                    style={{ marginTop: '1rem', background: '#2f5233', color: '#ffffff', borderColor: '#2f5233' }}
+                    className="platform-btn platform-mt-md"
                   >
                     ✓ Save & Deliver to This Address
                   </button>
@@ -461,98 +425,74 @@ function BuyerCheckoutInner() {
               </div>
             )}
 
-            <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '0.25rem' }}>Select Payment Method</h3>
-              <p className="platform-muted" style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <div className="platform-form-divider">
+              <h3 className="platform-section-heading">Select Payment Method</h3>
+              <p className="platform-muted platform-text-muted-sm">
                 Choose how your organization will complete this B2B drone order:
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="platform-radio-stack platform-mt-md">
                 <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.85rem 1rem',
-                    borderRadius: 8,
-                    border: paymentMode === 'ONLINE' ? '2px solid #2f5233' : '1px solid #cbd5e1',
-                    background: paymentMode === 'ONLINE' ? '#f0fdf4' : '#ffffff',
-                    cursor: 'pointer',
-                  }}
+                  className={`platform-radio-card ${
+                    paymentMode === 'ONLINE' ? 'platform-radio-card--selected' : ''
+                  }`}
                 >
                   <input
                     type="radio"
                     name="paymentMode"
                     checked={paymentMode === 'ONLINE'}
                     onChange={() => setPaymentMode('ONLINE')}
-                    style={{ marginTop: 4 }}
                   />
                   <div>
-                    <div style={{ fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div className="platform-radio-card__title">
                       ⚡ Instant Online Payment (Razorpay UPI, Corporate Cards, NetBanking)
-                      <span style={{ fontSize: '0.675rem', background: '#dcfce7', color: '#166534', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                      <span className="platform-badge-pill platform-badge-pill--success">
                         RECOMMENDED
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
+                    <div className="platform-radio-card__desc">
                       Immediate order verification with automated invoice generation.
                     </div>
                   </div>
                 </label>
 
                 <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.85rem 1rem',
-                    borderRadius: 8,
-                    border: paymentMode === 'BANK_TRANSFER' ? '2px solid #2f5233' : '1px solid #cbd5e1',
-                    background: paymentMode === 'BANK_TRANSFER' ? '#f0fdf4' : '#ffffff',
-                    cursor: 'pointer',
-                  }}
+                  className={`platform-radio-card ${
+                    paymentMode === 'BANK_TRANSFER' ? 'platform-radio-card--selected' : ''
+                  }`}
                 >
                   <input
                     type="radio"
                     name="paymentMode"
                     checked={paymentMode === 'BANK_TRANSFER'}
                     onChange={() => setPaymentMode('BANK_TRANSFER')}
-                    style={{ marginTop: 4 }}
                   />
                   <div>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                    <div className="platform-radio-card__title">
                       🏦 Corporate Bank Transfer (NEFT / RTGS Wire Escrow)
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
+                    <div className="platform-radio-card__desc">
                       Direct bank wire to Garud Hub platform escrow with UTR reference verification.
                     </div>
                   </div>
                 </label>
 
                 <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.85rem 1rem',
-                    borderRadius: 8,
-                    border: paymentMode === 'OFFLINE_PO' ? '2px solid #2f5233' : '1px solid #cbd5e1',
-                    background: paymentMode === 'OFFLINE_PO' ? '#f0fdf4' : '#ffffff',
-                    cursor: 'pointer',
-                  }}
+                  className={`platform-radio-card ${
+                    paymentMode === 'OFFLINE_PO' ? 'platform-radio-card--selected' : ''
+                  }`}
                 >
                   <input
                     type="radio"
                     name="paymentMode"
                     checked={paymentMode === 'OFFLINE_PO'}
                     onChange={() => setPaymentMode('OFFLINE_PO')}
-                    style={{ marginTop: 4 }}
                   />
                   <div>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                    <div className="platform-radio-card__title">
                       📄 Purchase Order / Pay Later (Offline PO)
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
+                    <div className="platform-radio-card__desc">
                       Confirm order now with pending payment. Settle online or via wire later.
                     </div>
                   </div>
@@ -563,15 +503,15 @@ function BuyerCheckoutInner() {
 
           <aside>
             <div className="platform-card">
-              <p style={{ margin: '0 0 0.5rem', fontWeight: 600 }}>Order summary</p>
-              <ul style={{ margin: '0 0 1rem', paddingLeft: '1.1rem', fontSize: '0.875rem' }}>
+              <p className="platform-order-total-label">Order summary</p>
+              <ul className="platform-order-summary-list">
                 {cart.items.map((item) => (
                   <li key={item.id}>
                     {item.listing.name} × {item.quantity}
                   </li>
                 ))}
               </ul>
-              <p style={{ margin: '0 0 1rem', fontSize: '1.25rem', fontWeight: 700 }}>
+              <p className="platform-order-total-amount">
                 {formatPrice(false, cart.subtotalInr)}
               </p>
               <button
@@ -586,7 +526,7 @@ function BuyerCheckoutInner() {
                   ? 'Proceed to Bank Wire'
                   : 'Place order (pay offline)'}
               </button>
-              <p className="platform-muted" style={{ margin: '0.75rem 0 0', fontSize: '0.75rem' }}>
+              <p className="platform-muted platform-assurance-note">
                 {paymentMode === 'ONLINE'
                   ? '🔒 Encrypted with 256-bit SSL. Supported by Razorpay Gateway.'
                   : paymentMode === 'BANK_TRANSFER'

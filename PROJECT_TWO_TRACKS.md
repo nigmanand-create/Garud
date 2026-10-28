@@ -31,8 +31,12 @@ See `frontend/README.md` — start Postgres, backend (`:3000`), then `npm run de
 
 | Doc | Purpose |
 |-----|---------|
+| [`docs/UI_DESIGN_CONSISTENCY_PLAN.md`](docs/UI_DESIGN_CONSISTENCY_PLAN.md) | **UI polish plan** — 33 platform pages, Phase A/B/C (approve before build) |
+| [`docs/CLIENT_PRESENTATION_RUNBOOK.md`](docs/CLIENT_PRESENTATION_RUNBOOK.md) | **Client demo** — script, accounts, checklists |
+| [`docs/SPEC_VS_PROJECT_GAP_ANALYSIS.md`](docs/SPEC_VS_PROJECT_GAP_ANALYSIS.md) | **Spec vs build** — `DECODE_JWT_SPEC.txt` vs UI/UX/backend; why the app feels scattered |
+| [`docs/CODE_LEVEL_STATUS.md`](docs/CODE_LEVEL_STATUS.md) | **Live code inventory** — routes, APIs, Prisma, features (Oct 2026; supersedes detailed status doc) |
 | [`docs/ADMIN_P0_PLAN.md`](docs/ADMIN_P0_PLAN.md) | **Admin P0** — listing moderation & publish gates (implementation plan) |
-| [`docs/PROJECT_STATUS_DETAILED.md`](docs/PROJECT_STATUS_DETAILED.md) | **Current status** — UI / UX / backend tables, admin deep-dive, done vs remaining (Oct 2026) |
+| [`docs/PROJECT_STATUS_DETAILED.md`](docs/PROJECT_STATUS_DETAILED.md) | UI / UX / backend tables (Oct 20 — **stale**; use `CODE_LEVEL_STATUS.md` first) |
 | [`docs/UI_UX_AND_SCALE_AUDIT_REPORT.md`](docs/UI_UX_AND_SCALE_AUDIT_REPORT.md) | UI/UX scan of built pages + scalability / P0–P2 recommendations (Oct 2026) |
 | [`docs/CHECKOUT_AND_PARTNER_CATALOG_DESIGN.md`](docs/CHECKOUT_AND_PARTNER_CATALOG_DESIGN.md) | Commerce catalog fields, cart/checkout phases |
 | [`PROJECT_WORKING_PRINCIPLES.md`](PROJECT_WORKING_PRINCIPLES.md) | Build order, phases, agent principles |

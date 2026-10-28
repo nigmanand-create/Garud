@@ -199,7 +199,7 @@ function DocumentsInner() {
           ) : (
             profile && (
               <div className="platform-callout platform-callout--muted">
-                <p style={{ margin: 0 }}>
+                <p className="platform-form-section-desc">
                   Upload and delete are unavailable in your current verification
                   status.
                 </p>

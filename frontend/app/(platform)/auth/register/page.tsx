@@ -124,8 +124,8 @@ function RegisterPageContent() {
 
   return (
     <AuthPage
-      title="Create account"
-      subtitle="Join as a verified partner or register as a buyer to post RFQs."
+      title="Join GarudHub"
+      subtitle="Register your business. Connect with opportunities and grow with India's B2B Drone Ecosystem."
       footer={
         <p className="platform-muted">
           Already registered?{' '}

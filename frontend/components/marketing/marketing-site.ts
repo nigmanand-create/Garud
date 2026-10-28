@@ -5,38 +5,32 @@ export const CONTACT_EMAIL = 'chandraghanshyamdrone@gmail.com';
 export const CONTACT_PHONE = '9935760540';
 
 export const SERVICES_MEGA_COL1 = [
-  { href: '/industries-we-serve', icon: 'bi-buildings', label: 'Industries We Serve' },
-  { href: '/dgca-compliance', icon: 'bi-shield-check', label: 'DGCA-Compliance' },
-  { href: '/drone-training', icon: 'bi-mortarboard-fill', label: 'Drone-Training' },
-  { href: '/repairs-maintenance', icon: 'bi-tools', label: 'Repairs Maintenance' },
-  { href: '/finance-insurance', icon: 'bi-shield-check', label: 'Finance & Insurance' },
+  { href: '/services', icon: 'bi-grid-fill', label: 'All 8 Ecosystem Services' },
+  { href: '/services#training', icon: 'bi-mortarboard-fill', label: 'Drone Pilot & Tech Training' },
+  { href: '/services#compliance', icon: 'bi-shield-check', label: 'DGCA & Regulatory Compliance' },
+  { href: '/services#repair', icon: 'bi-tools', label: 'Repair, AMC & Maintenance' },
+  { href: '/services#professional', icon: 'bi-briefcase-fill', label: 'Survey & Professional Services' },
 ];
 
 export const SERVICES_MEGA_COL2 = [
-  { href: '/edp-professional-services', icon: 'bi-briefcase-fill', label: 'EDP Professional Services' },
-  { href: '/scrap-recycling', icon: 'bi-recycle', label: 'Scrap Recycling' },
-  { href: '/drone-jobs-career', icon: 'bi-person-workspace', label: 'Drone Jobs Career' },
-  {
-    href: '/government-projects-schemes',
-    icon: 'bi-building-fill',
-    label: 'Government Projects Schemes',
-  },
+  { href: '/services#finance', icon: 'bi-cash-coin', label: 'Drone Finance & Insurance' },
+  { href: '/services#government', icon: 'bi-building-fill', label: 'Government Projects & Schemes' },
+  { href: '/services#recycling', icon: 'bi-recycle', label: 'Scrap, Buyback & Recycling' },
+  { href: '/marketplace', icon: 'bi-shop', label: 'Drone B2B Marketplace' },
 ];
 
 export const PARTNERS_MEGA_COL1 = [
-  { href: '/india-market-entry', icon: 'bi-globe2', label: 'International Companies' },
-  { href: '/market-entry-consultancy', icon: 'bi-graph-up-arrow', label: 'Market Entry Consultancy' },
-  { href: '/business-setup-in-india', icon: 'bi-building', label: 'Business Setup in India' },
+  { href: '/b2b-partners', icon: 'bi-globe2', label: 'B2B Partner Ecosystem Overview' },
+  { href: '/b2b-partners#manufacturers', icon: 'bi-cpu-fill', label: 'Drone Manufacturers & OEMs' },
+  { href: '/b2b-partners#international', icon: 'bi-airplane-engines', label: 'International Companies' },
+  { href: '/b2b-partners#dealers', icon: 'bi-shop-window', label: 'Distributors & Dealers' },
 ];
 
 export const PARTNERS_MEGA_COL2 = [
-  { href: '/drone-operations-setup', icon: 'bi-globe2', label: 'Drone Operations Setup' },
-  {
-    href: '/auth/register',
-    icon: 'bi-gear-wide-connected',
-    label: 'Become a Partner',
-  },
-  { href: '/partner-with-us', icon: 'bi-people-fill', label: 'Domestic Companies' },
+  { href: '/b2b-partners#services', icon: 'bi-tools', label: 'Service & Maintenance Providers' },
+  { href: '/b2b-partners#training', icon: 'bi-mortarboard', label: 'Training Institutes & Academies' },
+  { href: '/b2b-partners#technology', icon: 'bi-diagram-3-fill', label: 'Technology & Project Partners' },
+  { href: '/auth/register?type=partner', icon: 'bi-patch-check-fill', label: 'Register as B2B Partner →' },
 ];
 
 export const MARKETPLACE_LINKS = [

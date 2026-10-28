@@ -83,7 +83,7 @@ function BuyerCartInner() {
   if (!cart) {
     return (
       <div className="platform-grid" aria-busy="true">
-        <div className="platform-skeleton" style={{ height: 28, width: '40%' }} />
+        <div className="platform-skeleton platform-skeleton-line platform-skeleton-line--short platform-skeleton-line--title" />
       </div>
     );
   }
@@ -130,7 +130,7 @@ function BuyerCartInner() {
                       <strong>{item.listing.name}</strong>
                     </Link>
                     {item.listing.sku && (
-                      <p className="platform-muted" style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem' }}>
+                      <p className="platform-muted platform-text-muted-sm platform-mt-sm">
                         SKU: {item.listing.sku}
                       </p>
                     )}
@@ -156,7 +156,7 @@ function BuyerCartInner() {
                       +
                     </button>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: '6rem' }}>
+                  <div className="platform-cart-line-total">
                     <div>{formatPrice(false, item.lineTotalInr)}</div>
                     <button
                       type="button"
@@ -173,14 +173,14 @@ function BuyerCartInner() {
           </div>
           <aside>
             <div className="platform-card">
-              <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }}>Subtotal</p>
-              <p style={{ margin: '0 0 1rem', fontSize: '1.5rem', fontWeight: 700 }}>
+              <p className="platform-order-total-label">Subtotal</p>
+              <p className="platform-order-total-amount">
                 {formatPrice(false, cart.subtotalInr)}
               </p>
-              <p className="platform-muted" style={{ margin: '0 0 1rem', fontSize: '0.8125rem' }}>
+              <p className="platform-muted platform-text-muted-sm">
                 Pay offline after order placement (Phase 2). GST and shipping calculated at confirmation.
               </p>
-              <Link href="/buyer/checkout" className="platform-btn platform-btn-cta platform-btn-full">
+              <Link href="/buyer/checkout" className="platform-btn platform-btn-cta platform-btn-full platform-mt-md">
                 Proceed to checkout
               </Link>
             </div>

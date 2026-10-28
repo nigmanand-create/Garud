@@ -219,6 +219,55 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
         }),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('links a public listing and invites the listing vendor', async () => {
+      const listing = await prisma.partnerListing.findFirstOrThrow({
+        where: {
+          organizationId: partnerOrgId,
+          isPublished: true,
+          reviewStatus: ListingReviewStatus.APPROVED,
+        },
+      });
+
+      const rfq = await service.createRfq(buyerUserId, UserRole.BUYER, {
+        title: `RFQ: ${listing.name}`,
+        description: 'Quote for marketplace listing',
+        category: listing.category,
+        listingType: listing.listingType,
+        listingId: listing.id,
+      });
+      createdRfqIds.push(rfq.id);
+
+      expect(rfq.listingId).toBe(listing.id);
+
+      const invite = await prisma.rfqInvite.findFirst({
+        where: { rfqId: rfq.id, vendorOrganizationId: partnerOrgId },
+      });
+      expect(invite).toBeDefined();
+    });
+
+    it('rejects listingId when listing is not public', async () => {
+      const draftListing = await prisma.partnerListing.create({
+        data: {
+          organizationId: partnerOrgId,
+          name: 'Draft-only SKU',
+          category: CatalogCategory.COMPONENT,
+          listingType: ListingType.PRODUCT,
+          isPublished: false,
+          reviewStatus: ListingReviewStatus.DRAFT,
+        },
+      });
+      createdListingIds.push(draftListing.id);
+
+      await expect(
+        service.createRfq(buyerUserId, UserRole.BUYER, {
+          title: 'RFQ for hidden listing',
+          description: 'Should fail',
+          category: CatalogCategory.COMPONENT,
+          listingId: draftListing.id,
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('2. Partner Quotation Submission & Invariants', () => {

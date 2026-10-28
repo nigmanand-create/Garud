@@ -116,6 +116,20 @@ async function upsertDemoUser(account: DemoAccount) {
 const DEMO_LISTING_IMAGE =
   'https://i.ibb.co/B5tNxyyB/Chat-GPT-Image-Aug-26-2026-02-37-37-PM-1.webp';
 
+type DemoListingSeed = {
+  name: string;
+  sku: string;
+  listingType: ListingType;
+  category: CatalogCategory;
+  priceOnRequest: boolean;
+  priceInr: number | null;
+  minOrderQuantity: number;
+  description: string;
+  primaryImageUrl: string;
+  isPublished?: boolean;
+  reviewStatus?: ListingReviewStatus;
+};
+
 async function seedDemoCatalogListings() {
   const partner = await prisma.user.findUnique({
     where: { email: 'partner@garudhub.local' },
@@ -124,7 +138,7 @@ async function seedDemoCatalogListings() {
   if (!partner?.organization) return;
 
   const orgId = partner.organization.id;
-  const samples = [
+  const samples: DemoListingSeed[] = [
     {
       name: 'Garud AgriSpray X1',
       sku: 'GD-AGRI-X1',
@@ -133,6 +147,9 @@ async function seedDemoCatalogListings() {
       priceOnRequest: false,
       priceInr: 285000,
       minOrderQuantity: 1,
+      description:
+        '16L agriculture spraying platform with RTK, terrain follow, and DGCA-friendly ops kit for contract spraying teams.',
+      primaryImageUrl: DEMO_LISTING_IMAGE,
     },
     {
       name: 'SurveyMapper Pro 40',
@@ -142,25 +159,188 @@ async function seedDemoCatalogListings() {
       priceOnRequest: true,
       priceInr: null,
       minOrderQuantity: 2,
+      description:
+        'Long-endurance mapping UAV with PPK workflow — quote includes base/rover options and training days.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80',
+    },
+    {
+      name: 'Garud Industrial Lift M600',
+      sku: 'GD-INDU-M600',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.INDUSTRIAL_ENTERPRISE_DRONE,
+      priceOnRequest: false,
+      priceInr: 1250000,
+      minOrderQuantity: 1,
+      description:
+        'Heavy-lift enterprise hexacopter for logistics yards and inspection payloads up to 5 kg.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1524443164165-7d786564b350?w=800&q=80',
+    },
+    {
+      name: 'Garud CinemaCam M3E',
+      sku: 'GD-CAM-M3E',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.CAMERA_DRONE,
+      priceOnRequest: false,
+      priceInr: 89500,
+      minOrderQuantity: 1,
+      description:
+        'Compact 4K cinema drone with 3-axis gimbal, obstacle sensing, and broadcast-friendly ND filters.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1508610048650-a6472333995a?w=800&q=80',
+    },
+    {
+      name: 'Garud NavCore FC-32 Flight Controller',
+      sku: 'GD-COMP-FC32',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.COMPONENT,
+      priceOnRequest: false,
+      priceInr: 12800,
+      minOrderQuantity: 5,
+      description:
+        'Redundant IMU flight controller module with CAN ESC support for custom multirotor builds.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+    },
+    {
+      name: 'Garud PowerPack 88Wh Battery Kit',
+      sku: 'GD-ACC-BATT88',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.ACCESSORY,
+      priceOnRequest: false,
+      priceInr: 18500,
+      minOrderQuantity: 2,
+      description:
+        'Smart 88Wh Li-ion pack with charge hub cable — compatible with Garud survey and agri airframes.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1609091839311-9a942d692196?w=800&q=80',
+    },
+    {
+      name: 'Garud MultiSpec NDVI Payload',
+      sku: 'GD-PAY-MULTI',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.PAYLOAD,
+      priceOnRequest: true,
+      priceInr: null,
+      minOrderQuantity: 1,
+      description:
+        'Multispectral camera payload for crop health indices — pricing depends on lens set and calibration.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
+    },
+    {
+      name: 'SurveyMapper Lite 25',
+      sku: 'GD-SURV-25',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.SURVEY_MAPPING_DRONE,
+      priceOnRequest: false,
+      priceInr: 425000,
+      minOrderQuantity: 1,
+      description:
+        'Mid-range photogrammetry drone with 25 min flight time — fixed list price for quick cart checkout tests.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80',
+    },
+    {
+      name: 'Garud AgriSpray Lite S',
+      sku: 'GD-AGRI-LITE',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.AGRICULTURE_DRONE,
+      priceOnRequest: true,
+      priceInr: null,
+      minOrderQuantity: 3,
+      description:
+        'Entry agri sprayer for smallholder cooperatives — MOQ 3 units, RFQ for fleet pricing.',
+      primaryImageUrl: DEMO_LISTING_IMAGE,
+    },
+    {
+      name: 'Garud Pilot Academy — DGCA Category Training',
+      sku: 'GD-SVC-TRN-01',
+      listingType: ListingType.SERVICE,
+      category: CatalogCategory.TRAINING,
+      priceOnRequest: false,
+      priceInr: 45000,
+      minOrderQuantity: 1,
+      description:
+        '5-day remote pilot training including simulator hours and GarudHub certificate of completion.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80',
+    },
+    {
+      name: 'Garud Care Annual Maintenance Contract',
+      sku: 'GD-SVC-RM-01',
+      listingType: ListingType.SERVICE,
+      category: CatalogCategory.REPAIR_MAINTENANCE,
+      priceOnRequest: true,
+      priceInr: null,
+      minOrderQuantity: 1,
+      description:
+        'On-site AMC for enterprise fleets — RFQ includes spare parts tier and SLA response window.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
+    },
+    {
+      name: 'Garud Fleet Ops & Compliance Consultancy',
+      sku: 'GD-SVC-CON-01',
+      listingType: ListingType.SERVICE,
+      category: CatalogCategory.CONSULTANCY,
+      priceOnRequest: true,
+      priceInr: null,
+      minOrderQuantity: 1,
+      description:
+        'BVLOS readiness, SOP design, and regulatory filing support for state PSU and enterprise buyers.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
+    },
+    // Partner draft + admin moderation queue (not visible on marketplace until approved)
+    {
+      name: 'Garud ProtoFrame X (Draft)',
+      sku: 'GD-DRAFT-PROT',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.OTHER,
+      priceOnRequest: false,
+      priceInr: 99000,
+      minOrderQuantity: 1,
+      description: 'Work-in-progress listing for partner catalog editor and save-draft flows.',
+      primaryImageUrl: DEMO_LISTING_IMAGE,
+      isPublished: false,
+      reviewStatus: ListingReviewStatus.DRAFT,
+    },
+    {
+      name: 'Garud ThermalInspect T2 (Pending Review)',
+      sku: 'GD-PEND-REV',
+      listingType: ListingType.PRODUCT,
+      category: CatalogCategory.INDUSTRIAL_ENTERPRISE_DRONE,
+      priceOnRequest: false,
+      priceInr: 620000,
+      minOrderQuantity: 1,
+      description:
+        'Submitted for platform admin approval — use admin moderation UI to approve or reject.',
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1524443164165-7d786564b350?w=800&q=80',
+      isPublished: false,
+      reviewStatus: ListingReviewStatus.PENDING_REVIEW,
     },
   ];
 
   for (const sample of samples) {
+    const isPublished = sample.isPublished ?? true;
+    const reviewStatus = sample.reviewStatus ?? ListingReviewStatus.APPROVED;
     const listingData = {
       listingType: sample.listingType,
       category: sample.category,
       name: sample.name,
       sku: sample.sku,
       brand: 'Garud Demo',
-      description:
-        'Demo catalog item for marketplace QA — images and pricing for checkout design.',
-      primaryImageUrl: DEMO_LISTING_IMAGE,
+      description: sample.description,
+      primaryImageUrl: sample.primaryImageUrl,
       galleryImageUrls: [] as string[],
       minOrderQuantity: sample.minOrderQuantity,
       priceOnRequest: sample.priceOnRequest,
       priceInr: sample.priceInr,
-      isPublished: true,
-      reviewStatus: ListingReviewStatus.APPROVED,
+      isPublished,
+      reviewStatus,
       country: 'India',
       state: 'Karnataka',
       city: 'Bengaluru',

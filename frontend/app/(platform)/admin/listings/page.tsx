@@ -187,13 +187,12 @@ function ListingsQueueInner() {
         {(searchQuery || category || status !== 'PENDING_REVIEW') && (
           <button
             type="button"
-            className="platform-btn platform-btn--secondary"
+            className="platform-btn platform-btn--secondary platform-btn-sm"
             onClick={() => {
               setSearchQuery('');
               setCategory('');
               setStatus('PENDING_REVIEW');
             }}
-            style={{ fontSize: '0.825rem', height: 40, whiteSpace: 'nowrap' }}
           >
             Reset filters
           </button>
@@ -203,9 +202,9 @@ function ListingsQueueInner() {
       {error && <div className="platform-card platform-error">{error}</div>}
 
       {/* Moderation Listing Table */}
-      <div className="platform-card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="platform-card platform-card--flush">
         {loading ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center' }}>
+          <div className="platform-loading-center">
             <p className="platform-muted">Loading moderation queue…</p>
           </div>
         ) : (
@@ -220,7 +219,7 @@ function ListingsQueueInner() {
                     <th>Price</th>
                     <th>Review Status</th>
                     <th>Submitted</th>
-                    <th style={{ textAlign: 'right' }}>Actions</th>
+                    <th className="platform-table-th-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -247,27 +246,17 @@ function ListingsQueueInner() {
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 600, color: 'var(--platform-text, #14150f)' }}>
+                        <div className="platform-table-cell-strong">
                           {item.organization.companyName}
                         </div>
-                        <div className="platform-muted" style={{ fontSize: '0.8rem', marginTop: 2 }}>
+                        <div className="platform-muted platform-table-cell-meta">
                           {[item.organization.city, item.organization.state]
                             .filter(Boolean)
                             .join(', ') || item.organization.country}
                         </div>
                       </td>
                       <td>
-                        <span
-                          style={{
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            fontSize: '0.8rem',
-                            fontWeight: 500,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
+                        <span className="platform-category-chip">
                           {CATEGORY_LABELS[item.category] || item.category}
                         </span>
                       </td>
@@ -283,7 +272,7 @@ function ListingsQueueInner() {
                       <td>
                         <StatusBadge status={item.reviewStatus} />
                       </td>
-                      <td style={{ fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                      <td className="platform-table-cell-date">
                         {item.submittedForReviewAt
                           ? new Date(item.submittedForReviewAt).toLocaleDateString(undefined, {
                               month: 'short',
@@ -298,7 +287,7 @@ function ListingsQueueInner() {
                               })
                             : '—'}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td className="platform-td-right">
                         <Link
                           href={`/admin/listings/${item.id}`}
                           className="mod-review-btn"
@@ -313,10 +302,10 @@ function ListingsQueueInner() {
             </div>
 
             {filteredItems.length === 0 && !error && (
-              <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
-                <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.1rem' }}>No listings found</h3>
-                <p className="platform-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+              <div className="platform-empty-state platform-empty-state--table">
+                <div className="platform-empty-state-icon" aria-hidden>🔍</div>
+                <h3 className="platform-empty-state-title">No listings found</h3>
+                <p className="platform-empty-state-desc">
                   {searchQuery
                     ? `No listings matched "${searchQuery}". Try a different keyword.`
                     : 'There are currently no listings under this status or category.'}
@@ -324,12 +313,11 @@ function ListingsQueueInner() {
                 {(searchQuery || category) && (
                   <button
                     type="button"
-                    className="platform-btn platform-btn--secondary"
+                    className="platform-btn platform-btn--secondary platform-btn-sm platform-mt-md"
                     onClick={() => {
                       setSearchQuery('');
                       setCategory('');
                     }}
-                    style={{ marginTop: '1rem', fontSize: '0.85rem' }}
                   >
                     Clear search filters
                   </button>

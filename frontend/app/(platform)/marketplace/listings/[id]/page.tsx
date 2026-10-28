@@ -88,8 +88,8 @@ export default function ListingDetailPage() {
   if (loading) {
     return (
       <div className="platform-grid" aria-busy="true">
-        <div className="platform-skeleton" style={{ height: 12, width: '40%', marginBottom: 1 }} />
-        <div className="platform-skeleton" style={{ height: 28, width: '70%' }} />
+        <div className="platform-skeleton platform-skeleton-line platform-skeleton-line--short" />
+        <div className="platform-skeleton platform-skeleton-line platform-skeleton-line--medium platform-skeleton-line--title" />
       </div>
     );
   }
@@ -169,13 +169,13 @@ export default function ListingDetailPage() {
             {listing.description && (
               <>
                 <h3>Description</h3>
-                <p style={{ whiteSpace: 'pre-wrap' }}>{listing.description}</p>
+                <p className="platform-pre-wrap">{listing.description}</p>
               </>
             )}
             {listing.technicalSpecs && (
               <>
                 <h3>Technical specs</h3>
-                <p style={{ whiteSpace: 'pre-wrap' }}>{listing.technicalSpecs}</p>
+                <p className="platform-pre-wrap">{listing.technicalSpecs}</p>
               </>
             )}
             {listing.applications?.length > 0 && (
@@ -189,105 +189,96 @@ export default function ListingDetailPage() {
 
         <aside className="platform-detail-sidebar">
           <div className="platform-card">
-            <p style={{ margin: '0 0 0.25rem', fontSize: '1.25rem', fontWeight: 700 }}>
+            <p className="platform-detail-price">
               {formatPrice(listing.priceOnRequest, listing.priceInr)}
             </p>
             {listing.minOrderQuantity != null && (
-              <p className="platform-muted" style={{ margin: '0 0 0.75rem', fontSize: '0.875rem' }}>
+              <p className="platform-muted platform-text-muted-sm">
                 MOQ: {listing.minOrderQuantity}
               </p>
             )}
             {listing.warranty && (
-              <p className="platform-muted" style={{ margin: '0 0 1rem', fontSize: '0.875rem' }}>
+              <p className="platform-muted platform-text-muted-sm platform-mt-md">
                 Warranty: {listing.warranty}
               </p>
             )}
-            {canAddToCart ? (
-              <>
-                {cartError && (
-                  <p className="platform-error" style={{ fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                    {cartError}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  className="platform-btn platform-btn-cta platform-btn-full"
-                  disabled={adding}
-                  onClick={async () => {
-                    setCartError(null);
-                    if (!isBuyer) {
-                      router.push('/auth/login');
-                      return;
-                    }
-                    setAdding(true);
-                    try {
-                      await addToCart(listing.id, listing.minOrderQuantity ?? 1);
-                      router.push('/buyer/cart');
-                    } catch (e) {
-                      setCartError(
-                        e instanceof ApiError ? e.message : 'Could not add to cart',
-                      );
-                    } finally {
-                      setAdding(false);
-                    }
-                  }}
-                >
-                  Add to cart
-                </button>
-                <Link
-                  href="/buyer/cart"
-                  className="platform-btn platform-btn-secondary platform-btn-full"
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  View cart
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href={`/buyer/rfqs/new?listing=${listing.id}`}
-                  className="platform-btn platform-btn-cta platform-btn-full"
-                >
-                  Request quotation
-                </Link>
-                <Link
-                  href="/enquiry.php"
-                  className="platform-btn platform-btn-secondary platform-btn-full"
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  Request enquiry
-                </Link>
-              </>
-            )}
-            <p
-              className="platform-muted"
-              style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', textAlign: 'center' }}
-            >
-              {canAddToCart
-                ? 'Single-vendor cart — checkout with one seller at a time'
-                : 'Price on request — use RFQ for structured quotes'}
+            <div className="platform-action-stack platform-mt-md">
+              <Link
+                href={`/buyer/rfqs/new?listing=${listing.id}`}
+                className="platform-btn platform-btn-cta platform-btn-full"
+              >
+                <span aria-hidden>🏆</span> Request B2B Quotation (RFQ)
+              </Link>
+
+              <Link
+                href={`/enquiry.php?subject=${encodeURIComponent('Enquiry for ' + listing.name)}`}
+                className="platform-btn platform-btn-secondary platform-btn-full"
+              >
+                <span aria-hidden>💬</span> Contact Supplier / Enquiry
+              </Link>
+
+              <Link href="/b2b-partners#dealers" className="platform-btn-ghost-distributor">
+                <span aria-hidden>🤝</span> Become a Regional Distributor
+              </Link>
+
+              {canAddToCart && (
+                <div className="platform-cart-add-divider">
+                  <button
+                    type="button"
+                    className="platform-btn-add-cart"
+                    disabled={adding}
+                    onClick={async () => {
+                      setCartError(null);
+                      if (!isBuyer) {
+                        router.push('/auth/login');
+                        return;
+                      }
+                      setAdding(true);
+                      try {
+                        await addToCart(listing.id, listing.minOrderQuantity ?? 1);
+                        router.push('/buyer/cart');
+                      } catch (e) {
+                        setCartError(
+                          e instanceof ApiError ? e.message : 'Could not add to cart',
+                        );
+                      } finally {
+                        setAdding(false);
+                      }
+                    }}
+                  >
+                    🛒 Direct Sample Order ({formatPrice(listing.priceOnRequest, listing.priceInr)})
+                  </button>
+                  {cartError && (
+                    <p className="platform-error platform-text-muted-sm platform-mt-sm">{cartError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <p className="platform-muted platform-assurance-note">
+              🔒 <strong>B2B Assurance:</strong> Verified DGCA Type specifications, milestone escrow protection &amp; PAN-India delivery.
             </p>
           </div>
 
-          <div className="platform-card" style={{ marginTop: '1rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.9375rem' }}>Sold by</h3>
-            <p style={{ margin: '0 0 0.35rem', fontWeight: 600 }}>
+          <div className="platform-card platform-card--spaced-top">
+            <h3 className="platform-section-heading">Sold by</h3>
+            <p className="platform-stat-spec-value">
               <Link href={`/marketplace/partners/${listing.organization.id}`}>
                 {listing.organization.companyName}
               </Link>
             </p>
-            <p className="platform-muted" style={{ margin: 0, fontSize: '0.875rem' }}>
+            <p className="platform-muted platform-text-muted-sm">
               {[listing.organization.city, listing.organization.state, listing.organization.country]
                 .filter(Boolean)
                 .join(', ')}
             </p>
             {listing.organization.website && (
-              <p style={{ margin: '0.75rem 0 0' }}>
+              <p className="platform-mt-sm">
                 <a
                   href={listing.organization.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="platform-auth-link-accent"
+                  className="platform-inline-link"
                 >
                   Visit website
                 </a>

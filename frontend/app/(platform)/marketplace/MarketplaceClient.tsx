@@ -196,8 +196,8 @@ export function MarketplaceClient() {
         eyebrow="Garud Marketplace"
         title="India's B2B hub for drones, parts & services"
         description="Source from verified OEMs, distributors, and service partners — DGCA-ready training, agri UAVs, survey rigs, and field support, pan-India."
-        primaryCta={{ href: '/auth/register?type=partner', label: 'List on Garud' }}
-        secondaryCta={{ href: '/enquiry.php', label: 'Need help sourcing?' }}
+        primaryCta={{ href: '/auth/register?type=partner', label: 'List as B2B Partner' }}
+        secondaryCta={{ href: '/buyer/rfqs/new', label: 'Post Drone Requirement (RFQ) →' }}
         trustChips={[
           { iconClass: 'ph ph-fill ph-shield-check', label: 'Verified sellers' },
           { iconClass: 'ph ph-fill ph-check-circle', label: 'Warranty backed' },

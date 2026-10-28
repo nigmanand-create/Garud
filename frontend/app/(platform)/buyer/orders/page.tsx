@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { EmptyState } from '@/components/platform/EmptyState';
+import { DataTable } from '@/components/platform/DataTable';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { formatPrice } from '@/lib/platform/labels';
 import type { OrderListItem } from '@/lib/api/types';
@@ -43,46 +44,45 @@ function BuyerOrdersInner() {
         }
       />
       {error && <div className="platform-card platform-error">{error}</div>}
-      <div className="platform-card">
-        {rows.length === 0 && !error ? (
-          <EmptyState
-            title="No orders yet"
-            description="Place an order from the marketplace cart to see it here."
-            primaryAction={{ label: 'Browse marketplace', href: '/marketplace' }}
-          />
-        ) : (
-          <div className="platform-table-wrap">
-            <table className="platform-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Vendor</th>
-                  <th>Status</th>
-                  <th>Fulfillment</th>
-                  <th>Payment</th>
-                  <th>Total</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((o) => (
-                  <tr key={o.id}>
-                    <td>{new Date(o.placedAt).toLocaleDateString('en-IN')}</td>
-                    <td>{o.vendorCompanyName}</td>
-                    <td><StatusBadge status={o.status} /></td>
-                    <td><StatusBadge status={o.fulfillmentStatus} /></td>
-                    <td><StatusBadge status={o.paymentStatus} /></td>
-                    <td>{formatPrice(false, o.totalInr)}</td>
-                    <td className="platform-link-row">
-                      <Link href={`/buyer/orders/${o.id}`}>View</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable
+        className="platform-card"
+        empty={
+          rows.length === 0 && !error ? (
+            <EmptyState
+              title="No orders yet"
+              description="Place an order from the marketplace cart to see it here."
+              primaryAction={{ label: 'Browse marketplace', href: '/marketplace' }}
+            />
+          ) : undefined
+        }
+      >
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Vendor</th>
+            <th>Status</th>
+            <th>Fulfillment</th>
+            <th>Payment</th>
+            <th>Total</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((o) => (
+            <tr key={o.id}>
+              <td>{new Date(o.placedAt).toLocaleDateString('en-IN')}</td>
+              <td>{o.vendorCompanyName}</td>
+              <td><StatusBadge status={o.status} /></td>
+              <td><StatusBadge status={o.fulfillmentStatus} /></td>
+              <td><StatusBadge status={o.paymentStatus} /></td>
+              <td>{formatPrice(false, o.totalInr)}</td>
+              <td className="platform-link-row">
+                <Link href={`/buyer/orders/${o.id}`}>View</Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </DataTable>
     </>
   );
 }

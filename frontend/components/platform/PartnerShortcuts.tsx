@@ -22,7 +22,13 @@ function hrefMatchesPrimary(itemHref: string, primaryHref: string): boolean {
   return false;
 }
 
-export function PartnerShortcuts({ data }: { data: PartnerOnboardingInput }) {
+export function PartnerShortcuts({
+  data,
+  compact = false,
+}: {
+  data: PartnerOnboardingInput;
+  compact?: boolean;
+}) {
   const primaryCta = getPartnerPrimaryCta(data);
   const onboardingComplete = data.verificationStatus === 'APPROVED';
 
@@ -74,6 +80,40 @@ export function PartnerShortcuts({ data }: { data: PartnerOnboardingInput }) {
       muted: !onboardingComplete,
     },
   ];
+
+  const operationalItems = items.filter(
+    (item) =>
+      item.id === 'catalog' ||
+      item.id === 'orders' ||
+      item.id === 'rfqs' ||
+      item.id === 'marketplace',
+  );
+
+  if (compact && onboardingComplete) {
+    return (
+      <section
+        className="platform-partner-shortcuts platform-partner-shortcuts--compact"
+        aria-labelledby="partner-shortcuts-heading"
+      >
+        <h2
+          id="partner-shortcuts-heading"
+          className="platform-partner-shortcuts-heading platform-text-sm"
+        >
+          Quick links
+        </h2>
+        <ul className="platform-partner-shortcuts-row">
+          {operationalItems.map((item) => (
+            <li key={item.id}>
+              <Link href={item.href} className="platform-partner-shortcut-chip">
+                <i className={item.iconClass} aria-hidden />
+                {item.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
 
   return (
     <section className="platform-partner-shortcuts" aria-labelledby="partner-shortcuts-heading">

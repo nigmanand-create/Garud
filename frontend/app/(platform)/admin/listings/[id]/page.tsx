@@ -5,7 +5,11 @@ import { useParams } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
+import { AdminSubnav } from '@/components/platform/AdminSubnav';
+import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
+import { Button } from '@/components/platform/Button';
+import { FormField } from '@/components/platform/FormField';
 import {
   ACCOUNT_TYPE_LABELS,
   CATEGORY_LABELS,
@@ -23,6 +27,12 @@ export default function AdminListingDetailPage() {
   );
 }
 
+function timelineStatusClass(status: string): string {
+  if (status === 'APPROVED') return 'platform-text-success';
+  if (status === 'REJECTED') return 'platform-text-danger';
+  return 'platform-text-info';
+}
+
 function ListingDetailInner() {
   const params = useParams();
   const id = params.id as string;
@@ -33,7 +43,6 @@ function ListingDetailInner() {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Decision inputs
   const [rejectReason, setRejectReason] = useState('');
   const [unpublishReason, setUnpublishReason] = useState('');
   const [approvalNote, setApprovalNote] = useState('');
@@ -136,9 +145,11 @@ function ListingDetailInner() {
 
   if (loading && !listing) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center' }}>
-        <p className="platform-muted">Loading listing inspection data…</p>
-      </div>
+      <>
+        <PlatformPageHeader title="Listing review" subtitle="Loading listing inspection data…" />
+        <AdminSubnav />
+        <p className="platform-muted platform-loading-center">Loading listing inspection data…</p>
+      </>
     );
   }
 
@@ -149,152 +160,90 @@ function ListingDetailInner() {
 
   return (
     <>
-      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link
-          href="/admin/listings"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            color: 'var(--platform-accent, #2f5233)',
-          }}
-        >
-          ← Back to Moderation Queue
-        </Link>
-
-        {listing?.isPublished && (
-          <Link
-            href={`/marketplace/listings/${listing.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              color: 'var(--platform-accent, #2f5233)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-            }}
-          >
-            View live on marketplace ↗
-          </Link>
-        )}
-      </div>
+      {listing && (
+        <PlatformPageHeader
+          title={listing.name}
+          subtitle={
+            <>
+              {listing.brand && <strong>{listing.brand} · </strong>}
+              <span>{CATEGORY_LABELS[listing.category] || listing.category}</span>
+              {listing.sku && <span> · Model/SKU: {listing.sku}</span>}
+              <span> · {listing.listingType === 'PRODUCT' ? 'Hardware / Drone' : 'Service Offering'}</span>
+            </>
+          }
+          backHref="/admin/listings"
+          backLabel="Moderation queue"
+          actions={
+            listing.isPublished ? (
+              <Link
+                href={`/marketplace/listings/${listing.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="platform-inline-link"
+              >
+                View live on marketplace ↗
+              </Link>
+            ) : undefined
+          }
+          badge={
+            <span className="platform-status-row--wrap">
+              <StatusBadge status={listing.reviewStatus} />
+              {listing.isPublished && <span className="platform-badge-live">LIVE ON MARKETPLACE</span>}
+            </span>
+          }
+        />
+      )}
+      {!listing && !loading && (
+        <PlatformPageHeader title="Listing review" backHref="/admin/listings" backLabel="Moderation queue" />
+      )}
+      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {message && <div className="platform-card platform-success">{message}</div>}
 
       {listing && (
         <>
-          {/* Header Hero Banner */}
-          <div className="mod-detail-hero">
-            <div className="mod-detail-header-row">
-              <div className="mod-detail-title-cluster">
-                <h1>{listing.name}</h1>
-                <p>
-                  {listing.brand && <strong>{listing.brand} · </strong>}
-                  <span>{CATEGORY_LABELS[listing.category] || listing.category}</span>
-                  {listing.sku && <span> · Model/SKU: {listing.sku}</span>}
-                  <span> · {listing.listingType === 'PRODUCT' ? 'Hardware / Drone' : 'Service Offering'}</span>
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <StatusBadge status={listing.reviewStatus} />
-                {listing.isPublished && (
-                  <span
-                    style={{
-                      fontSize: '0.78rem',
-                      background: '#dcfce7',
-                      color: '#15803d',
-                      padding: '3px 10px',
-                      borderRadius: 999,
-                      fontWeight: 700,
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    LIVE ON MARKETPLACE
-                  </span>
-                )}
-              </div>
+          <div className="mod-spec-grid platform-card--lg">
+            <div className="mod-spec-item">
+              <div className="mod-spec-label">Pricing</div>
+              <div className="mod-spec-val">{formatPrice(listing.priceOnRequest, listing.priceInr)}</div>
             </div>
-
-            {/* Quick Specs Highlight Bar */}
-            <div className="mod-spec-grid">
-              <div className="mod-spec-item">
-                <div className="mod-spec-label">Pricing</div>
-                <div className="mod-spec-val">
-                  {formatPrice(listing.priceOnRequest, listing.priceInr)}
-                </div>
-              </div>
-              <div className="mod-spec-item">
-                <div className="mod-spec-label">Min Order (MOQ)</div>
-                <div className="mod-spec-val">{listing.minOrderQuantity ?? 1} units</div>
-              </div>
-              <div className="mod-spec-item">
-                <div className="mod-spec-label">Warranty</div>
-                <div className="mod-spec-val">{listing.warranty || 'Standard / None'}</div>
-              </div>
-              <div className="mod-spec-item">
-                <div className="mod-spec-label">Origin / Base</div>
-                <div className="mod-spec-val">
-                  {[listing.organization.city, listing.organization.state]
-                    .filter(Boolean)
-                    .join(', ') || listing.organization.country}
-                </div>
+            <div className="mod-spec-item">
+              <div className="mod-spec-label">Min Order (MOQ)</div>
+              <div className="mod-spec-val">{listing.minOrderQuantity ?? 1} units</div>
+            </div>
+            <div className="mod-spec-item">
+              <div className="mod-spec-label">Warranty</div>
+              <div className="mod-spec-val">{listing.warranty || 'Standard / None'}</div>
+            </div>
+            <div className="mod-spec-item">
+              <div className="mod-spec-label">Origin / Base</div>
+              <div className="mod-spec-val">
+                {[listing.organization.city, listing.organization.state].filter(Boolean).join(', ') ||
+                  listing.organization.country}
               </div>
             </div>
           </div>
 
-          {/* Two-Column Inspection Layout */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.75fr) minmax(0, 1.25fr)',
-              gap: '1.5rem',
-              alignItems: 'start',
-            }}
-          >
-            {/* Left Column: Visual Gallery, Specifications, Description */}
-            <div>
-              <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1.15rem', marginTop: 0, marginBottom: '1rem' }}>
-                  Visual Inspection & Media
-                </h2>
+          <div className="platform-admin-detail">
+            <div className="platform-stack platform-stack--lg">
+              <div className="platform-card platform-card--lg">
+                <h2 className="platform-section-heading">Visual Inspection & Media</h2>
 
-                {/* Main Selected Image Viewport */}
                 {activeImage ? (
-                  <img
-                    src={activeImage}
-                    alt={listing.name}
-                    className="mod-gallery-main"
-                  />
+                  <img src={activeImage} alt={listing.name} className="mod-gallery-main" />
                 ) : (
-                  <div
-                    style={{
-                      height: 280,
-                      borderRadius: 10,
-                      background: '#f8fafc',
-                      border: '1px dashed #cbd5e1',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#94a3b8',
-                      marginBottom: '0.75rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.25rem' }}>📷</div>
+                  <div className="platform-gallery-empty">
+                    <div className="platform-gallery-empty__icon" aria-hidden>
+                      📷
+                    </div>
                     <div>No images submitted with this listing</div>
                   </div>
                 )}
 
-                {/* Thumbnails strip switcher */}
                 {allImages.length > 1 && (
                   <div>
-                    <div className="platform-muted" style={{ fontSize: '0.78rem', marginBottom: 6 }}>
+                    <div className="platform-muted platform-gallery-assets-label">
                       Submitted Assets ({allImages.length} photos) — click to inspect:
                     </div>
                     <div className="mod-gallery-thumbs">
@@ -314,75 +263,36 @@ function ListingDetailInner() {
                 )}
               </div>
 
-              {/* Technical Specifications & Description Card */}
-              <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1.15rem', marginTop: 0, marginBottom: '1rem' }}>
-                  Listing Details & Technical Specs
-                </h2>
+              <div className="platform-card platform-card--lg">
+                <h2 className="platform-section-heading">Listing Details & Technical Specs</h2>
 
                 {listing.description && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <label className="platform-muted" style={{ fontWeight: 600, fontSize: '0.825rem', textTransform: 'uppercase' }}>
-                      Product Overview / Description
-                    </label>
-                    <p style={{ marginTop: '0.35rem', lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line' }}>
-                      {listing.description}
-                    </p>
+                  <div className="platform-card--spaced-top">
+                    <label className="platform-muted platform-field-label-upper">Product Overview / Description</label>
+                    <p className="platform-description-body">{listing.description}</p>
                   </div>
                 )}
 
                 {listing.technicalSpecs ? (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <label className="platform-muted" style={{ fontWeight: 600, fontSize: '0.825rem', textTransform: 'uppercase' }}>
+                  <div className="platform-card--spaced-top">
+                    <label className="platform-muted platform-field-label-upper">
                       Technical Specifications & Parameters
                     </label>
-                    <pre
-                      style={{
-                        marginTop: '0.35rem',
-                        padding: '1.15rem',
-                        background: '#f8fafc',
-                        borderRadius: 8,
-                        border: '1px solid #e2e8f0',
-                        overflowX: 'auto',
-                        whiteSpace: 'pre-wrap',
-                        fontFamily: 'monospace',
-                        fontSize: '0.85rem',
-                        lineHeight: 1.5,
-                        color: '#0f172a',
-                      }}
-                    >
-                      {listing.technicalSpecs}
-                    </pre>
+                    <pre className="platform-spec-pre">{listing.technicalSpecs}</pre>
                   </div>
                 ) : (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <label className="platform-muted" style={{ fontWeight: 600, fontSize: '0.825rem', textTransform: 'uppercase' }}>
-                      Technical Specifications
-                    </label>
-                    <p className="platform-muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                      No technical specifications entered.
-                    </p>
+                  <div className="platform-card--spaced-top">
+                    <label className="platform-muted platform-field-label-upper">Technical Specifications</label>
+                    <p className="platform-muted platform-text-sm">No technical specifications entered.</p>
                   </div>
                 )}
 
                 {listing.applications && listing.applications.length > 0 && (
                   <div>
-                    <label className="platform-muted" style={{ fontWeight: 600, fontSize: '0.825rem', textTransform: 'uppercase' }}>
-                      Target Industrial Applications
-                    </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
-                      {listing.applications.map((app, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            background: '#e0f2fe',
-                            color: '#0369a1',
-                            padding: '3px 10px',
-                            borderRadius: 6,
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                          }}
-                        >
+                    <label className="platform-muted platform-field-label-upper">Target Industrial Applications</label>
+                    <div className="platform-app-tags">
+                      {listing.applications.map((app) => (
+                        <span key={app} className="platform-app-tag">
                           {app}
                         </span>
                       ))}
@@ -391,11 +301,8 @@ function ListingDetailInner() {
                 )}
               </div>
 
-              {/* Moderation History Visual Timeline */}
               <div className="platform-card">
-                <h2 style={{ fontSize: '1.15rem', marginTop: 0, marginBottom: '1.25rem' }}>
-                  Moderation Audit History
-                </h2>
+                <h2 className="platform-section-heading">Moderation Audit History</h2>
                 {listing.moderationLogs && listing.moderationLogs.length > 0 ? (
                   <ul className="mod-timeline">
                     {listing.moderationLogs.map((log) => (
@@ -409,25 +316,11 @@ function ListingDetailInner() {
                         </div>
                         <p className="mod-timeline-desc">
                           Transitioned from <strong>{formatEnumLabel(log.fromStatus)}</strong> to{' '}
-                          <strong style={{ color: log.toStatus === 'APPROVED' ? '#15803d' : log.toStatus === 'REJECTED' ? '#b91c1c' : '#0284c7' }}>
+                          <strong className={timelineStatusClass(log.toStatus)}>
                             {formatEnumLabel(log.toStatus)}
                           </strong>
                         </p>
-                        {log.note && (
-                          <div
-                            style={{
-                              marginTop: 4,
-                              background: '#f8fafc',
-                              padding: '6px 10px',
-                              borderRadius: 6,
-                              fontSize: '0.825rem',
-                              color: '#475569',
-                              borderLeft: '3px solid #cbd5e1',
-                            }}
-                          >
-                            &quot;{log.note}&quot;
-                          </div>
-                        )}
+                        {log.note && <div className="platform-timeline-note">&quot;{log.note}&quot;</div>}
                       </li>
                     ))}
                   </ul>
@@ -437,9 +330,7 @@ function ListingDetailInner() {
               </div>
             </div>
 
-            {/* Right Column: Seller Passport & Decision Hub */}
-            <div>
-              {/* Seller Trust Passport */}
+            <div className="platform-admin-detail__sidebar">
               <div className="mod-passport-card">
                 <div className="mod-passport-header">
                   <div className="mod-passport-avatar">
@@ -448,7 +339,8 @@ function ListingDetailInner() {
                   <div>
                     <div className="mod-passport-company">{listing.organization.companyName}</div>
                     <div className="mod-passport-account-type">
-                      {ACCOUNT_TYPE_LABELS[listing.organization.owner.accountType] || listing.organization.owner.accountType}
+                      {ACCOUNT_TYPE_LABELS[listing.organization.owner.accountType] ||
+                        listing.organization.owner.accountType}
                     </div>
                   </div>
                 </div>
@@ -482,107 +374,63 @@ function ListingDetailInner() {
                   </div>
                 </div>
 
-                <Link
-                  href={`/admin/applications/${listing.organization.id}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem',
-                    padding: '0.5rem',
-                    borderRadius: 6,
-                    background: '#f1f5f9',
-                    fontSize: '0.825rem',
-                    fontWeight: 600,
-                    color: 'var(--platform-accent, #2f5233)',
-                    textDecoration: 'none',
-                  }}
-                >
+                <Link href={`/admin/applications/${listing.organization.id}`} className="platform-passport-link">
                   Inspect Partner KYC Application →
                 </Link>
               </div>
 
-              {/* Active Rejection Callout */}
               {listing.rejectionReason && (
-                <div
-                  style={{
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: 10,
-                    padding: '1rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <strong style={{ color: '#991b1b', fontSize: '0.875rem' }}>
-                    Current Rejection Feedback:
-                  </strong>
-                  <p style={{ margin: '0.35rem 0 0', color: '#7f1d1d', fontSize: '0.85rem', lineHeight: 1.5 }}>
-                    {listing.rejectionReason}
-                  </p>
+                <div className="platform-callout-rejection">
+                  <strong>Current Rejection Feedback:</strong>
+                  <p>{listing.rejectionReason}</p>
                 </div>
               )}
 
-              {/* Moderation Decision Console */}
               <div className="mod-decision-box">
                 <div className="mod-decision-header">
                   <span>⚖</span>
                   <span>Moderation Actions</span>
                 </div>
 
-                {/* Approve Action */}
                 {listing.reviewStatus !== 'APPROVED' && (
                   <div className="mod-decision-section">
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label htmlFor="approve-note" style={{ fontSize: '0.825rem', fontWeight: 600 }}>
-                        Approval verification note (optional)
-                      </label>
+                    <FormField label="Approval verification note (optional)" htmlFor="approve-note">
                       <input
                         id="approve-note"
                         type="text"
                         placeholder="e.g. Verified DGCA compliance & specs"
                         value={approvalNote}
                         onChange={(e) => setApprovalNote(e.target.value)}
-                        style={{ width: '100%', marginTop: '0.25rem', height: 38 }}
                       />
-                    </div>
-                    <button
-                      type="button"
-                      className="platform-btn platform-btn--primary"
-                      onClick={handleApprove}
-                      disabled={busy}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 1rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                      }}
-                    >
+                    </FormField>
+                    <Button type="button" fullWidth onClick={handleApprove} disabled={busy}>
                       {busy ? 'Processing…' : '✓ Approve & Publish to Marketplace'}
-                    </button>
+                    </Button>
                   </div>
                 )}
 
-                {/* Reject Action with Quick Presets */}
                 {listing.reviewStatus !== 'REJECTED' && (
                   <div className="mod-decision-section">
-                    <form onSubmit={handleReject}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label htmlFor="reject-reason" style={{ fontSize: '0.825rem', fontWeight: 600 }}>
-                          Rejection Reason (Required)
-                        </label>
-                        <span className="platform-muted" style={{ fontSize: '0.75rem' }}>
-                          Shared with seller
-                        </span>
-                      </div>
+                    <form className="platform-form" onSubmit={handleReject}>
+                      <FormField
+                        label="Rejection Reason (Required)"
+                        htmlFor="reject-reason"
+                        hint="Shared with seller"
+                      >
+                        <textarea
+                          id="reject-reason"
+                          rows={3}
+                          placeholder="Specify exactly what the seller must adjust or upload…"
+                          value={rejectReason}
+                          onChange={(e) => setRejectReason(e.target.value)}
+                        />
+                      </FormField>
 
-                      {/* Presets Chips */}
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem' }}>
-                        Quick presets:
-                      </div>
+                      <p className="platform-muted platform-text-sm">Quick presets:</p>
                       <div className="mod-preset-chips">
-                        {rejectionPresets.map((preset, idx) => (
+                        {rejectionPresets.map((preset) => (
                           <button
-                            key={idx}
+                            key={preset}
                             type="button"
                             className="mod-preset-chip"
                             onClick={() => {
@@ -594,55 +442,34 @@ function ListingDetailInner() {
                         ))}
                       </div>
 
-                      <textarea
-                        id="reject-reason"
-                        rows={3}
-                        placeholder="Specify exactly what the seller must adjust or upload…"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        style={{ width: '100%', marginTop: '0.25rem' }}
-                      />
-
-                      <button
-                        type="submit"
-                        className="platform-btn platform-btn--danger"
-                        disabled={busy || !rejectReason.trim()}
-                        style={{ width: '100%', marginTop: '0.5rem', padding: '0.65rem 1rem' }}
-                      >
+                      <Button type="submit" variant="danger" fullWidth disabled={busy || !rejectReason.trim()}>
                         {busy ? 'Processing…' : '✕ Reject Listing & Request Changes'}
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 )}
 
-                {/* Unpublish Takedown Action (only if published) */}
                 {listing.isPublished && (
                   <div className="mod-decision-section">
-                    <form onSubmit={handleUnpublish}>
-                      <label htmlFor="unpublish-reason" style={{ fontSize: '0.825rem', fontWeight: 600 }}>
-                        Marketplace Takedown Reason
-                      </label>
-                      <textarea
-                        id="unpublish-reason"
-                        rows={2}
-                        placeholder="Reason for pulling this listing offline…"
-                        value={unpublishReason}
-                        onChange={(e) => setUnpublishReason(e.target.value)}
-                        style={{ width: '100%', marginTop: '0.25rem' }}
-                      />
-                      <button
+                    <form className="platform-form" onSubmit={handleUnpublish}>
+                      <FormField label="Marketplace Takedown Reason" htmlFor="unpublish-reason">
+                        <textarea
+                          id="unpublish-reason"
+                          rows={2}
+                          placeholder="Reason for pulling this listing offline…"
+                          value={unpublishReason}
+                          onChange={(e) => setUnpublishReason(e.target.value)}
+                        />
+                      </FormField>
+                      <Button
                         type="submit"
-                        className="platform-btn platform-btn--secondary"
+                        variant="secondary"
+                        fullWidth
+                        className="platform-btn-danger-outline"
                         disabled={busy || !unpublishReason.trim()}
-                        style={{
-                          width: '100%',
-                          marginTop: '0.5rem',
-                          color: '#b91c1c',
-                          borderColor: '#fca5a5',
-                        }}
                       >
                         {busy ? 'Processing…' : 'Takedown / Unpublish Listing'}
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 )}

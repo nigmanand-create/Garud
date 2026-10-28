@@ -13,6 +13,7 @@ import { formatPrice } from '@/lib/platform/labels';
 import { fulfillmentTimelineText } from '@/lib/platform/fulfillment';
 import { OrderProgressStepper } from '@/components/platform/OrderProgressStepper';
 import { ShipmentTrackingCard } from '@/components/platform/ShipmentTrackingCard';
+import { Button } from '@/components/platform/Button';
 import type { OrderDetail } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
@@ -56,10 +57,15 @@ function BuyerOrderDetailInner() {
   if (!order) {
     return (
       <div className="platform-grid" aria-busy="true">
-        <div className="platform-skeleton" style={{ height: 28, width: '50%' }} />
+        <div className="platform-skeleton platform-skeleton-bar" style={{ width: '50%' }} />
       </div>
     );
   }
+
+  const paymentCardClass =
+    order.paymentStatus === 'PAID'
+      ? 'platform-card platform-payment-card platform-payment-card--paid'
+      : 'platform-card platform-payment-card';
 
   return (
     <>
@@ -72,10 +78,7 @@ function BuyerOrderDetailInner() {
             {order.rfqId && (
               <>
                 {' '}·{' '}
-                <Link
-                  href={`/buyer/rfqs/${order.rfqId}`}
-                  style={{ color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
-                >
+                <Link href={`/buyer/rfqs/${order.rfqId}`} className="platform-inline-link">
                   Procured via RFQ ↗
                 </Link>
               </>
@@ -87,53 +90,39 @@ function BuyerOrderDetailInner() {
       />
 
       {successMsg && (
-        <div
-          style={{
-            background: '#f0fdf4',
-            border: '1px solid #86efac',
-            color: '#166534',
-            padding: '1rem 1.25rem',
-            borderRadius: 8,
-            marginBottom: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>✓</span>
-            <span style={{ fontWeight: 600 }}>{successMsg}</span>
+        <div className="platform-flash-success" role="status">
+          <div className="platform-flash-success__content">
+            <span aria-hidden>✓</span>
+            <span className="platform-font-semibold">{successMsg}</span>
           </div>
           <button
             type="button"
+            className="platform-flash-dismiss"
             onClick={() => setSuccessMsg(null)}
-            style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer', fontSize: '1rem' }}
+            aria-label="Dismiss"
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* Visual Fulfillment Progress Stepper */}
       <OrderProgressStepper order={order} />
 
       <div className="platform-detail-layout">
-        <div>
-          {/* Live Shipment Tracking Card */}
+        <div className="platform-stack platform-stack--lg">
           <ShipmentTrackingCard order={order} />
 
-          {/* Main Items Card */}
-          <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
-            <p style={{ margin: '0 0 0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="platform-card">
+            <p className="platform-status-row">
               <StatusBadge status={order.status} />{' '}
               <StatusBadge status={order.fulfillmentStatus} />{' '}
               <StatusBadge status={order.paymentStatus} />
             </p>
-            <p className="platform-muted" style={{ fontSize: '0.875rem' }}>
+            <p className="platform-muted platform-text-sm">
               {fulfillmentTimelineText(order.fulfillmentStatus)}
             </p>
 
-            <h3 style={{ marginTop: '1.25rem' }}>Line items</h3>
+            <h3 className="platform-section-heading platform-mt-md">Line items</h3>
             <div className="platform-table-wrap">
               <table className="platform-table">
                 <thead>
@@ -149,63 +138,45 @@ function BuyerOrderDetailInner() {
                   {order.lineItems.map((li) => (
                     <tr key={li.id}>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                          <div
-                            style={{
-                              width: 46,
-                              height: 46,
-                              borderRadius: 8,
-                              border: '1px solid #e2e8f0',
-                              background: '#f8fafc',
-                              overflow: 'hidden',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
+                        <div className="platform-line-item-cell">
+                          <div className="platform-line-item-thumb">
                             {li.imageUrl ? (
-                              <img
-                                src={li.imageUrl}
-                                alt={li.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
+                              <img src={li.imageUrl} alt={li.name} />
                             ) : (
-                              <span style={{ fontSize: '1.25rem' }}>🛸</span>
+                              <span aria-hidden>🛸</span>
                             )}
                           </div>
                           <div>
                             {li.listingId ? (
                               <Link
                                 href={`/marketplace/listings/${li.listingId}`}
-                                style={{ fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
+                                className="platform-line-item-title"
                               >
                                 {li.name}
                               </Link>
                             ) : (
-                              <span style={{ fontWeight: 600, color: '#0f172a' }}>{li.name}</span>
+                              <span className="platform-font-semibold">{li.name}</span>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{li.sku ?? '—'}</td>
+                      <td className="platform-font-mono platform-text-sm">{li.sku ?? '—'}</td>
                       <td>{li.quantity}</td>
                       <td>{formatPrice(false, li.unitPriceInr)}</td>
-                      <td style={{ fontWeight: 600 }}>{formatPrice(false, li.lineTotalInr)}</td>
+                      <td className="platform-font-semibold">{formatPrice(false, li.lineTotalInr)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p style={{ margin: '1rem 0 0', fontWeight: 700, fontSize: '1.1rem' }}>
+            <p className="platform-order-total">
               Total: {formatPrice(false, order.totalInr)}
             </p>
           </div>
 
-          {/* Payment Transactions Audit Log */}
           {order.transactions && order.transactions.length > 0 && (
-            <div className="platform-card" style={{ marginBottom: '1.5rem' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '1.1rem' }}>
+            <div className="platform-card">
+              <h3 className="platform-section-heading">
                 Payment Transactions & Activity
               </h3>
               <div className="platform-table-wrap">
@@ -228,11 +199,11 @@ function BuyerOrderDetailInner() {
                         </td>
                         <td>
                           {tx.utrNumber ? (
-                            <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>UTR: {tx.utrNumber}</span>
+                            <span className="platform-font-mono platform-font-semibold">UTR: {tx.utrNumber}</span>
                           ) : tx.gatewayPaymentId ? (
-                            <span style={{ fontFamily: 'monospace' }}>ID: {tx.gatewayPaymentId}</span>
+                            <span className="platform-font-mono">ID: {tx.gatewayPaymentId}</span>
                           ) : tx.gatewayOrderId ? (
-                            <span style={{ fontFamily: 'monospace', color: '#64748b' }}>Order: {tx.gatewayOrderId}</span>
+                            <span className="platform-font-mono platform-muted">Order: {tx.gatewayOrderId}</span>
                           ) : (
                             '—'
                           )}
@@ -242,7 +213,7 @@ function BuyerOrderDetailInner() {
                         <td>
                           <StatusBadge status={tx.status} />
                         </td>
-                        <td style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                        <td className="platform-text-xs platform-muted">
                           {new Date(tx.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
                       </tr>
@@ -254,101 +225,71 @@ function BuyerOrderDetailInner() {
           )}
         </div>
 
-        <aside>
-          {/* Payment Action Box */}
-          <div
-            className="platform-card"
-            style={{
-              marginBottom: '1.5rem',
-              border: order.paymentStatus === 'PAID' ? '1px solid #86efac' : '2px solid #2f5233',
-              background: order.paymentStatus === 'PAID' ? '#f0fdf4' : '#ffffff',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
-                Payment Status
-              </span>
+        <aside className="platform-stack platform-stack--lg">
+          <div className={paymentCardClass}>
+            <div className="platform-payment-card__head">
+              <span>Payment Status</span>
               <StatusBadge status={order.paymentStatus} />
             </div>
 
             {order.paymentStatus === 'PAID' ? (
-              <div>
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: '#166534', lineHeight: 1.5 }}>
-                  ✓ Order settlement completed in full. The vendor has been notified to proceed with dispatch & fulfillment.
-                </p>
-              </div>
+              <p className="platform-text-sm platform-mt-sm" style={{ color: 'var(--platform-success)', lineHeight: 1.5 }}>
+                ✓ Order settlement completed in full. The vendor has been notified to proceed with dispatch & fulfillment.
+              </p>
             ) : order.paymentStatus === 'PENDING' ? (
-              <div style={{ marginTop: '0.75rem' }}>
-                <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>
+              <div className="platform-payment-card__body">
+                <p className="platform-muted platform-text-sm" style={{ margin: '0 0 1rem', lineHeight: 1.5 }}>
                   Payment of <strong>{formatPrice(false, order.totalInr)}</strong> is pending. You can pay instantly online or submit your corporate wire UTR reference:
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <button
+                <div className="platform-payment-card__actions">
+                  <Button
                     type="button"
+                    variant="cta"
+                    fullWidth
                     onClick={() => setShowPaymentModal(true)}
-                    className="platform-btn platform-btn-cta platform-btn-full"
-                    style={{ fontSize: '0.9rem', padding: '0.65rem' }}
                   >
                     ⚡ Pay Now Online (Razorpay)
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    fullWidth
+                    size="sm"
                     onClick={() => setShowPaymentModal(true)}
-                    className="platform-btn platform-btn-secondary platform-btn-full"
-                    style={{ fontSize: '0.85rem', padding: '0.6rem' }}
                   >
                     🏦 Submit NEFT / RTGS Wire UTR
-                  </button>
+                  </Button>
 
                   <button
                     type="button"
+                    className="platform-link-btn platform-text-xs"
+                    style={{ textAlign: 'center', marginTop: '0.25rem' }}
                     onClick={() => setShowBankDetails(!showBankDetails)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#2f5233',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      marginTop: '0.25rem',
-                    }}
                   >
                     {showBankDetails ? 'Hide Escrow Bank Details ▲' : 'View Escrow Bank Details ▼'}
                   </button>
 
                   {showBankDetails && (
-                    <div
-                      style={{
-                        marginTop: '0.5rem',
-                        padding: '0.75rem',
-                        background: '#f8fafc',
-                        borderRadius: 6,
-                        border: '1px solid #e2e8f0',
-                        fontSize: '0.78rem',
-                        lineHeight: 1.6,
-                      }}
-                    >
+                    <div className="platform-escrow-details">
                       <div><strong>Bank:</strong> {ESCROW_BANK_DETAILS.bankName}</div>
                       <div><strong>A/C Name:</strong> {ESCROW_BANK_DETAILS.accountName}</div>
-                      <div><strong>A/C No:</strong> <span style={{ fontFamily: 'monospace' }}>{ESCROW_BANK_DETAILS.accountNumber}</span></div>
-                      <div><strong>IFSC:</strong> <span style={{ fontFamily: 'monospace' }}>{ESCROW_BANK_DETAILS.ifscCode}</span></div>
+                      <div><strong>A/C No:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.accountNumber}</span></div>
+                      <div><strong>IFSC:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.ifscCode}</span></div>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <p className="platform-muted" style={{ margin: '0.5rem 0 0', fontSize: '0.85rem' }}>
+              <p className="platform-muted platform-text-sm platform-mt-sm">
                 Status: {order.paymentStatus}
               </p>
             )}
           </div>
 
-          {/* Shipping & Business Dossier */}
           <div className="platform-card platform-prose">
-            <h3 style={{ marginTop: 0 }}>Shipping & Contact</h3>
+            <h3 className="platform-section-heading">Shipping & Contact</h3>
             <p style={{ margin: 0 }}>
               {order.companyName}<br />
               {order.contactName} · {order.contactPhone}<br />
@@ -361,13 +302,13 @@ function BuyerOrderDetailInner() {
             </p>
             {order.gstin && (
               <>
-                <h3>GSTIN</h3>
+                <h3 className="platform-section-heading platform-mt-md">GSTIN</h3>
                 <p>{order.gstin}</p>
               </>
             )}
             {order.purchaseOrderNumber && (
               <>
-                <h3>PO number</h3>
+                <h3 className="platform-section-heading platform-mt-md">PO number</h3>
                 <p>{order.purchaseOrderNumber}</p>
               </>
             )}
@@ -375,7 +316,6 @@ function BuyerOrderDetailInner() {
         </aside>
       </div>
 
-      {/* Payment Gateway Modal */}
       {showPaymentModal && (
         <PaymentGatewayModal
           orderId={order.id}

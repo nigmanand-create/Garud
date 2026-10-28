@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { EmptyState } from '@/components/platform/EmptyState';
+import { DataTable } from '@/components/platform/DataTable';
+import { Button } from '@/components/platform/Button';
 import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -64,10 +66,7 @@ function CatalogTableSkeleton() {
                 <td>
                   <div className="platform-catalog-name-cell">
                     <div className="platform-catalog-thumb platform-skeleton" aria-hidden />
-                    <div
-                      className="platform-skeleton"
-                      style={{ width: '8rem', height: '0.875rem' }}
-                    />
+                    <div className="platform-skeleton platform-skeleton-bar--sm" style={{ width: '8rem' }} />
                   </div>
                 </td>
                 <td>
@@ -170,9 +169,7 @@ function CatalogInner() {
           )}
           {listings === null && !error && <CatalogTableSkeleton />}
           {listings && listings.length > 0 && (
-            <div className="platform-card">
-          <div className="platform-table-wrap">
-            <table className="platform-table platform-table--catalog">
+            <DataTable className="platform-card" tableClassName="platform-table platform-table--catalog">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -192,12 +189,7 @@ function CatalogInner() {
                           <img
                             src={l.primaryImageUrl}
                             alt=""
-                            style={{
-                              width: 36,
-                              height: 36,
-                              objectFit: 'cover',
-                              borderRadius: 4,
-                            }}
+                            className="platform-catalog-thumb-img"
                           />
                         ) : (
                           <div className="platform-catalog-thumb" aria-hidden>
@@ -205,20 +197,9 @@ function CatalogInner() {
                           </div>
                         )}
                         <div>
-                          <strong style={{ fontSize: '0.925rem' }}>{l.name}</strong>
+                          <strong className="platform-text-sm">{l.name}</strong>
                           {l.reviewStatus === 'REJECTED' && l.rejectionReason && (
-                            <div
-                              style={{
-                                color: '#991b1b',
-                                background: '#fef2f2',
-                                border: '1px solid #fecaca',
-                                padding: '2px 8px',
-                                borderRadius: 4,
-                                fontSize: '0.775rem',
-                                marginTop: 4,
-                                maxWidth: '320px',
-                              }}
-                            >
+                            <div className="platform-rejection-inline">
                               <strong>Issue:</strong> {l.rejectionReason}
                             </div>
                           )}
@@ -231,37 +212,23 @@ function CatalogInner() {
                     <td>
                       <StatusBadge status={l.reviewStatus} />
                     </td>
-                    <td className="platform-link-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <td className="platform-table-actions-row">
                       <Link
                         href={`/partner/catalog/${l.id}`}
-                        style={{
-                          fontSize: '0.825rem',
-                          fontWeight: 600,
-                          padding: '3px 8px',
-                          borderRadius: 4,
-                          background: '#f1f5f9',
-                          color: '#334155',
-                          textDecoration: 'none',
-                        }}
+                        className="platform-action-chip platform-action-chip--neutral"
                       >
                         Edit
                       </Link>
 
                       {(l.reviewStatus === 'DRAFT' || l.reviewStatus === 'REJECTED') && (
-                        <button
+                        <Button
                           type="button"
+                          size="sm"
                           onClick={() => handleSubmitForReview(l.id)}
                           disabled={submittingId === l.id}
-                          className="platform-btn platform-btn-primary"
-                          style={{
-                            padding: '3px 8px',
-                            fontSize: '0.775rem',
-                            borderRadius: 4,
-                            whiteSpace: 'nowrap',
-                          }}
                         >
                           {submittingId === l.id ? 'Submitting…' : 'Submit for review'}
-                        </button>
+                        </Button>
                       )}
 
                       {l.isPublished && l.reviewStatus === 'APPROVED' && (
@@ -269,16 +236,7 @@ function CatalogInner() {
                           href={`/marketplace/listings/${l.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{
-                            fontSize: '0.825rem',
-                            fontWeight: 600,
-                            padding: '3px 8px',
-                            borderRadius: 4,
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                          }}
+                          className="platform-action-chip platform-action-chip--success"
                         >
                           View live ↗
                         </Link>
@@ -287,9 +245,7 @@ function CatalogInner() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        </div>
+            </DataTable>
       )}
           {listings && listings.length === 0 && !error && (
             <EmptyState

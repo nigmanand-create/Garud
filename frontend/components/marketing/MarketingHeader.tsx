@@ -91,22 +91,22 @@ export function MarketingHeader() {
             <div className="header-menu">
               <ul className="header-menu-list">
                 <li className={`menu-item${isHome ? ' active' : ''}`}>
-                  <Link href="/" className="menu-link" style={{ color: '#000000' }}>
+                  <Link href="/" className="menu-link" style={{ color: '#0f172a', fontWeight: isHome ? 700 : 500 }}>
                     Home
                   </Link>
                 </li>
                 <li className={`menu-item${isAbout ? ' active' : ''}`}>
-                  <Link href="/about-us" className="menu-link" style={{ color: '#000000' }}>
-                    About-Us
+                  <Link href="/about-us" className="menu-link" style={{ color: '#0f172a', fontWeight: isAbout ? 700 : 500 }}>
+                    About Us
                   </Link>
                 </li>
                 <li className="menu-item has-dropdown has-mega">
-                  <a href="#" className="menu-link" style={{ color: '#000000' }}>
-                    Services <i className="bi bi-chevron-down dropdown-arrow" />
-                  </a>
+                  <Link href="/services" className="menu-link" style={{ color: '#0f172a' }}>
+                    Drone Services <i className="bi bi-chevron-down dropdown-arrow" />
+                  </Link>
                   <div
                     className="mega-dropdown mega-contained"
-                    style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+                    style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
                   >
                     <div className="mega-dropdown-inner">
                       <div className="mega-columns mega-cols-2">
@@ -120,28 +120,33 @@ export function MarketingHeader() {
                   <Link
                     href="/marketplace"
                     className="menu-link"
-                    style={{ color: '#000000' }}
+                    style={{ color: '#0f172a', fontWeight: isMarketplace ? 700 : 500 }}
                     aria-current={isMarketplace ? 'page' : undefined}
                   >
                     Marketplace <i className="bi bi-chevron-down dropdown-arrow" />
                   </Link>
-                  <ul className="dropdown-menu" style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}>
+                  <ul className="dropdown-menu" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
                     {MARKETPLACE_LINKS.map((item) => (
                       <li key={item.href} className="dropdown-item">
-                        <Link href={item.href} style={{ color: '#4b5563' }}>
+                        <Link href={item.href} style={{ color: '#334155' }}>
                           <i className={`bi ${item.icon}`} /> {item.label}
                         </Link>
                       </li>
                     ))}
+                    <li className="dropdown-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: 4, paddingTop: 6 }}>
+                      <Link href="/buyer/rfqs/new" style={{ color: '#e06d00', fontWeight: 600 }}>
+                        <i className="bi bi-file-earmark-plus-fill" /> Post B2B Drone RFQ →
+                      </Link>
+                    </li>
                   </ul>
                 </li>
                 <li className="menu-item has-dropdown has-mega">
-                  <a href="#" className="menu-link" style={{ color: '#000000' }}>
-                    Partners <i className="bi bi-chevron-down dropdown-arrow" />
-                  </a>
+                  <Link href="/b2b-partners" className="menu-link" style={{ color: '#0f172a' }}>
+                    B2B Partners <i className="bi bi-chevron-down dropdown-arrow" />
+                  </Link>
                   <div
                     className="mega-dropdown mega-contained"
-                    style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+                    style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
                   >
                     <div className="mega-dropdown-inner">
                       <div className="mega-columns mega-cols-2">
@@ -151,9 +156,9 @@ export function MarketingHeader() {
                     </div>
                   </div>
                 </li>
-                <li className={`menu-item${isBlog ? ' active' : ''}`}>
-                  <Link href="/blogging" className="menu-link" style={{ color: '#000000' }}>
-                    Insights &amp; Blogs
+                <li className="menu-item">
+                  <Link href="/auth/register" className="menu-link" style={{ color: '#0f172a' }}>
+                    Join GarudHub
                   </Link>
                 </li>
               </ul>
@@ -164,43 +169,63 @@ export function MarketingHeader() {
                 <div className="header-auth-links">
                   {user ? (
                     <>
-                      <CartNavLink className="header-auth-link platform-cart-nav" />
                       {dash && (
-                        <Link href={dash.href} className="header-auth-link">
-                          {dash.label}
+                        <Link href={dash.href} className="header-auth-link" style={{ fontWeight: 600, color: '#1e3a29' }}>
+                          <i className="bi bi-speedometer2" /> {dash.label}
                         </Link>
                       )}
                       {(user.role === 'BUYER' || user.role === 'GOVERNMENT') && (
-                        <Link href="/buyer/orders" className="header-auth-link">
-                          My Orders
-                        </Link>
+                        <>
+                          <Link href="/buyer/rfqs" className="header-auth-link">
+                            My RFQs
+                          </Link>
+                          <Link href="/buyer/orders" className="header-auth-link">
+                            My Orders
+                          </Link>
+                        </>
                       )}
-                      <span className="header-auth-email">{user.email}</span>
+                      {user.role === 'PARTNER' && (
+                        <>
+                          <Link href="/partner/rfqs" className="header-auth-link">
+                            B2B RFPs
+                          </Link>
+                          <Link href="/partner/orders" className="header-auth-link">
+                            Orders
+                          </Link>
+                        </>
+                      )}
+                      <span className="header-auth-email" title={user.email}>{user.email}</span>
                       <button type="button" className="header-auth-link header-auth-btn" onClick={() => logout()}>
                         Sign out
                       </button>
                     </>
                   ) : (
                     <>
-                      <Link href="/auth/login" className="header-auth-link">Sign in</Link>
-                      <Link href="/auth/register" className="header-auth-link header-auth-link-accent">
-                        Register
+                      <Link href="/auth/login" className="header-auth-link" style={{ fontWeight: 600 }}>
+                        Login
+                      </Link>
+                      <Link
+                        href="/auth/register?type=partner"
+                        style={{
+                          backgroundColor: '#1e3a29',
+                          color: '#ffffff',
+                          padding: '0.45rem 0.9rem',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          textDecoration: 'none',
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                        }}
+                      >
+                        <i className="bi bi-patch-check-fill" /> Register as B2B Partner
                       </Link>
                     </>
                   )}
                 </div>
               )}
-              <Link
-                href="/enquiry.php"
-                className="header-cta header-cta-outline"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#e06d00',
-                  borderColor: '#e06d00',
-                }}
-              >
-                <i className="bi bi-send-fill" /> Contact Us
-              </Link>
             </div>
 
             <button className="header-mobile-toggle" aria-label="Open menu" type="button">
@@ -221,7 +246,7 @@ export function MarketingHeader() {
         <div className="mobile-menu-header">
           <div className="mobile-menu-logo">
             <Link href="/" className="logo-link">
-              <img src={LOGO_URL} alt="DroneHub" className="logo-image" style={{ height: 50 }} />
+              <img src={LOGO_URL} alt="GarudHub" className="logo-image" style={{ height: 46 }} />
             </Link>
           </div>
           <button className="mobile-menu-close" aria-label="Close menu" type="button" style={{ color: '#1a1a1a' }}>
@@ -232,19 +257,19 @@ export function MarketingHeader() {
           <ul className="mobile-menu-list">
             <li className={`mobile-menu-item${isHome ? ' active' : ''}`}>
               <Link href="/" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
-                <i className="bi bi-house-door-fill" style={{ color: '#3b82f6' }} /> Home
+                <i className="bi bi-house-door-fill" style={{ color: '#1e3a29' }} /> Home
               </Link>
             </li>
             <li className={`mobile-menu-item${isAbout ? ' active' : ''}`}>
               <Link href="/about-us" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
-                <i className="bi bi-info-circle-fill" style={{ color: '#3b82f6' }} /> About-Us
+                <i className="bi bi-info-circle-fill" style={{ color: '#1e3a29' }} /> About Us
               </Link>
             </li>
             <li className="mobile-menu-item has-submenu">
               <div className="mobile-menu-parent">
-                <a href="#" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
-                  <i className="bi bi-grid-fill" style={{ color: '#3b82f6' }} /> Services
-                </a>
+                <Link href="/services" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
+                  <i className="bi bi-grid-fill" style={{ color: '#1e3a29' }} /> Drone Services
+                </Link>
                 <button className="mobile-submenu-toggle" aria-label="Toggle submenu" type="button" style={{ color: '#1a1a1a' }}>
                   <i className="bi bi-chevron-down" />
                 </button>
@@ -253,7 +278,7 @@ export function MarketingHeader() {
                 {MOBILE_SERVICES_LINKS.map((item) => (
                   <li key={item.href} className="mobile-submenu-item">
                     <Link href={item.href} className="mobile-submenu-link" style={{ color: '#1a1a1a' }}>
-                      <i className={`bi ${item.icon}`} style={{ color: '#3b82f6' }} /> {item.label}
+                      <i className={`bi ${item.icon}`} style={{ color: '#1e3a29' }} /> {item.label}
                     </Link>
                   </li>
                 ))}
@@ -267,7 +292,7 @@ export function MarketingHeader() {
                   style={{ color: '#1a1a1a' }}
                   aria-current={isMarketplace ? 'page' : undefined}
                 >
-                  <i className="bi bi-shop" style={{ color: '#3b82f6' }} /> Marketplace
+                  <i className="bi bi-shop" style={{ color: '#1e3a29' }} /> Marketplace
                 </Link>
                 <button className="mobile-submenu-toggle" aria-label="Toggle submenu" type="button" style={{ color: '#1a1a1a' }}>
                   <i className="bi bi-chevron-down" />
@@ -277,7 +302,7 @@ export function MarketingHeader() {
                 {MARKETPLACE_LINKS.map((item) => (
                   <li key={item.href} className="mobile-submenu-item">
                     <Link href={item.href} className="mobile-submenu-link" style={{ color: '#1a1a1a' }}>
-                      <i className={`bi ${item.icon}`} style={{ color: '#3b82f6' }} /> {item.label}
+                      <i className={`bi ${item.icon}`} style={{ color: '#1e3a29' }} /> {item.label}
                     </Link>
                   </li>
                 ))}
@@ -285,9 +310,9 @@ export function MarketingHeader() {
             </li>
             <li className="mobile-menu-item has-submenu">
               <div className="mobile-menu-parent">
-                <a href="#" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
-                  <i className="bi bi-person-circle" style={{ color: '#3b82f6' }} /> Partners
-                </a>
+                <Link href="/b2b-partners" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
+                  <i className="bi bi-globe2" style={{ color: '#1e3a29' }} /> B2B Partners
+                </Link>
                 <button className="mobile-submenu-toggle" aria-label="Toggle submenu" type="button" style={{ color: '#1a1a1a' }}>
                   <i className="bi bi-chevron-down" />
                 </button>
@@ -296,31 +321,41 @@ export function MarketingHeader() {
                 {MOBILE_PARTNERS_LINKS.map((item) => (
                   <li key={item.href} className="mobile-submenu-item">
                     <Link href={item.href} className="mobile-submenu-link" style={{ color: '#1a1a1a' }}>
-                      <i className={`bi ${item.icon}`} style={{ color: '#3b82f6' }} /> {item.label}
+                      <i className={`bi ${item.icon}`} style={{ color: '#1e3a29' }} /> {item.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </li>
-            <li className={`mobile-menu-item${isBlog ? ' active' : ''}`}>
-              <Link href="/blogging" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
-                <i className="bi bi-journal-richtext" style={{ color: '#3b82f6' }} /> Insights &amp; Blogs
+            <li className="mobile-menu-item">
+              <Link href="/auth/register" className="mobile-menu-link" style={{ color: '#1a1a1a' }}>
+                <i className="bi bi-person-plus-fill" style={{ color: '#1e3a29' }} /> Join GarudHub
               </Link>
             </li>
           </ul>
         </nav>
         <div className="mobile-menu-cta">
           {!loading && !user && (
-            <div className="mobile-auth-row">
-              <Link href="/auth/login" className="header-auth-link">Sign in</Link>
-              <Link href="/auth/register" className="header-auth-link header-auth-link-accent">
-                Register
+            <div className="mobile-auth-row" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <Link
+                href="/auth/register?type=partner"
+                className="platform-btn platform-btn-cta platform-btn-full"
+                style={{ textAlign: 'center', textDecoration: 'none' }}
+              >
+                Register as B2B Partner
+              </Link>
+              <Link
+                href="/auth/login"
+                className="platform-btn platform-btn-secondary platform-btn-full"
+                style={{ textAlign: 'center', textDecoration: 'none' }}
+              >
+                Login to Portal
               </Link>
             </div>
           )}
           {user && dash && (
-            <Link href={dash.href} className="header-auth-link mobile-dash-link">
-              {dash.label}
+            <Link href={dash.href} className="platform-btn platform-btn-cta platform-btn-full" style={{ display: 'block', textAlign: 'center', marginBottom: '0.5rem', textDecoration: 'none' }}>
+              Go to {dash.label} Dashboard
             </Link>
           )}
           <Link

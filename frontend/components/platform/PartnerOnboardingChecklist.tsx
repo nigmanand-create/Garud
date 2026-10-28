@@ -16,6 +16,26 @@ export function PartnerOnboardingChecklist({
 }: PartnerOnboardingChecklistProps) {
   const steps = getPartnerOnboardingSteps(data);
 
+  if (verificationStatus === 'APPROVED') {
+    return (
+      <div className="platform-card platform-partner-checklist platform-partner-checklist--compact">
+        <div className="platform-partner-checklist-header">
+          <div>
+            <h2 className="platform-partner-checklist-title">Partner onboarding</h2>
+            <p className="platform-muted platform-partner-checklist-desc">
+              Verification complete — your organization is approved for marketplace
+              operations.
+            </p>
+          </div>
+          <StatusBadge status={verificationStatus} />
+        </div>
+        <Link href="/partner/application" className="platform-checklist-link">
+          View company profile
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="platform-card platform-partner-checklist">
       <div className="platform-partner-checklist-header">

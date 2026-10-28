@@ -12,6 +12,7 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { categoryAllowedForListingType } from './catalog-category.constants';
 import { CreateListingDto, UpdateListingDto } from './dto/listing.dto';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class CatalogService {
   async createForPartner(userId: string, dto: CreateListingDto) {
     const org = await this.requireApprovedPartnerOrg(userId);
     this.validatePricing(dto.priceOnRequest ?? true, dto.priceInr);
+    this.validateCategoryForListingType(dto.category, dto.listingType);
 
     return this.prisma.partnerListing.create({
       data: {
@@ -84,6 +86,15 @@ export class CatalogService {
       (existing.priceInr != null ? existing.priceInr.toNumber() : undefined);
     if (dto.priceOnRequest !== undefined || dto.priceInr !== undefined) {
       this.validatePricing(priceOnRequest, priceInr);
+    }
+
+    if (
+      dto.category != null &&
+      !categoryAllowedForListingType(dto.category, existing.listingType)
+    ) {
+      throw new BadRequestException(
+        `Category ${dto.category} is not valid for ${existing.listingType} listings`,
+      );
     }
 
     // Material edits to an already approved live listing reset it to DRAFT for safety
@@ -268,6 +279,17 @@ export class CatalogService {
     if (!priceOnRequest && (priceInr == null || priceInr < 0)) {
       throw new BadRequestException(
         'priceInr is required when priceOnRequest is false',
+      );
+    }
+  }
+
+  private validateCategoryForListingType(
+    category: CatalogCategory,
+    listingType: ListingType,
+  ) {
+    if (!categoryAllowedForListingType(category, listingType)) {
+      throw new BadRequestException(
+        `Category ${category} is not valid for ${listingType} listings`,
       );
     }
   }

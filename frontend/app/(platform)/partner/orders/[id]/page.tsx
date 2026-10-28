@@ -50,7 +50,7 @@ function PartnerOrderDetailInner() {
     return (
       <PartnerPageShell>
         <div className="platform-grid" aria-busy="true">
-          <div className="platform-skeleton" style={{ height: 28, width: '50%' }} />
+          <div className="platform-skeleton platform-skeleton-bar" style={{ width: '50%' }} />
         </div>
       </PartnerPageShell>
     );
@@ -67,10 +67,7 @@ function PartnerOrderDetailInner() {
             {order.rfqId && (
               <>
                 {' '}·{' '}
-                <Link
-                  href={`/partner/rfqs/${order.rfqId}`}
-                  style={{ color: '#2f5233', fontWeight: 600, textDecoration: 'underline' }}
-                >
+                <Link href={`/partner/rfqs/${order.rfqId}`} className="platform-inline-link">
                   Procured via RFQ ↗
                 </Link>
               </>
@@ -81,14 +78,13 @@ function PartnerOrderDetailInner() {
         backLabel="Incoming orders"
       />
 
-      {/* Progress Milestone Stepper */}
       <OrderProgressStepper order={order} />
 
       <PartnerOrderFulfillmentPanel order={order} onUpdated={setOrder} />
 
       <div className="platform-detail-layout">
         <div className="platform-card">
-          <p style={{ margin: '0 0 0.75rem' }}>
+          <p className="platform-status-row">
             <StatusBadge status={order.status} />{' '}
             <StatusBadge
               status={order.fulfillmentStatus}
@@ -96,7 +92,7 @@ function PartnerOrderDetailInner() {
             />{' '}
             <StatusBadge status={order.paymentStatus} />
           </p>
-          <h3 style={{ marginTop: 0 }}>Line items</h3>
+          <h3 className="platform-section-heading">Line items</h3>
           <div className="platform-table-wrap">
             <table className="platform-table">
               <thead>
@@ -112,59 +108,45 @@ function PartnerOrderDetailInner() {
                 {order.lineItems.map((li) => (
                   <tr key={li.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                        <div
-                          style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 8,
-                            border: '1px solid #e2e8f0',
-                            background: '#f8fafc',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                        >
+                      <div className="platform-line-item-cell">
+                        <div className="platform-line-item-thumb">
                           {li.imageUrl ? (
-                            <img
-                              src={li.imageUrl}
-                              alt={li.name}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
+                            <img src={li.imageUrl} alt={li.name} />
                           ) : (
-                            <span style={{ fontSize: '1.2rem' }}>🛸</span>
+                            <span aria-hidden>🛸</span>
                           )}
                         </div>
                         <div>
                           {li.listingId ? (
-                            <Link href={`/partner/catalog/${li.listingId}`} style={{ fontWeight: 600 }}>
+                            <Link
+                              href={`/partner/catalog/${li.listingId}`}
+                              className="platform-line-item-title"
+                            >
                               {li.name}
                             </Link>
                           ) : (
-                            <span style={{ fontWeight: 600 }}>{li.name}</span>
+                            <span className="platform-font-semibold">{li.name}</span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{li.sku ?? '—'}</td>
+                    <td className="platform-font-mono platform-text-sm">{li.sku ?? '—'}</td>
                     <td>{li.quantity}</td>
                     <td>{formatPrice(false, li.unitPriceInr)}</td>
-                    <td style={{ fontWeight: 600 }}>{formatPrice(false, li.lineTotalInr)}</td>
+                    <td className="platform-font-semibold">{formatPrice(false, li.lineTotalInr)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p style={{ margin: '1rem 0 0', fontWeight: 700 }}>
+          <p className="platform-order-total">
             Total: {formatPrice(false, order.totalInr)}
           </p>
         </div>
 
         <aside>
           <div className="platform-card platform-prose">
-            <h3 style={{ marginTop: 0 }}>Shipping</h3>
+            <h3 className="platform-section-heading">Shipping</h3>
             <p style={{ margin: 0 }}>
               {order.companyName}<br />
               {order.contactName} · {order.contactPhone}<br />
@@ -177,17 +159,17 @@ function PartnerOrderDetailInner() {
             </p>
             {order.gstin && (
               <>
-                <h3>GSTIN</h3>
+                <h3 className="platform-section-heading platform-mt-md">GSTIN</h3>
                 <p>{order.gstin}</p>
               </>
             )}
             {order.purchaseOrderNumber && (
               <>
-                <h3>PO number</h3>
+                <h3 className="platform-section-heading platform-mt-md">PO number</h3>
                 <p>{order.purchaseOrderNumber}</p>
               </>
             )}
-            <p className="platform-muted" style={{ fontSize: '0.8125rem' }}>
+            <p className="platform-muted platform-text-xs platform-mt-md">
               Offline payment: contact the buyer to complete payment and arrange fulfillment.
             </p>
           </div>

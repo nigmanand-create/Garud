@@ -10,7 +10,12 @@ import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { useConfirmDialog } from '@/components/platform/ConfirmDialog';
 import { StatusBadge } from '@/components/platform/StatusBadge';
-import { CATEGORY_LABELS, formatEnumLabel, formatPrice } from '@/lib/platform/labels';
+import { FormField } from '@/components/platform/FormField';
+import {
+  CATEGORY_LABELS,
+  formatPrice,
+  RFQ_INVITE_STATUS_LABELS,
+} from '@/lib/platform/labels';
 import type {
   PartnerQuotation,
   PartnerRfqInviteDetail,
@@ -37,6 +42,132 @@ async function loadPartnerRfqDetail(rfqId: string): Promise<{
   return { invite, quotation };
 }
 
+type PartnerRfqCore = PartnerRfqInviteDetail['rfq'];
+
+function formatRfqDeadline(deadlineAt: string) {
+  return new Date(deadlineAt).toLocaleString('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+}
+
+function RequestSummarySection({ rfq }: { rfq: PartnerRfqCore }) {
+  const isListingLinked = Boolean(rfq.listingId);
+  const listing = rfq.listing;
+  const listingId = listing?.id ?? rfq.listingId;
+  const showPayload =
+    !isListingLinked || rfq.payloadCapacityKg != null;
+  const showEndurance =
+    !isListingLinked || rfq.enduranceMinutes != null;
+
+  return (
+    <div className="platform-card platform-prose">
+      <h3 className="platform-section-heading">Request summary</h3>
+      <p className="platform-pre-wrap">{rfq.description}</p>
+
+      {listingId && (
+        <p className="platform-detail-fact">
+          <span className="platform-detail-fact-label">Catalog listing:</span>{' '}
+          <Link
+            href={`/partner/catalog/${listingId}`}
+            className="platform-badge platform-badge--category platform-inline-link"
+          >
+            {listing?.name ?? 'View listing'}
+          </Link>
+          {listing?.sku && (
+            <span className="platform-muted platform-text-sm">
+              {' '}
+              · SKU {listing.sku}
+            </span>
+          )}
+        </p>
+      )}
+      {isListingLinked && (
+        <p className="platform-muted platform-text-sm">
+          Payload, endurance, and technical specs are defined on your{' '}
+          {listingId ? (
+            <Link
+              href={`/partner/catalog/${listingId}`}
+              className="platform-inline-link"
+            >
+              catalog listing
+            </Link>
+          ) : (
+            'catalog listing'
+          )}
+          .
+        </p>
+      )}
+
+      <div className="platform-stat-grid platform-stat-grid--specs">
+        {rfq.quantity != null && (
+          <div>
+            <span className="platform-stat-spec-label">Quantity</span>
+            <div className="platform-stat-spec-value">{rfq.quantity} units</div>
+          </div>
+        )}
+        {rfq.deadlineAt && (
+          <div>
+            <span className="platform-stat-spec-label">Quote deadline</span>
+            <div className="platform-stat-spec-value">
+              {formatRfqDeadline(rfq.deadlineAt)}
+            </div>
+          </div>
+        )}
+        {rfq.targetBudgetInr != null && (
+          <div>
+            <span className="platform-stat-spec-label">Buyer budget</span>
+            <div className="platform-stat-spec-value">
+              {formatPrice(false, rfq.targetBudgetInr)}
+            </div>
+          </div>
+        )}
+        <div>
+          <span className="platform-stat-spec-label">DGCA type certificate</span>
+          <div
+            className={`platform-stat-spec-value ${
+              rfq.isDgcaRequired ? 'platform-stat-spec-value--success' : ''
+            }`}
+          >
+            {rfq.isDgcaRequired ? 'Required' : 'Not required'}
+          </div>
+        </div>
+        {!isListingLinked && showPayload && (
+          <div>
+            <span className="platform-stat-spec-label">Min. payload</span>
+            <div className="platform-stat-spec-value">
+              {rfq.payloadCapacityKg
+                ? `${Number(rfq.payloadCapacityKg)} kg`
+                : '—'}
+            </div>
+          </div>
+        )}
+        {!isListingLinked && showEndurance && (
+          <div>
+            <span className="platform-stat-spec-label">Min. endurance</span>
+            <div className="platform-stat-spec-value">
+              {rfq.enduranceMinutes ? `${rfq.enduranceMinutes} mins` : '—'}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {rfq.specsDocumentUrl && (
+        <p className="platform-detail-fact">
+          <a
+            href={rfq.specsDocumentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="platform-inline-link"
+          >
+            Download tender specifications ↗
+          </a>
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function PartnerRfqDetailPage() {
   return (
     <RequireAuth roles={['PARTNER']}>
@@ -45,20 +176,28 @@ export default function PartnerRfqDetailPage() {
   );
 }
 
-function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
+function QuotationSummary({
+  quotation,
+  hideTechnicalSpecs,
+}: {
+  quotation: PartnerQuotation;
+  hideTechnicalSpecs?: boolean;
+}) {
   const isAccepted = quotation.status === 'ACCEPTED';
   const isRejected = quotation.status === 'REJECTED';
 
+  const cardClass = [
+    'platform-card platform-form-card',
+    isAccepted ? 'platform-quotation-card--accepted' : '',
+    isRejected ? 'platform-quotation-card--rejected' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div
-      className="platform-card platform-form-card"
-      style={{
-        border: isAccepted ? '2px solid #22c55e' : isRejected ? '1px dashed #cbd5e1' : undefined,
-        background: isAccepted ? '#f0fdf4' : undefined,
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <h3 className="platform-card-section-title" style={{ margin: 0 }}>Your quotation</h3>
+    <div className={cardClass}>
+      <div className="platform-quotation-card__head">
+        <h3 className="platform-card-section-title">Your commercial offer</h3>
         {quotation.status && <StatusBadge status={quotation.status} />}
       </div>
 
@@ -74,13 +213,13 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
           {quotation.leadTimeDays} days
         </p>
       )}
-      {quotation.quotedPayloadKg != null && (
+      {!hideTechnicalSpecs && quotation.quotedPayloadKg != null && (
         <p className="platform-detail-fact">
           <span className="platform-detail-fact-label">Quoted Payload:</span>{' '}
           <strong>{Number(quotation.quotedPayloadKg)} kg</strong>
         </p>
       )}
-      {quotation.quotedEnduranceMin != null && (
+      {!hideTechnicalSpecs && quotation.quotedEnduranceMin != null && (
         <p className="platform-detail-fact">
           <span className="platform-detail-fact-label">Quoted Endurance:</span>{' '}
           <strong>{quotation.quotedEnduranceMin} mins</strong>
@@ -89,7 +228,7 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
       {quotation.dgcaModelNumber && (
         <p className="platform-detail-fact">
           <span className="platform-detail-fact-label">DGCA Certification:</span>{' '}
-          <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#166534' }}>
+          <span className="platform-dgca-cert">
             ✓ {quotation.dgcaModelNumber}
           </span>
         </p>
@@ -101,24 +240,21 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
         </p>
       )}
       {quotation.notes && (
-        <p className="platform-detail-fact" style={{ whiteSpace: 'pre-wrap' }}>
+        <p className="platform-detail-fact platform-pre-wrap">
           <span className="platform-detail-fact-label">Notes:</span>{' '}
           {quotation.notes}
         </p>
       )}
 
       {isAccepted && (
-        <div style={{ background: '#dcfce7', border: '1px solid #86efac', padding: '1rem', borderRadius: 8, marginTop: '1rem' }}>
-          <strong style={{ color: '#166534', display: 'block', fontSize: '1rem', marginBottom: '0.25rem' }}>
-            🎉 Quotation Awarded!
-          </strong>
-          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: '#166534' }}>
+        <div className="platform-quotation-award">
+          <strong>🎉 Quotation Awarded!</strong>
+          <p>
             Congratulations! The buyer accepted your quotation and a Purchase Order has been placed with your organization.
           </p>
           <Link
             href="/partner/orders"
             className="platform-btn platform-btn-cta platform-btn-sm"
-            style={{ textDecoration: 'none', display: 'inline-block' }}
           >
             View Incoming Orders →
           </Link>
@@ -126,10 +262,8 @@ function QuotationSummary({ quotation }: { quotation: PartnerQuotation }) {
       )}
 
       {isRejected && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '0.75rem', borderRadius: 8, marginTop: '1rem' }}>
-          <span style={{ color: '#991b1b', fontSize: '0.875rem' }}>
-            This quotation was not awarded by the buyer.
-          </span>
+        <div className="platform-quotation-rejected">
+          This quotation was not awarded by the buyer.
         </div>
       )}
 
@@ -154,7 +288,6 @@ function DetailInner() {
   const [declining, setDeclining] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirmDialog();
   const [quote, setQuote] = useState({
-    priceOnRequest: false,
     priceInr: '',
     leadTimeDays: '',
     notes: '',
@@ -179,11 +312,23 @@ function DetailInner() {
     reload();
   }, [reload]);
 
+  useEffect(() => {
+    const listing = invite?.rfq.listing;
+    if (!invite?.rfq.listingId || !listing) return;
+    if (listing.priceOnRequest || listing.priceInr == null) return;
+    setQuote((q) =>
+      q.priceInr === ''
+        ? { ...q, priceInr: String(listing.priceInr) }
+        : q,
+    );
+  }, [invite?.rfq.listingId, invite?.rfq.listing]);
+
   async function submitQuote(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
     setSubmitting(true);
+    const listingLinkedQuote = Boolean(invite?.rfq.listingId);
     try {
       const created = await apiRequest<PartnerQuotation>(
         `/partner/rfqs/${id}/quotations`,
@@ -191,18 +336,22 @@ function DetailInner() {
           method: 'POST',
           auth: true,
           body: {
-            priceOnRequest: quote.priceOnRequest,
-            priceInr: quote.priceOnRequest ? undefined : Number(quote.priceInr),
+            priceOnRequest: false,
+            priceInr: Number(quote.priceInr),
             leadTimeDays: quote.leadTimeDays
               ? Number(quote.leadTimeDays)
               : undefined,
             notes: quote.notes || undefined,
-            quotedPayloadKg: quote.quotedPayloadKg
-              ? Number(quote.quotedPayloadKg)
-              : undefined,
-            quotedEnduranceMin: quote.quotedEnduranceMin
-              ? Number(quote.quotedEnduranceMin)
-              : undefined,
+            ...(listingLinkedQuote
+              ? {}
+              : {
+                  quotedPayloadKg: quote.quotedPayloadKg
+                    ? Number(quote.quotedPayloadKg)
+                    : undefined,
+                  quotedEnduranceMin: quote.quotedEnduranceMin
+                    ? Number(quote.quotedEnduranceMin)
+                    : undefined,
+                }),
             dgcaModelNumber: quote.dgcaModelNumber.trim() || undefined,
             warrantyMonths: quote.warrantyMonths
               ? Number(quote.warrantyMonths)
@@ -258,6 +407,8 @@ function DetailInner() {
     (invite.status === 'QUOTED' || submittedQuotation) &&
     invite.status !== 'DECLINED';
 
+  const isListingLinked = Boolean(invite?.rfq.listingId);
+
   if (!invite && !error) {
     return (
       <PartnerPageShell>
@@ -306,95 +457,18 @@ function DetailInner() {
               title={invite.rfq.title}
               subtitle={
                 <>
-                  {CATEGORY_LABELS[invite.rfq.category]} · Invite{' '}
-                  {formatEnumLabel(invite.status)}
+                  {CATEGORY_LABELS[invite.rfq.category]} ·{' '}
+                  {RFQ_INVITE_STATUS_LABELS[invite.status]}
                 </>
               }
               badge={<StatusBadge status={invite.rfq.status} />}
             />
-              <div className="platform-card platform-prose">
-                <h3>Requirement</h3>
-                <p style={{ whiteSpace: 'pre-wrap' }}>{invite.rfq.description}</p>
-                {invite.rfq.quantity != null && (
-                  <p className="platform-detail-fact">
-                    <span className="platform-detail-fact-label">Quantity:</span>{' '}
-                    <strong>{invite.rfq.quantity} units</strong>
-                  </p>
-                )}
-              </div>
-
-              {/* Technical RFP Specifications */}
-              <div
-                className="platform-card"
-                style={{
-                  marginTop: '1rem',
-                  border: '1px solid #bfdbfe',
-                  background: '#f8fafc',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>🛸</span>
-                  <h3 style={{ margin: 0, fontSize: '1rem', color: '#1e3a8a' }}>
-                    Required Technical Specifications
-                  </h3>
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Min. Payload</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
-                      {invite.rfq.payloadCapacityKg ? `${Number(invite.rfq.payloadCapacityKg)} kg` : 'Standard'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Min. Endurance</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
-                      {invite.rfq.enduranceMinutes ? `${invite.rfq.enduranceMinutes} mins` : 'Standard'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>DGCA Type Certified</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 700, marginTop: 2, color: invite.rfq.isDgcaRequired ? '#166534' : '#64748b' }}>
-                      {invite.rfq.isDgcaRequired ? '✓ Mandatory' : 'Optional'}
-                    </div>
-                  </div>
-
-                  {invite.rfq.targetBudgetInr && (
-                    <div style={{ background: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Target Budget</div>
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
-                        {formatPrice(false, invite.rfq.targetBudgetInr)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {invite.rfq.specsDocumentUrl && (
-                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0' }}>
-                    <a
-                      href={invite.rfq.specsDocumentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none' }}
-                    >
-                      📄 Download Technical Tender Specs Document ↗
-                    </a>
-                  </div>
-                )}
-              </div>
+              <RequestSummarySection rfq={invite.rfq} />
             </div>
             <aside className="platform-detail-sidebar">
               <div className="platform-card">
                 <h3 className="platform-card-section-title">Buyer</h3>
-                <p className="platform-detail-fact" style={{ fontWeight: 600 }}>
+                <p className="platform-detail-fact platform-font-semibold">
                   {invite.rfq.buyerOrganization.companyName}
                 </p>
                 <p className="platform-muted platform-detail-fact">
@@ -414,41 +488,26 @@ function DetailInner() {
                 >
                 <fieldset className="platform-form-section">
                   <legend className="platform-form-section-title">
-                    Your quotation
+                    Your commercial offer
                   </legend>
                   <p className="platform-form-section-desc">
-                    Submit pricing, lead time, and technical parameters for this requirement.
+                    {isListingLinked
+                      ? 'Confirm unit price and commercial terms for this catalog RFQ.'
+                      : 'Provide unit price, delivery timeline, and technical parameters.'}
                   </p>
-                  <label className="platform-checkbox-row">
+                  <FormField label="Unit price (INR)" htmlFor="priceInr">
                     <input
-                      type="checkbox"
-                      checked={quote.priceOnRequest}
+                      id="priceInr"
+                      type="number"
+                      min={0}
+                      required
+                      value={quote.priceInr}
                       onChange={(e) =>
-                        setQuote((q) => ({
-                          ...q,
-                          priceOnRequest: e.target.checked,
-                        }))
+                        setQuote((q) => ({ ...q, priceInr: e.target.value }))
                       }
                     />
-                    <span>Price on request</span>
-                  </label>
-                  {!quote.priceOnRequest && (
-                    <div className="platform-field">
-                      <label htmlFor="priceInr">Price (INR)</label>
-                      <input
-                        id="priceInr"
-                        type="number"
-                        min={0}
-                        required
-                        value={quote.priceInr}
-                        onChange={(e) =>
-                          setQuote((q) => ({ ...q, priceInr: e.target.value }))
-                        }
-                      />
-                    </div>
-                  )}
-                  <div className="platform-field">
-                    <label htmlFor="leadTimeDays">Lead time (days)</label>
+                  </FormField>
+                  <FormField label="Lead time (days)" htmlFor="leadTimeDays">
                     <input
                       id="leadTimeDays"
                       type="number"
@@ -461,44 +520,44 @@ function DetailInner() {
                         }))
                       }
                     />
-                  </div>
+                  </FormField>
 
-                  {/* Technical Parameters */}
-                  <div className="platform-field">
-                    <label htmlFor="quotedPayload">Offered Payload (kg)</label>
-                    <input
-                      id="quotedPayload"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      placeholder="e.g. 16.0"
-                      value={quote.quotedPayloadKg}
-                      onChange={(e) =>
-                        setQuote((q) => ({
-                          ...q,
-                          quotedPayloadKg: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="platform-field">
-                    <label htmlFor="quotedEndurance">Flight Endurance (mins)</label>
-                    <input
-                      id="quotedEndurance"
-                      type="number"
-                      min="1"
-                      placeholder="e.g. 40"
-                      value={quote.quotedEnduranceMin}
-                      onChange={(e) =>
-                        setQuote((q) => ({
-                          ...q,
-                          quotedEnduranceMin: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="platform-field">
-                    <label htmlFor="dgcaModel">DGCA Model / Certificate #</label>
+                  {!isListingLinked && (
+                    <>
+                      <FormField label="Offered Payload (kg)" htmlFor="quotedPayload">
+                        <input
+                          id="quotedPayload"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          placeholder="e.g. 16.0"
+                          value={quote.quotedPayloadKg}
+                          onChange={(e) =>
+                            setQuote((q) => ({
+                              ...q,
+                              quotedPayloadKg: e.target.value,
+                            }))
+                          }
+                        />
+                      </FormField>
+                      <FormField label="Flight Endurance (mins)" htmlFor="quotedEndurance">
+                        <input
+                          id="quotedEndurance"
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 40"
+                          value={quote.quotedEnduranceMin}
+                          onChange={(e) =>
+                            setQuote((q) => ({
+                              ...q,
+                              quotedEnduranceMin: e.target.value,
+                            }))
+                          }
+                        />
+                      </FormField>
+                    </>
+                  )}
+                  <FormField label="DGCA Model / Certificate #" htmlFor="dgcaModel">
                     <input
                       id="dgcaModel"
                       type="text"
@@ -511,9 +570,8 @@ function DetailInner() {
                         }))
                       }
                     />
-                  </div>
-                  <div className="platform-field">
-                    <label htmlFor="warranty">Warranty (Months)</label>
+                  </FormField>
+                  <FormField label="Warranty (Months)" htmlFor="warranty">
                     <input
                       id="warranty"
                       type="number"
@@ -527,10 +585,9 @@ function DetailInner() {
                         }))
                       }
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="platform-field">
-                    <label htmlFor="notes">Notes</label>
+                  <FormField label="Notes" htmlFor="notes">
                     <textarea
                       id="notes"
                       value={quote.notes}
@@ -538,7 +595,7 @@ function DetailInner() {
                         setQuote((q) => ({ ...q, notes: e.target.value }))
                       }
                     />
-                  </div>
+                  </FormField>
                   <div className="platform-actions">
                     <button
                       type="submit"
@@ -561,18 +618,21 @@ function DetailInner() {
                 </form>
               )}
               {showQuotationSummary && submittedQuotation && (
-                <QuotationSummary quotation={submittedQuotation} />
+                <QuotationSummary
+                  quotation={submittedQuotation}
+                  hideTechnicalSpecs={isListingLinked}
+                />
               )}
               {showQuotationSummary && !submittedQuotation && (
                 <div className="platform-card">
-                  <p className="platform-muted" style={{ margin: 0 }}>
+                  <p className="platform-muted platform-detail-fact" role="status">
                     You submitted a quotation for this RFQ.
                   </p>
                 </div>
               )}
               {!canRespond && !showQuotationSummary && (
                 <div className="platform-card">
-                  <p className="platform-muted" style={{ margin: 0 }}>
+                  <p className="platform-muted platform-detail-fact">
                     {invite.status === 'DECLINED'
                       ? 'You declined this invite.'
                       : 'This RFQ is no longer open for new quotations.'}

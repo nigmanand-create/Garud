@@ -1,4 +1,9 @@
-import type { AccountType, CatalogCategory, ListingType } from '@/lib/api/types';
+import type {
+  AccountType,
+  CatalogCategory,
+  ListingType,
+  RfqInviteStatus,
+} from '@/lib/api/types';
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   MANUFACTURER: 'Manufacturer',
@@ -50,6 +55,12 @@ export const CATEGORY_LABELS: Record<CatalogCategory, string> = {
   TRAINING: 'Training',
   CONSULTANCY: 'Consultancy',
   OTHER: 'Other',
+};
+
+export const RFQ_INVITE_STATUS_LABELS: Record<RfqInviteStatus, string> = {
+  INVITED: 'Awaiting your quote',
+  QUOTED: 'Quote submitted',
+  DECLINED: 'Declined',
 };
 
 export function formatEnumLabel(value: string): string {

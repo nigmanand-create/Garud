@@ -49,7 +49,7 @@ export default function PartnerPublicProfilePage() {
       <PlatformPageHeader
         breadcrumbs={[
           { label: 'Marketplace', href: '/marketplace' },
-          { label: 'Partners', href: '/marketplace' },
+          { label: 'Vendors', href: '/marketplace/vendors' },
           { label: profile.companyName },
         ]}
         title={profile.companyName}
@@ -60,7 +60,10 @@ export default function PartnerPublicProfilePage() {
           </>
         }
         actions={
-          <Link href="/enquiry.php" className="platform-btn platform-btn-cta">
+          <Link
+            href={`/enquiry?subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
+            className="platform-btn platform-btn-cta"
+          >
             Contact partner
           </Link>
         }
@@ -103,7 +106,7 @@ export default function PartnerPublicProfilePage() {
               Interested in working with {profile.companyName}?
             </p>
             <Link
-              href="/enquiry.php"
+              href={`/enquiry?subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
               className="platform-btn platform-btn-cta platform-btn-full"
             >
               Send enquiry

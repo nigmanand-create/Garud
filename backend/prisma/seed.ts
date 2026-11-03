@@ -17,6 +17,16 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.ALLOW_DEMO_SEED !== 'true'
+) {
+  console.error(
+    'Refusing to run prisma seed in NODE_ENV=production (demo passwords). Set ALLOW_DEMO_SEED=true only on a one-off staging bootstrap.',
+  );
+  process.exit(1);
+}
+
 /** Dev-only credentials — see DEMO_ACCOUNTS.md at repo root */
 const DEMO_PASSWORD =
   process.env.DEMO_PASSWORD ?? 'ChangeMeDemo123!';

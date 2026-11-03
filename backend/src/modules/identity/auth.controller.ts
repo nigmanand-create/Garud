@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiNoContentResponse,
@@ -32,6 +33,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({
     summary: 'Register by account type (creates user + organization)',
   })
@@ -42,6 +44,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiOkResponse({ type: AuthTokensResponse })
   login(@Body() dto: LoginDto) {
@@ -50,6 +53,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Rotate refresh token and get new access token' })
   @ApiOkResponse({ type: AuthTokensResponse })
   refresh(@Body() dto: RefreshTokenDto) {

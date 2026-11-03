@@ -16,6 +16,10 @@ describe('CatalogService', () => {
       findMany: jest.fn(),
       count: jest.fn(),
     },
+    organization: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -74,6 +78,36 @@ describe('CatalogService', () => {
       expect(prismaMock.partnerListing.count).toHaveBeenCalledWith({
         where: expectedWhere,
       });
+    });
+
+    it('lists verified vendors with pagination and optional search', async () => {
+      const items = [{ id: 'org-1', companyName: 'AgriFly', _count: { listings: 3 } }];
+      prismaMock.organization.findMany.mockResolvedValue(items);
+      prismaMock.organization.count.mockResolvedValue(1);
+
+      const result = await service.listPublicVendors({
+        q: 'agri',
+        skip: 0,
+        take: 10,
+      });
+
+      expect(result).toEqual({
+        items,
+        total: 1,
+        skip: 0,
+        take: 10,
+      });
+
+      expect(prismaMock.organization.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            verificationStatus: VerificationStatus.APPROVED,
+            OR: expect.any(Array),
+          }),
+          skip: 0,
+          take: 10,
+        }),
+      );
     });
 
     it('caps take at 50 and filters by multiple categories', async () => {

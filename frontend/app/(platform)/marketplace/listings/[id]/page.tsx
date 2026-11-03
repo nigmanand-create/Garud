@@ -102,6 +102,13 @@ export default function ListingDetailPage() {
 
   const primarySrc = resolveListingImageUrl(listing.primaryImageUrl);
 
+  const demoSubject = `Request demo: ${listing.name}${
+    listing.sku ? ` (SKU: ${listing.sku})` : ''
+  }`;
+  const enquirySubject = `Enquiry for ${listing.name}${
+    listing.sku ? ` (SKU: ${listing.sku})` : ''
+  }`;
+
   const breadcrumbs = [
     { label: 'Marketplace', href: '/marketplace' },
     ...(section
@@ -211,10 +218,17 @@ export default function ListingDetailPage() {
               </Link>
 
               <Link
-                href={`/enquiry.php?subject=${encodeURIComponent('Enquiry for ' + listing.name)}`}
+                href={`/enquiry?subject=${encodeURIComponent(demoSubject)}`}
                 className="platform-btn platform-btn-secondary platform-btn-full"
               >
-                <span aria-hidden>💬</span> Contact Supplier / Enquiry
+                <span aria-hidden>▶</span> Request demo
+              </Link>
+
+              <Link
+                href={`/enquiry?subject=${encodeURIComponent(enquirySubject)}`}
+                className="platform-btn platform-btn-secondary platform-btn-full"
+              >
+                <span aria-hidden>💬</span> Contact supplier
               </Link>
 
               <Link href="/b2b-partners#dealers" className="platform-btn-ghost-distributor">

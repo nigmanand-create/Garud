@@ -39,3 +39,5 @@ fi
 
 echo "==> Smoke: ensure cloudflared tunnel points to http://127.0.0.1:3001"
 echo "    https://dev.garudhub.me/marketplace?section=drones"
+echo "    Full checklist: docs/PRODUCTION_READINESS.md (staging smoke tests)"
+echo "    Production host script: deploy/scripts/remote-deploy-prod.sh"

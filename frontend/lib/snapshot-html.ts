@@ -25,12 +25,55 @@ function bridgeMarketingToPlatform(html: string): string {
   );
 
   // Partner onboarding (nav + cards); marketing copy pages remain reachable by direct URL
-  out = out.replaceAll('href="/partner-with-us"', 'href="/auth/register"');
-  out = out.replaceAll('href="/partner-with-us/"', 'href="/auth/register"');
-  out = out.replaceAll('href="../Become-a-Partner/"', 'href="/auth/register"');
-  out = out.replaceAll('href="Become-a-Partner/"', 'href="/auth/register"');
-  out = out.replaceAll('href="/Become-a-Partner/"', 'href="/auth/register"');
-  out = out.replaceAll('href="/become-a-partner/"', 'href="/auth/register"');
+  out = out.replaceAll('href="/become-a-partner/"', 'href="/auth/register?type=partner"');
+  out = out.replaceAll('href="../Become-a-Partner/"', 'href="/b2b-partners"');
+  out = out.replaceAll('href="Become-a-Partner/"', 'href="/b2b-partners"');
+  out = out.replaceAll('href="/Become-a-Partner/"', 'href="/b2b-partners"');
+
+  // Native enquiry + flagship React marketing hubs (home snapshot CTAs)
+  out = out.replaceAll('href="enquiry.php"', 'href="/enquiry"');
+  out = out.replaceAll('href="/enquiry.php"', 'href="/enquiry"');
+  out = out.replaceAll('href="#services"', 'href="/services"');
+  out = out.replaceAll('href="/drone-training"', 'href="/services#training"');
+  out = out.replaceAll('href="/drone-training/"', 'href="/services#training"');
+  out = out.replaceAll('href="/dgca-compliance"', 'href="/services#compliance"');
+  out = out.replaceAll('href="/dgca-compliance/"', 'href="/services#compliance"');
+  out = out.replaceAll(
+    'href="/repairs-maintenance"',
+    'href="/services#repair"',
+  );
+  out = out.replaceAll(
+    'href="/repairs-maintenance/"',
+    'href="/services#repair"',
+  );
+  out = out.replaceAll(
+    'href="/edp-professional-services"',
+    'href="/services#professional"',
+  );
+  out = out.replaceAll(
+    'href="/edp-professional-services/"',
+    'href="/services#professional"',
+  );
+  out = out.replaceAll(
+    'href="/finance-insurance"',
+    'href="/services#finance"',
+  );
+  out = out.replaceAll(
+    'href="/finance-insurance/"',
+    'href="/services#finance"',
+  );
+  out = out.replaceAll(
+    'href="/government-projects-schemes"',
+    'href="/services#government"',
+  );
+  out = out.replaceAll(
+    'href="/government-projects-schemes/"',
+    'href="/services#government"',
+  );
+  out = out.replaceAll('href="/scrap-recycling"', 'href="/services#recycling"');
+  out = out.replaceAll('href="/scrap-recycling/"', 'href="/services#recycling"');
+  out = out.replaceAll('href="/partner-with-us"', 'href="/b2b-partners"');
+  out = out.replaceAll('href="/partner-with-us/"', 'href="/b2b-partners"');
 
   return out;
 }

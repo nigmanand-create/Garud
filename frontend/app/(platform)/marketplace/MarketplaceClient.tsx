@@ -468,7 +468,7 @@ export function MarketplaceClient() {
               }}
               secondaryAction={{
                 label: 'Talk to our team',
-                href: '/enquiry.php',
+                href: '/enquiry',
               }}
               icon="📦"
             />

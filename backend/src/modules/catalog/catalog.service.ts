@@ -260,6 +260,56 @@ export class CatalogService {
     return listing;
   }
 
+  async listPublicVendors(filters: { skip?: number; take?: number; q?: string }) {
+    const take = Math.min(filters.take ?? 24, 50);
+    const skip = filters.skip ?? 0;
+    const q = filters.q?.trim();
+
+    const where = {
+      verificationStatus: VerificationStatus.APPROVED,
+      ...(q
+        ? {
+            OR: [
+              { companyName: { contains: q, mode: 'insensitive' as const } },
+              { city: { contains: q, mode: 'insensitive' as const } },
+              { state: { contains: q, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.organization.findMany({
+        where,
+        select: {
+          id: true,
+          companyName: true,
+          country: true,
+          state: true,
+          city: true,
+          website: true,
+          industries: true,
+          _count: {
+            select: {
+              listings: {
+                where: {
+                  isPublished: true,
+                  reviewStatus: ListingReviewStatus.APPROVED,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ companyName: 'asc' }],
+        skip,
+        take,
+      }),
+      this.prisma.organization.count({ where }),
+    ]);
+
+    return { items, total, skip, take };
+  }
+
   async getPublicPartnerProfile(orgId: string) {
     const org = await this.prisma.organization.findFirst({
       where: {

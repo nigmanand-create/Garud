@@ -63,6 +63,30 @@ export class MarketplaceController {
     return this.catalogService.getPublicListing(id);
   }
 
+  @Get('vendors')
+  @ApiOperation({ summary: 'Browse verified partner organizations with listing counts' })
+  @ApiQuery({ name: 'skip', required: false, type: Number })
+  @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 50' })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search company name, city, or state',
+  })
+  @ApiOkResponse({
+    description: 'Paginated verified vendors with published listing counts',
+  })
+  listVendors(
+    @Query('q') q?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.catalogService.listPublicVendors({
+      q,
+      skip: skip ? parseInt(skip, 10) : undefined,
+      take: take ? parseInt(take, 10) : undefined,
+    });
+  }
+
   @Get('partners/:orgId')
   @ApiOperation({ summary: 'Public verified partner profile' })
   @ApiOkResponse({

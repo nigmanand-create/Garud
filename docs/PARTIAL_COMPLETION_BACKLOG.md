@@ -1,6 +1,7 @@
 # Partial completion backlog (spec → done)
 
 **Sources:** `docs/SPEC_VS_PROJECT_GAP_ANALYSIS.md`, `docs/CODE_LEVEL_STATUS.md`, `docs/DECODE_JWT_SPEC.txt`, `README.md` (Partial bucket)  
+**Production launch:** phased P0/P1/P2 checklist, smoke tests, and ops tasks → [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).  
 **Rule:** Finish **Partial** items before **Not started** mega-features (Leads DB, training batches, React home rewrite, in-app messaging).
 
 **Evidence convention:** Primary file(s) that prove the gap exists today.
@@ -14,8 +15,8 @@
 | P-UI-01 | Home | Snapshot `/`, not spec React blocks; nav parity ~40% | `frontend/app/route.ts`, gap §2 Home |
 | P-UI-02 | Drone Services hub | 8 marketing sections only; per-vertical routes missing | `frontend/app/(platform)/services/page.tsx`, gap §2 |
 | P-UI-03 | Marketplace browse | No spec search bar; capped `take` only | `MarketplaceClient.tsx`, `catalog.service.ts` `browsePublic`, gap §2 |
-| P-UI-04 | Marketplace PDP | No “Request demo” CTA | `frontend/app/(platform)/marketplace/listings/[id]/page.tsx`, gap §2 |
-| P-UI-05 | Marketplace vendors | Storefront only; no vendor directory index | `marketplace.controller.ts` `GET partners/:orgId`, gap §2 |
+| P-UI-04 | Marketplace PDP | ~~No “Request demo” CTA~~ **Done** | `frontend/app/(platform)/marketplace/listings/[id]/page.tsx`, gap §2 |
+| P-UI-05 | Marketplace vendors | ~~Storefront only~~ **Done** — `/marketplace/vendors` + `GET /marketplace/vendors` | `marketplace.controller.ts`, gap §2 |
 | P-UI-06 | Join / Register | Split signup + post-login KYC vs single wireframe page | `auth/register`, `partner/application`, gap §2 |
 | P-UI-07 | Partner dashboard modules | Spec sidebar 12 modules; ~6 live routes | `PartnerSubnav.tsx`, gap §2 Partner dashboard ~45% |
 | P-UI-08 | Partner “Services” module | SERVICE type in catalog only | `partner/catalog/*`, `ListingType.SERVICE`, gap §2 |
@@ -25,7 +26,7 @@
 | P-UI-12 | Marketing migration | 47 snapshots + 3 React flagship pages | `content/pages/manifest.json`, `about-us`/`services`/`b2b-partners`, CODE_LEVEL §2 |
 | P-UI-13 | Audit log UI | DB logs; no global viewer | `CODE_LEVEL_STATUS.md` feature matrix “Audit log UI **Partial**”, admin listing detail only |
 | P-UX-01 | Buyer search journey | Weak marketplace search | gap §3 Buyer journey ~78% |
-| P-UX-02 | Service vertical journeys | CTAs often → `/enquiry.php` | `services/page.tsx`, gap §3 Service vertical ~30% |
+| P-UX-02 | Service vertical journeys | ~~CTAs often → `/enquiry.php`~~ **Done** on `/services` | `services/page.tsx`, gap §3 Service vertical ~30% |
 | P-UX-03 | Partner leads story | RFQs/orders only; no enquiry inbox | gap §3 Partner register ~72% |
 | P-UX-04 | Cross-surface nav | Cart not in header (import only) | `MarketingHeader.tsx` imports `CartNavLink` unused; runbook P1 |
 | P-UX-05 | International / gov journeys | Marketing copy; no dedicated UX | gap §3 |
@@ -39,7 +40,7 @@
 | P-INT-01 | Integrations | No CRM/email/subscription billing | gap §4 Integrations ~38% |
 | P-INT-02 | Production Razorpay | Sandbox / env-dependent webhook | README Partial payment gateway |
 
-**Explicitly Not started (defer):** Leads entity, Messages, Analytics, partner Subscription billing, vendor directory page, product compare matrix, React home rewrite, training batches, gov tenders DB, admin user CRUD, httpOnly cookies (security project), COD flow.
+**Explicitly Not started (defer):** Leads entity, Messages, Analytics, partner Subscription billing, product compare matrix, React home rewrite, training batches, gov tenders DB, admin user CRUD, httpOnly cookies (security project), COD flow.
 
 ---
 
@@ -52,7 +53,7 @@
 | A3 Partner dashboard honesty | Spec modules missing | Roadmap modules labeled “Coming soon” in partner subnav; live tabs unchanged | S | — |
 | A4 Services platform CTAs | Most pillars → enquiry.php | At least one additional pillar primary CTA → `/marketplace` or `/buyer/rfqs/new` | S | — |
 | A5 Buyer header parity | README noted missing orders link | “My Orders” visible for buyers (verify) | S | Done if present |
-| A6 Home link parity | Snapshot home vs React nav | Snapshot CTAs point to `/services`, `/marketplace`, `/b2b-partners` (localization) | M | marketing bridge |
+| A6 Home link parity | ~~Snapshot home vs React nav~~ **Done** | Snapshot CTAs point to `/services`, `/marketplace`, `/b2b-partners` (localization) | M | marketing bridge |
 | A7 Commit / ship React marketing trio | WIP pages | `/about-us`, `/services`, `/b2b-partners` on main branch | S | git process |
 
 ---
@@ -63,8 +64,8 @@
 |------|-------------|---------------|--------|---------|
 | B1 Native enquiry API | ~~PHP proxy~~ **Done** | `Enquiry` model + POST + admin list; listing/services POST creates row | L | schema migration |
 | B2 Marketplace pagination | ~~`take` cap 50~~ **Done** | `skip`/`take` + total count or cursor in API + UI | M | A2 |
-| B3 Vendor directory | No `/marketplace/vendors` | Public list of verified orgs with listing counts | M | — |
-| B4 Listing PDP CTAs | No request demo | Demo CTA → enquiry or RFQ with listing context | S | B1 optional |
+| B3 Vendor directory | ~~No `/marketplace/vendors`~~ **Done** | Public list of verified orgs with listing counts | M | — |
+| B4 Listing PDP CTAs | ~~No request demo~~ **Done** | Demo CTA → enquiry or RFQ with listing context | S | B1 optional |
 | B5 Audit log viewer | Partial admin surfacing | Admin page for KYC + listing moderation logs | M | — |
 | B6 Platform chrome decision | Unused `PlatformShell` | `/partner`, `/buyer`, `/admin` use platform chrome OR delete dead shell + doc | M | design sign-off |
 | B7 Payments hardening | Test keys, webhook | Live webhook validation runbook + env docs | M | ops |
@@ -89,7 +90,7 @@
 
 ## Session focus (this pass)
 
-Implemented from Phase A: **A1, A2, A3, A4**; Phase B: **B1** (native enquiry API), **B2** (marketplace `skip`/`take` + total + UI pagination). Next recommended: **B3** (vendor directory) + **A6** (home link parity).
+Implemented from Phase A: **A1–A4, A6**; Phase B: **B1, B2, B3, B4**; UX: **P-UX-02**, **P-UI-04**, **P-UI-05**. Next recommended (Sprint 2): **B5** audit viewer, **B6** chrome, **B7** payments doc, partner enquiry inbox, POR RFQ accept.
 
 ---
 

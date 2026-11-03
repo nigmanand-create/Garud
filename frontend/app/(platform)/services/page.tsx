@@ -13,6 +13,7 @@ type ServiceItem = {
   offerings: string[];
   applications: string[];
   primaryCta: { label: string; href: string };
+  secondaryCta?: { label: string; href: string };
   isMarketplace?: boolean;
 };
 
@@ -33,6 +34,7 @@ const SERVICES: ServiceItem[] = [
     ],
     applications: ['Precision Agriculture', 'Land Surveying', 'Defense & Security', 'Infrastructure Inspection'],
     primaryCta: { label: 'Explore Marketplace →', href: '/marketplace' },
+    secondaryCta: { label: 'Browse verified vendors →', href: '/marketplace/vendors' },
     isMarketplace: true,
   },
   {
@@ -54,6 +56,10 @@ const SERVICES: ServiceItem[] = [
       label: 'Browse DGCA Training Listings →',
       href: '/marketplace?section=courses',
     },
+    secondaryCta: {
+      label: 'Talk to training advisors →',
+      href: '/enquiry?service=training',
+    },
   },
   {
     id: 'compliance',
@@ -71,6 +77,7 @@ const SERVICES: ServiceItem[] = [
     ],
     applications: ['Drone Manufacturers', 'Importers', 'Commercial Operators', 'Govt Vendors'],
     primaryCta: { label: 'Get Compliance Assistance →', href: '/enquiry?service=compliance' },
+    secondaryCta: { label: 'Post compliance RFQ →', href: '/buyer/rfqs/new' },
   },
   {
     id: 'repair',
@@ -87,7 +94,11 @@ const SERVICES: ServiceItem[] = [
       'Doorstep pickup, inspection, and return dispatch across India',
     ],
     applications: ['Fleet Operators', 'Agri-Entrepreneurs', 'Survey Firms', 'Security Agencies'],
-    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/enquiry.php?service=repair' },
+    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/enquiry?service=repair' },
+    secondaryCta: {
+      label: 'Find repair partners →',
+      href: '/marketplace?section=services',
+    },
   },
   {
     id: 'professional',
@@ -105,6 +116,10 @@ const SERVICES: ServiceItem[] = [
     ],
     applications: ['State Revenue Depts', 'Mining Companies', 'Renewable Energy', 'Agri Corporates'],
     primaryCta: { label: 'Request Enterprise Project →', href: '/buyer/rfqs/new' },
+    secondaryCta: {
+      label: 'Discuss scope with Garud →',
+      href: '/enquiry?subject=Enterprise%20drone%20services',
+    },
   },
   {
     id: 'finance',
@@ -121,7 +136,8 @@ const SERVICES: ServiceItem[] = [
       'Fast loan eligibility check and minimal documentation',
     ],
     applications: ['Farmers & FPOs', 'CHCs (Custom Hiring Centers)', 'Drone Pilots', 'Commercial Startups'],
-    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/enquiry.php?service=finance' },
+    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/enquiry?service=finance' },
+    secondaryCta: { label: 'Post financing RFQ →', href: '/buyer/rfqs/new' },
   },
   {
     id: 'government',
@@ -139,6 +155,10 @@ const SERVICES: ServiceItem[] = [
     ],
     applications: ['Govt Departments', 'PSUs', 'State Agencies', 'Drone Didi SHGs'],
     primaryCta: { label: 'Post Tender / RFP →', href: '/buyer/rfqs/new' },
+    secondaryCta: {
+      label: 'Government programme enquiry →',
+      href: '/enquiry?subject=Government%20drone%20project',
+    },
   },
   {
     id: 'recycling',
@@ -155,7 +175,11 @@ const SERVICES: ServiceItem[] = [
       'Certified green disposal certificates for enterprise ESG compliance',
     ],
     applications: ['Fleet Modernization', 'Corporate ESG', 'Research Labs', 'Drone Operators'],
-    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/enquiry.php?service=recycling' },
+    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/enquiry?service=recycling' },
+    secondaryCta: {
+      label: 'Browse recycling partners →',
+      href: '/marketplace/vendors',
+    },
   },
 ];
 
@@ -278,9 +302,19 @@ export default function DroneServicesPage() {
               </div>
             </div>
 
-            <Link href={s.primaryCta.href} className="platform-btn platform-btn-cta platform-btn-full">
-              {s.primaryCta.label}
-            </Link>
+            <div className="platform-action-stack">
+              <Link href={s.primaryCta.href} className="platform-btn platform-btn-cta platform-btn-full">
+                {s.primaryCta.label}
+              </Link>
+              {s.secondaryCta && (
+                <Link
+                  href={s.secondaryCta.href}
+                  className="platform-btn platform-btn-secondary platform-btn-full"
+                >
+                  {s.secondaryCta.label}
+                </Link>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -4,6 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 const BEARER_AUTH_NAME = 'access-token';
 
 export function setupSwagger(app: INestApplication): void {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.SWAGGER_ENABLED !== 'true'
+  ) {
+    return;
+  }
+
   const config = new DocumentBuilder()
     .setTitle('GarudHub API')
     .setDescription(

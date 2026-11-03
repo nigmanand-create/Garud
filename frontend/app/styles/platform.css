@@ -728,6 +728,62 @@
   font-size: 0.875rem;
 }
 
+.platform-marketplace-pagination {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.platform-marketplace-pagination-summary {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.platform-marketplace-pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.platform-marketplace-pagination-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.platform-marketplace-pagination-page {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--platform-border, #e5e7eb);
+  border-radius: var(--platform-radius, 8px);
+  background: var(--platform-surface, #fff);
+  color: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.platform-marketplace-pagination-page:hover {
+  background: #f3f4f6;
+}
+
+.platform-marketplace-pagination-page--active {
+  background: var(--platform-accent, #111827);
+  border-color: var(--platform-accent, #111827);
+  color: #fff;
+}
+
+.platform-marketplace-pagination-ellipsis {
+  padding: 0 0.25rem;
+  color: var(--platform-muted, #6b7280);
+  font-size: 0.875rem;
+}
+
 .platform-marketplace-partner-nudge {
   margin-top: 2rem;
   font-size: 0.875rem;

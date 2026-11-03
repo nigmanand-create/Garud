@@ -62,7 +62,7 @@
 | Task | Current gap | Done criteria | Effort | Depends |
 |------|-------------|---------------|--------|---------|
 | B1 Native enquiry API | ~~PHP proxy~~ **Done** | `Enquiry` model + POST + admin list; listing/services POST creates row | L | schema migration |
-| B2 Marketplace pagination | `take` cap 50 | `skip`/`take` + total count or cursor in API + UI | M | A2 |
+| B2 Marketplace pagination | ~~`take` cap 50~~ **Done** | `skip`/`take` + total count or cursor in API + UI | M | A2 |
 | B3 Vendor directory | No `/marketplace/vendors` | Public list of verified orgs with listing counts | M | — |
 | B4 Listing PDP CTAs | No request demo | Demo CTA → enquiry or RFQ with listing context | S | B1 optional |
 | B5 Audit log viewer | Partial admin surfacing | Admin page for KYC + listing moderation logs | M | — |
@@ -89,7 +89,7 @@
 
 ## Session focus (this pass)
 
-Implemented from Phase A: **A1, A2, A3, A4**; Phase B: **B1** (native enquiry API, `/enquiry`, `/admin/enquiries`). Next recommended: **B2** (pagination) + **A6** (home link parity).
+Implemented from Phase A: **A1, A2, A3, A4**; Phase B: **B1** (native enquiry API), **B2** (marketplace `skip`/`take` + total + UI pagination). Next recommended: **B3** (vendor directory) + **A6** (home link parity).
 
 ---
 

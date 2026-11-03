@@ -77,10 +77,20 @@ export function sectionById(id: string): MarketplaceSection | undefined {
 /** Build query string for a single listing filter (first category when multiple). */
 export function sectionPrimaryQuery(section: MarketplaceSection): URLSearchParams {
   const params = new URLSearchParams();
+  appendSectionApiParams(params, section);
+  params.set('section', section.id);
+  return params;
+}
+
+/** Append public marketplace API filters for a browse section. */
+export function appendSectionApiParams(
+  params: URLSearchParams,
+  section: MarketplaceSection,
+): void {
   if (section.listingType) params.set('listingType', section.listingType);
   if (section.categories?.length === 1) {
     params.set('category', section.categories[0]);
+  } else if (section.categories?.length) {
+    params.set('categories', section.categories.join(','));
   }
-  params.set('section', section.id);
-  return params;
 }

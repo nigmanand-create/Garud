@@ -99,7 +99,8 @@ describe('Full Marketplace & RFQ E2E Workflow (TASK-004 & TASK-005)', () => {
       .get('/api/v1/marketplace/listings')
       .expect(200);
 
-    const listings = marketplaceRes.body as MarketplaceListingItem[];
+    const listings = (marketplaceRes.body as { items: MarketplaceListingItem[] })
+      .items;
     const pricedItem = listings.find((l) => l.priceInr && !l.priceOnRequest);
     expect(pricedItem).toBeDefined();
     const listingId = pricedItem!.id;

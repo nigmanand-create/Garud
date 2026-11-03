@@ -27,12 +27,12 @@ export async function fetchAssistantListings(
     try {
       const params = new URLSearchParams();
       params.set('take', '50');
-      const rows = await apiRequest<AssistantListing[]>(
+      const { items } = await apiRequest<{ items: AssistantListing[] }>(
         `/marketplace/listings?${params}`,
       );
-      cached = rows;
+      cached = items;
       fetchedAt = Date.now();
-      return rows;
+      return items;
     } finally {
       inflight = null;
     }

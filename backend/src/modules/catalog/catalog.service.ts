@@ -165,49 +165,71 @@ export class CatalogService {
     return { deleted: true };
   }
 
-  browsePublic(filters: {
+  private buildBrowsePublicWhere(filters: {
     listingType?: ListingType;
     category?: CatalogCategory;
+    categories?: CatalogCategory[];
+    q?: string;
+  }): Prisma.PartnerListingWhereInput {
+    const q = filters.q?.trim();
+    const categoryFilter = filters.categories?.length
+      ? { category: { in: filters.categories } }
+      : filters.category
+        ? { category: filters.category }
+        : {};
+
+    return {
+      isPublished: true,
+      reviewStatus: ListingReviewStatus.APPROVED,
+      listingType: filters.listingType,
+      ...categoryFilter,
+      organization: { verificationStatus: VerificationStatus.APPROVED },
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: 'insensitive' } },
+              { description: { contains: q, mode: 'insensitive' } },
+              { brand: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+  }
+
+  async browsePublic(filters: {
+    listingType?: ListingType;
+    category?: CatalogCategory;
+    categories?: CatalogCategory[];
     q?: string;
     skip?: number;
     take?: number;
   }) {
     const take = Math.min(filters.take ?? 20, 50);
     const skip = filters.skip ?? 0;
-    const q = filters.q?.trim();
+    const where = this.buildBrowsePublicWhere(filters);
 
-    return this.prisma.partnerListing.findMany({
-      where: {
-        isPublished: true,
-        reviewStatus: ListingReviewStatus.APPROVED,
-        listingType: filters.listingType,
-        category: filters.category,
-        organization: { verificationStatus: VerificationStatus.APPROVED },
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q, mode: 'insensitive' } },
-                { description: { contains: q, mode: 'insensitive' } },
-                { brand: { contains: q, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            companyName: true,
-            country: true,
-            state: true,
-            city: true,
+    const [items, total] = await Promise.all([
+      this.prisma.partnerListing.findMany({
+        where,
+        include: {
+          organization: {
+            select: {
+              id: true,
+              companyName: true,
+              country: true,
+              state: true,
+              city: true,
+            },
           },
         },
-      },
-      orderBy: { updatedAt: 'desc' },
-      skip,
-      take,
-    });
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.partnerListing.count({ where }),
+    ]);
+
+    return { items, total, skip, take };
   }
 
   async getPublicListing(listingId: string) {

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiRequest } from '@/lib/api/client';
+import { browseMarketplaceListings } from '@/lib/api/marketplace';
 import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import {
   MARKETPLACE_SECTIONS,
@@ -27,39 +27,9 @@ const MARKETPLACE_HERO_IMAGE =
 /** Minimum time the results block stays in “updating” state when switching tabs. */
 const TAB_SWITCH_MIN_MS = 480;
 
+const PAGE_SIZE = 24;
+
 type ListingRow = ListingCardData;
-
-function listingMatchesSection(item: ListingRow, section: MarketplaceSection): boolean {
-  if (section.listingType && item.listingType !== section.listingType) return false;
-  if (section.categories?.length && !section.categories.includes(item.category)) {
-    return false;
-  }
-  return true;
-}
-
-async function fetchSectionListings(
-  section: MarketplaceSection,
-  q?: string,
-): Promise<ListingRow[]> {
-  const params = new URLSearchParams();
-  if (section.listingType) params.set('listingType', section.listingType);
-  if (section.categories?.length === 1) {
-    params.set('category', section.categories[0]);
-  }
-  if (q?.trim()) params.set('q', q.trim());
-  params.set('take', String(section.take * 2));
-  const rows = await apiRequest<ListingRow[]>(`/marketplace/listings?${params}`);
-  return rows
-    .filter((row) => listingMatchesSection(row, section))
-    .slice(0, section.take);
-}
-
-async function fetchAllListings(q?: string): Promise<ListingRow[]> {
-  const params = new URLSearchParams();
-  if (q?.trim()) params.set('q', q.trim());
-  params.set('take', '48');
-  return apiRequest<ListingRow[]>(`/marketplace/listings?${params}`);
-}
 
 function parseSectionFromSearch(
   search: URLSearchParams,
@@ -91,10 +61,133 @@ function parseSectionFromSearch(
   return 'all';
 }
 
+function parsePageFromSearch(search: URLSearchParams): number {
+  const raw = parseInt(search.get('page') ?? '1', 10);
+  return Number.isFinite(raw) && raw >= 1 ? raw : 1;
+}
+
+function buildPageNumbers(
+  current: number,
+  totalPages: number,
+): (number | 'ellipsis')[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const pages: (number | 'ellipsis')[] = [1];
+  if (current > 3) pages.push('ellipsis');
+  for (
+    let p = Math.max(2, current - 1);
+    p <= Math.min(totalPages - 1, current + 1);
+    p += 1
+  ) {
+    pages.push(p);
+  }
+  if (current < totalPages - 2) pages.push('ellipsis');
+  if (totalPages > 1) pages.push(totalPages);
+  return pages;
+}
+
+async function fetchMarketplacePage(
+  section: MarketplaceSection | null,
+  q: string,
+  page: number,
+): Promise<{ items: ListingRow[]; total: number }> {
+  const skip = (page - 1) * PAGE_SIZE;
+  const params: Parameters<typeof browseMarketplaceListings>[0] = {
+    q: q || undefined,
+    skip,
+    take: PAGE_SIZE,
+  };
+
+  if (section) {
+    if (section.listingType) params.listingType = section.listingType;
+    if (section.categories?.length === 1) {
+      params.category = section.categories[0];
+    } else if (section.categories?.length) {
+      params.categories = section.categories;
+    }
+  }
+
+  const res = await browseMarketplaceListings(params);
+  return { items: res.items, total: res.total };
+}
+
 const TAB_ITEMS = [
   { id: 'all' as const, label: 'All' },
   ...MARKETPLACE_SECTIONS.map((s) => ({ id: s.id, label: s.shortLabel ?? s.title })),
 ];
+
+type MarketplacePaginationProps = {
+  page: number;
+  totalPages: number;
+  total: number;
+  onPage: (page: number) => void;
+};
+
+function MarketplacePagination({
+  page,
+  totalPages,
+  total,
+  onPage,
+}: MarketplacePaginationProps) {
+  if (totalPages <= 1) return null;
+
+  const pageNumbers = buildPageNumbers(page, totalPages);
+
+  return (
+    <nav
+      className="platform-marketplace-pagination"
+      aria-label="Marketplace results pages"
+    >
+      <p className="platform-marketplace-pagination-summary platform-muted">
+        Page {page} of {totalPages} · {total} listing{total === 1 ? '' : 's'}
+      </p>
+      <div className="platform-marketplace-pagination-controls">
+        <button
+          type="button"
+          className="platform-btn platform-btn-secondary platform-btn-sm"
+          disabled={page <= 1}
+          onClick={() => onPage(page - 1)}
+        >
+          Previous
+        </button>
+        <div className="platform-marketplace-pagination-pages">
+          {pageNumbers.map((entry, index) =>
+            entry === 'ellipsis' ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="platform-marketplace-pagination-ellipsis"
+                aria-hidden
+              >
+                …
+              </span>
+            ) : (
+              <button
+                key={entry}
+                type="button"
+                className={`platform-marketplace-pagination-page${
+                  entry === page ? ' platform-marketplace-pagination-page--active' : ''
+                }`}
+                aria-current={entry === page ? 'page' : undefined}
+                onClick={() => onPage(entry)}
+              >
+                {entry}
+              </button>
+            ),
+          )}
+        </div>
+        <button
+          type="button"
+          className="platform-btn platform-btn-secondary platform-btn-sm"
+          disabled={page >= totalPages}
+          onClick={() => onPage(page + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </nav>
+  );
+}
 
 export function MarketplaceClient() {
   const router = useRouter();
@@ -104,16 +197,18 @@ export function MarketplaceClient() {
     [searchParams],
   );
   const searchQuery = searchParams.get('q') ?? '';
+  const currentPage = useMemo(
+    () => parsePageFromSearch(searchParams),
+    [searchParams],
+  );
   const [searchDraft, setSearchDraft] = useState(searchQuery);
 
   useEffect(() => {
     setSearchDraft(searchQuery);
   }, [searchQuery]);
 
-  const [sectionData, setSectionData] = useState<
-    Partial<Record<MarketplaceSectionId, ListingRow[]>>
-  >({});
-  const [allListings, setAllListings] = useState<ListingRow[]>([]);
+  const [listings, setListings] = useState<ListingRow[]>([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [initialLoading, setInitialLoading] = useState(true);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,17 +219,10 @@ export function MarketplaceClient() {
     return sectionById(activeSection);
   }, [activeSection]);
 
-  const combinedListings = useMemo(() => {
-    if (activeSection === 'all') return allListings;
-    const section = activeSectionConfig;
-    if (!section) return [];
-    return sectionData[section.id] ?? [];
-  }, [activeSection, activeSectionConfig, allListings, sectionData]);
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
 
-  const showEmptyState =
-    !initialLoading && !error && combinedListings.length === 0;
-  const showPartnerNudge =
-    !error && !fetching && combinedListings.length > 0;
+  const showEmptyState = !initialLoading && !error && listings.length === 0;
+  const showPartnerNudge = !error && !fetching && listings.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -154,17 +242,14 @@ export function MarketplaceClient() {
 
     const run = async () => {
       try {
-        if (activeSection === 'all') {
-          const listings = await fetchAllListings(searchQuery);
-          if (cancelled) return;
-          setAllListings(listings);
-          return;
-        }
-        const section = activeSectionConfig;
-        if (!section) return;
-        const listings = await fetchSectionListings(section, searchQuery);
+        const { items, total } = await fetchMarketplacePage(
+          activeSectionConfig ?? null,
+          searchQuery,
+          currentPage,
+        );
         if (cancelled) return;
-        setSectionData((prev) => ({ ...prev, [section.id]: listings }));
+        setListings(items);
+        setTotalResults(total);
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof ApiError ? e.message : 'Failed to load listings');
@@ -177,20 +262,48 @@ export function MarketplaceClient() {
     return () => {
       cancelled = true;
     };
-  }, [activeSection, activeSectionConfig, fetchGeneration, searchQuery]);
+  }, [
+    activeSectionConfig,
+    currentPage,
+    fetchGeneration,
+    searchQuery,
+  ]);
 
-  const setSection = useCallback(
-    (id: MarketplaceSectionId | 'all') => {
+  const replaceSearchParams = useCallback(
+    (mutate: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.delete('type');
-      params.delete('listingType');
-      params.delete('category');
-      if (id === 'all') params.delete('section');
-      else params.set('section', id);
+      mutate(params);
       const q = params.toString();
       router.replace(q ? `/marketplace?${q}` : '/marketplace', { scroll: false });
     },
     [router, searchParams],
+  );
+
+  const setSection = useCallback(
+    (id: MarketplaceSectionId | 'all') => {
+      replaceSearchParams((params) => {
+        params.delete('type');
+        params.delete('listingType');
+        params.delete('category');
+        params.delete('categories');
+        params.delete('page');
+        if (id === 'all') params.delete('section');
+        else params.set('section', id);
+      });
+    },
+    [replaceSearchParams],
+  );
+
+  const goToPage = useCallback(
+    (page: number) => {
+      const next = Math.min(Math.max(1, page), totalPages);
+      replaceSearchParams((params) => {
+        if (next <= 1) params.delete('page');
+        else params.set('page', String(next));
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [replaceSearchParams, totalPages],
   );
 
   const retry = useCallback(() => {
@@ -199,14 +312,14 @@ export function MarketplaceClient() {
 
   const applySearch = useCallback(
     (raw: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const trimmed = raw.trim();
-      if (trimmed) params.set('q', trimmed);
-      else params.delete('q');
-      const q = params.toString();
-      router.replace(q ? `/marketplace?${q}` : '/marketplace', { scroll: false });
+      replaceSearchParams((params) => {
+        const trimmed = raw.trim();
+        if (trimmed) params.set('q', trimmed);
+        else params.delete('q');
+        params.delete('page');
+      });
     },
-    [router, searchParams],
+    [replaceSearchParams],
   );
 
   const skeletonCount = activeSection === 'all' ? 8 : 6;
@@ -322,7 +435,7 @@ export function MarketplaceClient() {
           className={`platform-marketplace-results${fetching ? ' platform-marketplace-results--fetching' : ''}`}
           aria-busy={fetching}
         >
-          {combinedListings.length > 0 && (
+          {listings.length > 0 && (
             <>
               {(activeSection === 'all' || searchQuery) && (
                 <p className="platform-marketplace-results-hint platform-muted">
@@ -332,10 +445,16 @@ export function MarketplaceClient() {
                 </p>
               )}
               <div className="platform-grid">
-                {combinedListings.map((item) => (
+                {listings.map((item) => (
                   <ListingCard key={item.id} item={item} />
                 ))}
               </div>
+              <MarketplacePagination
+                page={currentPage}
+                totalPages={totalPages}
+                total={totalResults}
+                onPage={goToPage}
+              />
             </>
           )}
 

@@ -1,0 +1,5 @@
+{
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": "backend/node_modules/typescript/lib",
+  "json.schemaDownload.enable": true
+}

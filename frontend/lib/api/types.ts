@@ -106,6 +106,30 @@ export type CatalogCategory =
   | 'CONSULTANCY'
   | 'OTHER';
 
+export type MarketplaceListingSummary = {
+  id: string;
+  name: string;
+  listingType: ListingType;
+  category: CatalogCategory;
+  primaryImageUrl?: string | null;
+  priceOnRequest: boolean;
+  priceInr?: string | null;
+  organization: {
+    id: string;
+    companyName: string;
+    country?: string | null;
+    state?: string | null;
+    city?: string | null;
+  };
+};
+
+export type MarketplaceListingsResponse = {
+  items: MarketplaceListingSummary[];
+  total: number;
+  skip: number;
+  take: number;
+};
+
 export type ApplicationDocumentType =
   | 'GST_CERTIFICATE'
   | 'CIN_CERTIFICATE'

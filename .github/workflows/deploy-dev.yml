@@ -1,0 +1,52 @@
+# Manual deploy to the dev staging host (Mac + cloudflared tunnel → https://dev.garudhub.me).
+#
+# Wire GitHub repository secrets when ready:
+#   DEV_SSH_HOST, DEV_SSH_USER, DEV_SSH_KEY
+# Optional: DEV_SSH_APP_DIR (default on server: ~/Garud)
+#
+# Without secrets, use the steps in docs/CICD_DEV.md to deploy from the host.
+name: Deploy Dev (staging)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy (branch or tag)
+        required: true
+        default: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require SSH secrets
+        env:
+          DEV_SSH_HOST: ${{ secrets.DEV_SSH_HOST }}
+          DEV_SSH_USER: ${{ secrets.DEV_SSH_USER }}
+          DEV_SSH_KEY: ${{ secrets.DEV_SSH_KEY }}
+        run: |
+          if [ -z "$DEV_SSH_HOST" ] || [ -z "$DEV_SSH_USER" ] || [ -z "$DEV_SSH_KEY" ]; then
+            echo "::error::Missing DEV_SSH_HOST, DEV_SSH_USER, or DEV_SSH_KEY. Add them under Settings → Secrets, or deploy manually — docs/CICD_DEV.md"
+            exit 1
+          fi
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          script_stop: true
+          envs: DEPLOY_REF
+          script: |
+            set -euo pipefail
+            export DEPLOY_REF="${{ github.event.inputs.ref }}"
+            APP_DIR="${{ secrets.DEV_SSH_APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then APP_DIR="$HOME/Garud"; fi
+            export GARUD_APP_DIR="$APP_DIR"
+            if [ ! -d "$GARUD_APP_DIR/.git" ]; then
+              echo "Clone repo into $GARUD_APP_DIR first (see docs/CICD_DEV.md)"
+              exit 1
+            fi
+            bash "$GARUD_APP_DIR/deploy/scripts/remote-deploy-dev.sh"

@@ -168,11 +168,13 @@ export class CatalogService {
   browsePublic(filters: {
     listingType?: ListingType;
     category?: CatalogCategory;
+    q?: string;
     skip?: number;
     take?: number;
   }) {
     const take = Math.min(filters.take ?? 20, 50);
     const skip = filters.skip ?? 0;
+    const q = filters.q?.trim();
 
     return this.prisma.partnerListing.findMany({
       where: {
@@ -181,6 +183,15 @@ export class CatalogService {
         listingType: filters.listingType,
         category: filters.category,
         organization: { verificationStatus: VerificationStatus.APPROVED },
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { description: { contains: q, mode: 'insensitive' } },
+                { brand: { contains: q, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
       include: {
         organization: {

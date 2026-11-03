@@ -1,0 +1,36 @@
+# GarudHub — Cloudflare Tunnel for garudhub.me (no secrets)
+#
+# Staging:  dev.garudhub.me  (git branch dev)
+# Production: app.garudhub.me (git branch main)
+#
+# Copy per environment, e.g.:
+#   cp deploy/cloudflared/config.garudhub.me.example.yml ~/.cloudflared/config.dev.yml
+#   cp deploy/cloudflared/config.garudhub.me.example.yml ~/.cloudflared/config.prod.yml
+#
+# Replace TUNNEL_UUID and credentials-file with output from:
+#   cloudflared tunnel create garudhub-dev   # staging
+#   cloudflared tunnel create garudhub-prod  # production
+#
+# Docs: docs/DEPLOY_CLOUDFLARE_TUNNEL.md § garudhub.me
+
+tunnel: TUNNEL_UUID
+credentials-file: /path/to/TUNNEL_UUID.json
+
+# loglevel: info
+
+ingress:
+  # Staging — Next.js (browser + /platform-api/v1 proxy → Nest :3000)
+  - hostname: dev.garudhub.me
+    service: http://127.0.0.1:3001
+
+  # Production — Next.js
+  - hostname: app.garudhub.me
+    service: http://127.0.0.1:3001
+
+  # Optional: direct Nest (Razorpay webhook, Swagger) — uncomment if you route DNS
+  # - hostname: api-dev.garudhub.me
+  #   service: http://127.0.0.1:3000
+  # - hostname: api.garudhub.me
+  #   service: http://127.0.0.1:3000
+
+  - service: http_status:404

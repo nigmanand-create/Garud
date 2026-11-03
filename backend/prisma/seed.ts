@@ -1,6 +1,7 @@
 import {
   AccountType,
   CatalogCategory,
+  EnquiryStatus,
   FulfillmentStatus,
   ListingReviewStatus,
   ListingType,
@@ -547,12 +548,34 @@ async function seedDemoOrders() {
   console.log('Seeded demo confirmed order: PO-2026-IND-001 with verified NEFT transaction');
 }
 
+async function seedDemoEnquiry() {
+  const existing = await prisma.enquiry.findFirst({
+    where: { email: 'demo.enquiry@garudhub.local' },
+  });
+  if (existing) return;
+
+  await prisma.enquiry.create({
+    data: {
+      name: 'Demo Lead — Compliance',
+      email: 'demo.enquiry@garudhub.local',
+      phone: '+91 98765 00000',
+      subject: 'DGCA Type Certification advisory',
+      message:
+        'Seeded demo enquiry for admin queue review. Replace with real leads after go-live.',
+      sourcePage: '/enquiry?service=compliance',
+      status: EnquiryStatus.NEW,
+    },
+  });
+  console.log('Seeded demo enquiry for admin queue');
+}
+
 async function main() {
   for (const account of DEMO_ACCOUNTS) {
     await upsertDemoUser(account);
   }
   await seedDemoCatalogListings();
   await seedDemoOrders();
+  await seedDemoEnquiry();
 }
 
 main()

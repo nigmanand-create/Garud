@@ -19,15 +19,22 @@ export class MarketplaceController {
   @ApiQuery({ name: 'category', enum: CatalogCategory, required: false })
   @ApiQuery({ name: 'skip', required: false, type: Number })
   @ApiQuery({ name: 'take', required: false, type: Number })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Case-insensitive search in name, description, and brand',
+  })
   browse(
     @Query('listingType') listingType?: ListingType,
     @Query('category') category?: CatalogCategory,
+    @Query('q') q?: string,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
   ) {
     return this.catalogService.browsePublic({
       listingType,
       category,
+      q,
       skip: skip ? parseInt(skip, 10) : undefined,
       take: take ? parseInt(take, 10) : undefined,
     });

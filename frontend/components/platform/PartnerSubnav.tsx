@@ -12,6 +12,15 @@ const links = [
   { href: '/partner/rfqs', label: 'RFQs' },
 ];
 
+/** Spec sidebar modules not yet shipped — shown for roadmap clarity (no dead routes). */
+const ROADMAP_MODULES = [
+  'Leads',
+  'Enquiries',
+  'Messages',
+  'Analytics',
+  'Subscription',
+] as const;
+
 export function PartnerSubnav() {
   const pathname = usePathname();
   return (
@@ -31,7 +40,21 @@ export function PartnerSubnav() {
             </Link>
           );
         })}
+        {ROADMAP_MODULES.map((label) => (
+          <span
+            key={label}
+            className="platform-section-tab platform-section-tab--roadmap"
+            title="On the GarudHub roadmap — use RFQs and Orders for commercial leads today."
+          >
+            {label}
+            <span className="platform-section-tab-soon">Soon</span>
+          </span>
+        ))}
       </div>
+      <p className="platform-partner-subnav-note platform-muted platform-text-sm">
+        RFQs and orders cover buyer quote requests and checkout today. Leads, enquiries inbox, and
+        analytics are coming next.
+      </p>
     </nav>
   );
 }

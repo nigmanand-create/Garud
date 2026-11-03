@@ -50,7 +50,10 @@ const SERVICES: ServiceItem[] = [
       'Corporate Drone Pilot Fleet Onboarding',
     ],
     applications: ['Youth Skill Development', 'Government Kamyabi Schemes', 'Commercial Flying', 'Enterprise Teams'],
-    primaryCta: { label: 'Enquire for Training Batches →', href: '/enquiry.php?service=training' },
+    primaryCta: {
+      label: 'Browse DGCA Training Listings →',
+      href: '/marketplace?section=courses',
+    },
   },
   {
     id: 'compliance',
@@ -67,7 +70,7 @@ const SERVICES: ServiceItem[] = [
       'Aviation regulatory consultancy for defense & civil operations',
     ],
     applications: ['Drone Manufacturers', 'Importers', 'Commercial Operators', 'Govt Vendors'],
-    primaryCta: { label: 'Get Compliance Assistance →', href: '/enquiry.php?service=compliance' },
+    primaryCta: { label: 'Get Compliance Assistance →', href: '/enquiry?service=compliance' },
   },
   {
     id: 'repair',

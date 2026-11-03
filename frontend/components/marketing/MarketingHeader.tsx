@@ -182,6 +182,7 @@ export function MarketingHeader() {
                           <Link href="/buyer/orders" className="header-auth-link">
                             My Orders
                           </Link>
+                          <CartNavLink />
                         </>
                       )}
                       {user.role === 'PARTNER' && (

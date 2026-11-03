@@ -37,12 +37,16 @@ function listingMatchesSection(item: ListingRow, section: MarketplaceSection): b
   return true;
 }
 
-async function fetchSectionListings(section: MarketplaceSection): Promise<ListingRow[]> {
+async function fetchSectionListings(
+  section: MarketplaceSection,
+  q?: string,
+): Promise<ListingRow[]> {
   const params = new URLSearchParams();
   if (section.listingType) params.set('listingType', section.listingType);
   if (section.categories?.length === 1) {
     params.set('category', section.categories[0]);
   }
+  if (q?.trim()) params.set('q', q.trim());
   params.set('take', String(section.take * 2));
   const rows = await apiRequest<ListingRow[]>(`/marketplace/listings?${params}`);
   return rows
@@ -50,8 +54,9 @@ async function fetchSectionListings(section: MarketplaceSection): Promise<Listin
     .slice(0, section.take);
 }
 
-async function fetchAllListings(): Promise<ListingRow[]> {
+async function fetchAllListings(q?: string): Promise<ListingRow[]> {
   const params = new URLSearchParams();
+  if (q?.trim()) params.set('q', q.trim());
   params.set('take', '48');
   return apiRequest<ListingRow[]>(`/marketplace/listings?${params}`);
 }
@@ -98,6 +103,12 @@ export function MarketplaceClient() {
     () => parseSectionFromSearch(searchParams),
     [searchParams],
   );
+  const searchQuery = searchParams.get('q') ?? '';
+  const [searchDraft, setSearchDraft] = useState(searchQuery);
+
+  useEffect(() => {
+    setSearchDraft(searchQuery);
+  }, [searchQuery]);
 
   const [sectionData, setSectionData] = useState<
     Partial<Record<MarketplaceSectionId, ListingRow[]>>
@@ -144,14 +155,14 @@ export function MarketplaceClient() {
     const run = async () => {
       try {
         if (activeSection === 'all') {
-          const listings = await fetchAllListings();
+          const listings = await fetchAllListings(searchQuery);
           if (cancelled) return;
           setAllListings(listings);
           return;
         }
         const section = activeSectionConfig;
         if (!section) return;
-        const listings = await fetchSectionListings(section);
+        const listings = await fetchSectionListings(section, searchQuery);
         if (cancelled) return;
         setSectionData((prev) => ({ ...prev, [section.id]: listings }));
       } catch (e) {
@@ -166,7 +177,7 @@ export function MarketplaceClient() {
     return () => {
       cancelled = true;
     };
-  }, [activeSection, activeSectionConfig, fetchGeneration]);
+  }, [activeSection, activeSectionConfig, fetchGeneration, searchQuery]);
 
   const setSection = useCallback(
     (id: MarketplaceSectionId | 'all') => {
@@ -185,6 +196,18 @@ export function MarketplaceClient() {
   const retry = useCallback(() => {
     setFetchGeneration((n) => n + 1);
   }, []);
+
+  const applySearch = useCallback(
+    (raw: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const trimmed = raw.trim();
+      if (trimmed) params.set('q', trimmed);
+      else params.delete('q');
+      const q = params.toString();
+      router.replace(q ? `/marketplace?${q}` : '/marketplace', { scroll: false });
+    },
+    [router, searchParams],
+  );
 
   const skeletonCount = activeSection === 'all' ? 8 : 6;
 
@@ -228,6 +251,39 @@ export function MarketplaceClient() {
       />
 
       <div className="platform-marketplace-body">
+      <form
+        className="platform-marketplace-search mod-search-box"
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          applySearch(searchDraft);
+        }}
+      >
+        <span className="mod-search-icon" aria-hidden>
+          🔍
+        </span>
+        <input
+          type="search"
+          className="mod-search-input"
+          placeholder="Search drones, parts, training, services…"
+          value={searchDraft}
+          onChange={(e) => setSearchDraft(e.target.value)}
+          aria-label="Search marketplace listings"
+        />
+        {searchDraft && (
+          <button
+            type="button"
+            className="platform-btn platform-btn-secondary platform-marketplace-search-clear"
+            onClick={() => {
+              setSearchDraft('');
+              applySearch('');
+            }}
+          >
+            Clear
+          </button>
+        )}
+      </form>
+
       <div className="platform-marketplace-browse">
         <p className="platform-marketplace-browse-label" id="marketplace-categories">
           Browse by category
@@ -268,9 +324,11 @@ export function MarketplaceClient() {
         >
           {combinedListings.length > 0 && (
             <>
-              {activeSection === 'all' && (
+              {(activeSection === 'all' || searchQuery) && (
                 <p className="platform-marketplace-results-hint platform-muted">
-                  Showing listings across categories. Pick a tab above to narrow your search.
+                  {searchQuery
+                    ? `Results for “${searchQuery}”.`
+                    : 'Showing listings across categories. Pick a tab above to narrow your search.'}
                 </p>
               )}
               <div className="platform-grid">

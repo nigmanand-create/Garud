@@ -416,6 +416,27 @@ enum QuotationStatus {
   REJECTED
 }
 
+enum EnquiryStatus {
+  NEW
+  READ
+}
+
+model Enquiry {
+  id         String        @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
+  sourcePage String?       @map("source_page")
+  status     EnquiryStatus @default(NEW)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("enquiries")
+}
+
 model Rfq {
   id                   String          @id @default(uuid())
   buyerUserId          String          @map("buyer_user_id")

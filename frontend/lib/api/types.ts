@@ -447,6 +447,38 @@ export interface AuthUser {
   orgId?: string;
 }
 
+export type EnquiryStatus = 'NEW' | 'READ';
+
+export type EnquiryRecord = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject: string;
+  message: string;
+  sourcePage?: string | null;
+  status: EnquiryStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminEnquiriesResponse = {
+  items: EnquiryRecord[];
+  total: number;
+  skip: number;
+  take: number;
+  statusCounts: Record<EnquiryStatus, number>;
+};
+
+export type CreateEnquiryPayload = {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  sourcePage?: string;
+};
+
 export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;

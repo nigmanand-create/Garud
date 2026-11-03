@@ -10,6 +10,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { RfqModule } from './modules/rfq/rfq.module';
 import { CommerceModule } from './modules/commerce/commerce.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { EnquiriesModule } from './modules/enquiries/enquiries.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CommerceModule,
     PaymentsModule,
     AdminModule,
+    EnquiriesModule,
   ],
   controllers: [AppController],
 })

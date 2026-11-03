@@ -37,7 +37,7 @@ The browser calls **`NEXT_PUBLIC_API_URL=/platform-api/v1`** (same origin). Next
 - `https://app.garudhub.example/platform-api/v1/payments/webhook` (through Next proxy), or  
 - `https://api.garudhub.example/api/v1/payments/webhook` (direct to Nest; add a second ingress in `config.yml`).
 
-There is **no root `Dockerfile`**, **no GitHub Actions**, and **no app containers** in repo today — only `docker-compose.yml` for Postgres. Deploy = build on the host (or add Docker later).
+There is **no root `Dockerfile`** and **no app containers** in repo today — only `docker-compose.yml` for Postgres. **CI for `dev`** runs on GitHub Actions ([`docs/CICD_DEV.md`](./CICD_DEV.md)); deploy = build on the host (or SSH workflow when secrets are set).
 
 ---
 
@@ -47,7 +47,7 @@ There is **no root `Dockerfile`**, **no GitHub Actions**, and **no app container
 
 - **`main`** — initial monorepo + README (`1048262`). **Does not** include payments, RFQ phases, commerce, or platform UI unification.
 - **`feature/task-003-004-payments-workflow`** — **6 commits ahead of `main`** with the full MVP spine (payments, RFQ, orders, E2E, marketing/platform UI). This is what you likely want on **`main`** before first production deploy.
-- **`dev` branch** — **does not exist yet** on remote; create it after you decide staging workflow.
+- **`dev` branch** — staging; CI on push/PR; target hostname **`dev.garudhub.me`** ([`CICD_DEV.md`](./CICD_DEV.md)).
 
 ### Suggested workflow
 
@@ -156,8 +156,39 @@ These steps require your Cloudflare account (login in browser). **Do not commit 
 
 ### 7.1 Install `cloudflared`
 
-- macOS: `brew install cloudflared`
-- Linux: [Cloudflare package repo](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
+#### Install cloudflared (macOS)
+
+**Homebrew (recommended):**
+
+```bash
+brew install cloudflared
+cloudflared --version
+```
+
+Binary lands on Apple Silicon at `/opt/homebrew/bin/cloudflared` (Intel: `/usr/local/bin/cloudflared`).
+
+**Manual download** (no Homebrew): pick the build for your CPU (`uname -m` → `arm64` or `x86_64`):
+
+| Arch | Asset |
+|------|--------|
+| Apple Silicon (`arm64`) | [cloudflared-darwin-arm64.tgz](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz) |
+| Intel (`x86_64`) | [cloudflared-darwin-amd64.tgz](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz) |
+
+```bash
+# Example: Apple Silicon
+curl -L -o /tmp/cloudflared.tgz \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz
+tar -xzf /tmp/cloudflared.tgz -C /tmp
+sudo mv /tmp/cloudflared /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+cloudflared --version
+```
+
+All releases: [github.com/cloudflare/cloudflared/releases](https://github.com/cloudflare/cloudflared/releases)
+
+#### Linux
+
+[Cloudflare package repo](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
 
 ### 7.2 Authenticate (interactive)
 
@@ -165,7 +196,45 @@ These steps require your Cloudflare account (login in browser). **Do not commit 
 cloudflared tunnel login
 ```
 
-Select the zone that contains your domain (e.g. `garudhub.com`).
+Select the zone that contains your domain (e.g. `garudhub.com` or **`garudhub.me`**).
+
+### garudhub.me (Garud — copy-paste)
+
+| Environment | Git branch | Hostname |
+|-------------|------------|----------|
+| Staging | `dev` | `dev.garudhub.me` |
+| Production | `main` | `app.garudhub.me` |
+
+**Prerequisite:** Add **`garudhub.me`** to your Cloudflare account and complete login (creates `~/.cloudflared/cert.pem`).
+
+```bash
+# 1) Login (browser) — pick zone garudhub.me
+cloudflared tunnel login
+
+# 2) Create tunnels (one per environment)
+cloudflared tunnel create garudhub-dev
+cloudflared tunnel create garudhub-prod   # optional until prod host is ready
+
+# 3) DNS CNAMEs (requires zone on this account)
+cloudflared tunnel route dns garudhub-dev dev.garudhub.me
+cloudflared tunnel route dns garudhub-prod app.garudhub.me
+
+# 4) Config — one file per tunnel (keep only that env’s hostname in ingress)
+mkdir -p ~/.cloudflared
+cp deploy/cloudflared/config.garudhub.me.example.yml ~/.cloudflared/config.dev.yml
+# Edit: tunnel + credentials-file from `tunnel create garudhub-dev`; leave only dev.garudhub.me ingress
+
+cp deploy/cloudflared/config.garudhub.me.example.yml ~/.cloudflared/config.prod.yml
+# Edit: prod tunnel UUID + credentials; leave only app.garudhub.me ingress
+
+# 5) Run (after Next on :3001 and API on :3000)
+cloudflared tunnel --config ~/.cloudflared/config.dev.yml run
+# cloudflared tunnel --config ~/.cloudflared/config.prod.yml run
+```
+
+Template: **`deploy/cloudflared/config.garudhub.me.example.yml`** → frontend `http://127.0.0.1:3001`.
+
+If `tunnel route dns` fails with **zone not found**, the domain is not on the account used at login — add `garudhub.me` in Cloudflare first, or create the CNAME manually to `<TUNNEL_UUID>.cfargotunnel.com`.
 
 ### 7.3 Create tunnels (one per environment recommended)
 
@@ -260,8 +329,12 @@ Cloudflare Tunnel avoids opening inbound firewall ports; the agent only needs ou
 | `docker-compose.yml` | Postgres only |
 | `backend/.env.example` | API secrets template |
 | `frontend/.env.example` | Next proxy + assistant flag |
-| `deploy/cloudflared/config.example.yml` | Tunnel ingress template |
+| `deploy/cloudflared/config.example.yml` | Tunnel ingress template (generic) |
+| `deploy/cloudflared/config.garudhub.me.example.yml` | `dev.garudhub.me` / `app.garudhub.me` template |
 | `deploy/docker-compose.prod.example.yml` | Optional Postgres + notes for future app containers |
+| `docs/CICD_DEV.md` | GitHub Actions CI + optional SSH deploy for `dev` |
+| `.github/workflows/dev-ci.yml` | CI on `dev` |
+| `.github/workflows/deploy-dev.yml` | Manual staging deploy over SSH |
 | `DEMO_ACCOUNTS.md` | Demo logins (staging) |
 | `backend/LOCAL_DEVELOPMENT.md` | Local dev flow |
 

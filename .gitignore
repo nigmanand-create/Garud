@@ -15,6 +15,9 @@ frontend/.next/
 uploads/
 backend/uploads/
 
+# Local tunnel logs
+.cloudflared-quick-tunnel.log
+
 # OS / IDE
 .DS_Store
 .idea/

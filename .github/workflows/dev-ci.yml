@@ -61,6 +61,7 @@ jobs:
           npm ci
           npm run prisma:generate
           npx prisma migrate deploy
+          npm run prisma:seed
           npm test
 
       - name: Frontend — install, typecheck, test, build

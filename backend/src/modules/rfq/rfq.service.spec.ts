@@ -16,6 +16,7 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { NotificationService } from '../notifications/notification.service';
 import { RfqMatchingService } from './rfq-matching.service';
 import { RfqService } from './rfq.service';
 
@@ -35,7 +36,15 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RfqService, RfqMatchingService, PrismaService],
+      providers: [
+        RfqService,
+        RfqMatchingService,
+        PrismaService,
+        {
+          provide: NotificationService,
+          useValue: { notifyRfqInvites: jest.fn() },
+        },
+      ],
     }).compile();
 
     service = module.get<RfqService>(RfqService);

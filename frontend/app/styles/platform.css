@@ -5844,3 +5844,123 @@ a.platform-section-tab {
 }
 
 
+
+/* ==========================================================================
+   Partner dashboard modules (Phase 2): messages, analytics, inbox
+   ========================================================================== */
+
+button.mod-kpi-card {
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.platform-partner-ops-stat--alert {
+  border-color: var(--platform-cta, #e06d00);
+}
+
+.platform-partner-inbox {
+  display: grid;
+  gap: 1rem;
+}
+
+.platform-inbox-item--selected {
+  border-color: var(--platform-accent, #2f5233);
+  box-shadow: 0 0 0 1px var(--platform-accent, #2f5233);
+}
+
+.platform-messages {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .platform-messages {
+    grid-template-columns: 1fr;
+  }
+}
+
+.platform-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.platform-messages-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  background: var(--platform-surface);
+  cursor: pointer;
+}
+
+.platform-messages-item:hover,
+.platform-messages-item--active {
+  border-color: var(--platform-accent, #2f5233);
+}
+
+.platform-messages-item-title {
+  font-weight: 600;
+}
+
+.platform-messages-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin: 1rem 0;
+  padding-right: 0.25rem;
+}
+
+.platform-message-bubble {
+  max-width: 80%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  background: #f1f5f9;
+  align-self: flex-start;
+}
+
+.platform-message-bubble--mine {
+  align-self: flex-end;
+  background: #e5f3e7;
+}
+
+.platform-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+  padding: 0.5rem 0;
+}
+
+.platform-bar-chart-bar {
+  flex: 1;
+  min-width: 2px;
+  background: var(--platform-accent, #2f5233);
+  border-radius: 2px 2px 0 0;
+}
+
+.platform-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.platform-list {
+  margin: 0.5rem 0;
+  padding-left: 1.15rem;
+  line-height: 1.7;
+}

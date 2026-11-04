@@ -59,8 +59,10 @@ export class MarketplaceController {
 
   @Get('listings/:id')
   @ApiOperation({ summary: 'Public listing detail' })
-  getListing(@Param('id') id: string) {
-    return this.catalogService.getPublicListing(id);
+  async getListing(@Param('id') id: string) {
+    const listing = await this.catalogService.getPublicListing(id);
+    void this.catalogService.recordListingView(listing.id, listing.organization.id);
+    return listing;
   }
 
   @Get('vendors')

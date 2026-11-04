@@ -1,10 +1,15 @@
-import { EnquiryStatus } from '@prisma/client';
+import { EnquiryIntent, EnquiryStatus, LeadStatus } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsEmail,
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -44,10 +49,84 @@ export class CreateEnquiryDto {
   @IsString()
   @MaxLength(500)
   sourcePage?: string;
+
+  @ApiPropertyOptional({
+    enum: EnquiryIntent,
+    enumName: 'EnquiryIntent',
+    description:
+      'Lead type; inferred from listing/partner/service context if omitted',
+  })
+  @IsOptional()
+  @IsEnum(EnquiryIntent)
+  intent?: EnquiryIntent;
+
+  @ApiPropertyOptional({
+    example: 'compliance',
+    description:
+      'Service vertical key (compliance, repair, finance, recycling, training)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  serviceKey?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Marketplace listing the enquiry is about (routes to its vendor)',
+  })
+  @IsOptional()
+  @IsUUID()
+  listingId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Verified partner organization to contact (routes to that partner)',
+  })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
 }
 
 export class UpdateEnquiryStatusDto {
   @ApiProperty({ enum: EnquiryStatus, enumName: 'EnquiryStatus' })
   @IsEnum(EnquiryStatus)
   status: EnquiryStatus;
+}
+
+export class BulkEnquiryStatusDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  @Type(() => String)
+  ids: string[];
+
+  @ApiProperty({ enum: EnquiryStatus, enumName: 'EnquiryStatus' })
+  @IsEnum(EnquiryStatus)
+  status: EnquiryStatus;
+}
+
+export class AssignEnquiryDto {
+  @ApiPropertyOptional({
+    nullable: true,
+    description:
+      'Partner organization id; null/omitted returns the enquiry to the admin queue',
+  })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string | null;
+}
+
+export class UpdateLeadDto {
+  @ApiPropertyOptional({ enum: LeadStatus, enumName: 'LeadStatus' })
+  @IsOptional()
+  @IsEnum(LeadStatus)
+  status?: LeadStatus;
+
+  @ApiPropertyOptional({ description: 'Private partner note' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  partnerNote?: string;
 }

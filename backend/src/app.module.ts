@@ -14,7 +14,11 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { RfqModule } from './modules/rfq/rfq.module';
 import { CommerceModule } from './modules/commerce/commerce.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { EnquiriesModule } from './modules/enquiries/enquiries.module';
+import { PartnerHubModule } from './modules/partner-hub/partner-hub.module';
+import { PartnershipsModule } from './modules/partnerships/partnerships.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -26,6 +30,7 @@ import { EnquiriesModule } from './modules/enquiries/enquiries.module';
       throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
     }),
     PrismaModule,
+    NotificationsModule,
     IdentityModule,
     DocumentsModule,
     PartnerModule,
@@ -35,6 +40,9 @@ import { EnquiriesModule } from './modules/enquiries/enquiries.module';
     PaymentsModule,
     AdminModule,
     EnquiriesModule,
+    PartnerHubModule,
+    PartnershipsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [

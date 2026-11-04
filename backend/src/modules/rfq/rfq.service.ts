@@ -23,6 +23,7 @@ import {
   AcceptQuotationDto,
   RejectQuotationDto,
 } from './dto/rfq.dto';
+import { NotificationService } from '../notifications/notification.service';
 import { RfqMatchingService } from './rfq-matching.service';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class RfqService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly matching: RfqMatchingService,
+    private readonly notifications: NotificationService,
   ) {}
 
   async createRfq(buyerUserId: string, buyerRole: UserRole, dto: CreateRfqDto) {
@@ -81,7 +83,7 @@ export class RfqService {
       ]),
     ];
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       const rfq = await tx.rfq.create({
         data: {
           buyerUserId,
@@ -127,6 +129,36 @@ export class RfqService {
         },
       });
     });
+
+    if (vendorIds.length) {
+      await this.notifyRfqInvites(created.id, created.title, vendorIds);
+    }
+
+    return created;
+  }
+
+  /** Best-effort email to invited vendors; never blocks RFQ creation. */
+  private async notifyRfqInvites(
+    rfqId: string,
+    title: string,
+    vendorIds: string[],
+  ) {
+    try {
+      const vendors = await this.prisma.organization.findMany({
+        where: { id: { in: vendorIds } },
+        select: { companyName: true, contactEmail: true },
+      });
+      void this.notifications.notifyRfqInvites({
+        rfqId,
+        title,
+        recipients: vendors.map((v) => ({
+          email: v.contactEmail,
+          companyName: v.companyName,
+        })),
+      });
+    } catch {
+      // swallow — notification is non-critical
+    }
   }
 
   listBuyerRfqs(buyerUserId: string) {

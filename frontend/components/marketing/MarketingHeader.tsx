@@ -182,6 +182,9 @@ export function MarketingHeader() {
                           <Link href="/buyer/orders" className="header-auth-link">
                             My Orders
                           </Link>
+                          <Link href="/buyer/messages" className="header-auth-link">
+                            Messages
+                          </Link>
                           <CartNavLink />
                         </>
                       )}
@@ -192,6 +195,9 @@ export function MarketingHeader() {
                           </Link>
                           <Link href="/partner/orders" className="header-auth-link">
                             Orders
+                          </Link>
+                          <Link href="/partner/messages" className="header-auth-link">
+                            Messages
                           </Link>
                         </>
                       )}
@@ -360,7 +366,7 @@ export function MarketingHeader() {
             </Link>
           )}
           <Link
-            href="/enquiry.php"
+            href="/enquiry"
             className="header-cta header-cta-outline"
             style={{
               backgroundColor: 'transparent',

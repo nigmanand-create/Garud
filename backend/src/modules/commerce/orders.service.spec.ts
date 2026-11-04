@@ -16,6 +16,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { AdminService } from '../admin/admin.service';
+import { NotificationService } from '../notifications/notification.service';
 import { PaymentsService } from '../payments/payments.service';
 import { CartService } from './cart.service';
 import { CheckoutService } from './checkout.service';
@@ -48,6 +49,10 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
         AdminService,
         PaymentsService,
         PrismaService,
+        {
+          provide: NotificationService,
+          useValue: { notifyKycDecision: jest.fn() },
+        },
         {
           provide: ConfigService,
           useValue: {

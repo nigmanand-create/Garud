@@ -31,8 +31,11 @@ function bridgeMarketingToPlatform(html: string): string {
   out = out.replaceAll('href="/Become-a-Partner/"', 'href="/b2b-partners"');
 
   // Native enquiry + flagship React marketing hubs (home snapshot CTAs)
-  out = out.replaceAll('href="enquiry.php"', 'href="/enquiry"');
-  out = out.replaceAll('href="/enquiry.php"', 'href="/enquiry"');
+  // Legacy PHP enquiry links (relative, absolute, ../, with optional query) → native /enquiry
+  out = out.replace(
+    /href=(["'])(?:\.\.?\/)*\/?enquiry\.php(\?[^"']*)?\1/gi,
+    (_m, q: string, query?: string) => `href=${q}/enquiry${query ?? ''}${q}`,
+  );
   out = out.replaceAll('href="#services"', 'href="/services"');
   out = out.replaceAll('href="/drone-training"', 'href="/services#training"');
   out = out.replaceAll('href="/drone-training/"', 'href="/services#training"');
@@ -107,12 +110,6 @@ export function localizeSnapshotHtml(html: string): string {
   out = out.replaceAll('href="/about.php"', 'href="/about-us"');
 
   out = bridgeMarketingToPlatform(out);
-
-  // Enquiry form: empty action → local POST proxy
-  out = out.replace(
-    /<form\s+method="post"\s+action=""\s+id="enquiry-form"/i,
-    '<form method="post" action="/enquiry.php" id="enquiry-form"',
-  );
 
   out = fixUtf8Mojibake(out);
 

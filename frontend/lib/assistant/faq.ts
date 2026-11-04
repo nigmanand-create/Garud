@@ -66,7 +66,7 @@ export function matchFaq(normalizedMessage: string): FaqHit | null {
       actions: [
         {
           label: 'Contact Garud',
-          href: '/enquiry.php?subject=Drone%20assistant%20handoff',
+          href: '/enquiry?subject=Drone%20assistant%20handoff',
         },
       ],
     };

@@ -1,6 +1,9 @@
+import type { PartnershipRequestStatus, PartnershipRequestType } from '@/lib/api/partnerships';
 import type {
   AccountType,
   CatalogCategory,
+  EnquiryIntent,
+  LeadStatus,
   ListingType,
   RfqInviteStatus,
 } from '@/lib/api/types';
@@ -83,3 +86,47 @@ export function formatPrice(
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+export const ENQUIRY_INTENT_LABELS: Record<EnquiryIntent, string> = {
+  GENERAL: 'General',
+  PRODUCT: 'Product / supplier',
+  DEMO: 'Demo request',
+  DISTRIBUTOR: 'Distributor',
+  PARTNER: 'Partner contact',
+  SERVICE: 'Service vertical',
+};
+
+export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
+  NEW: 'New',
+  CONTACTED: 'Contacted',
+  QUALIFIED: 'Qualified',
+  WON: 'Won',
+  LOST: 'Lost',
+};
+
+export const PARTNERSHIP_TYPE_LABELS: Record<PartnershipRequestType, string> = {
+  DISTRIBUTORSHIP: 'Distributorship',
+  DEALERSHIP: 'Dealership',
+  OEM_PARTNERSHIP: 'OEM partnership',
+  TECHNOLOGY_INTEGRATION: 'Technology integration',
+  SERVICE_PARTNERSHIP: 'Service partnership',
+  TRAINING_PARTNERSHIP: 'Training partnership',
+  OTHER: 'Other',
+};
+
+export const PARTNERSHIP_STATUS_LABELS: Record<PartnershipRequestStatus, string> = {
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under review',
+  APPROVED: 'Approved',
+  DECLINED: 'Declined',
+  WITHDRAWN: 'Withdrawn',
+};
+
+/** Platform service verticals (from /enquiry?service=) mapped to the catalog categories that serve them. */
+export const SERVICE_VERTICALS: { key: string; label: string; categories: CatalogCategory[] }[] = [
+  { key: 'compliance', label: 'Compliance & regulatory', categories: ['CONSULTANCY'] },
+  { key: 'repair', label: 'Repair & maintenance', categories: ['REPAIR_MAINTENANCE'] },
+  { key: 'training', label: 'Training & licensing', categories: ['TRAINING'] },
+  { key: 'finance', label: 'Finance & leasing', categories: ['CONSULTANCY', 'OTHER'] },
+  { key: 'recycling', label: 'Recycling & disposal', categories: ['OTHER'] },
+];

@@ -70,6 +70,20 @@ export function PartnerShortcuts({
       iconClass: 'ph ph-inbox',
     },
     {
+      id: 'leads',
+      href: '/partner/leads',
+      title: 'Leads & enquiries',
+      description: 'Qualify buyer leads and reply to enquiries.',
+      iconClass: 'ph ph-address-book',
+    },
+    {
+      id: 'messages',
+      href: '/partner/messages',
+      title: 'Messages',
+      description: 'Chat with buyers who contacted you.',
+      iconClass: 'ph ph-chat-circle-text',
+    },
+    {
       id: 'marketplace',
       href: '/marketplace',
       title: 'Preview marketplace',
@@ -86,6 +100,8 @@ export function PartnerShortcuts({
       item.id === 'catalog' ||
       item.id === 'orders' ||
       item.id === 'rfqs' ||
+      item.id === 'leads' ||
+      item.id === 'messages' ||
       item.id === 'marketplace',
   );
 

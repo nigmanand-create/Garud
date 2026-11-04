@@ -471,7 +471,17 @@ export interface AuthUser {
   orgId?: string;
 }
 
-export type EnquiryStatus = 'NEW' | 'READ';
+export type EnquiryStatus = 'NEW' | 'READ' | 'CLOSED';
+
+export type EnquiryIntent =
+  | 'GENERAL'
+  | 'PRODUCT'
+  | 'DEMO'
+  | 'DISTRIBUTOR'
+  | 'PARTNER'
+  | 'SERVICE';
+
+export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'WON' | 'LOST';
 
 export type EnquiryRecord = {
   id: string;
@@ -481,17 +491,29 @@ export type EnquiryRecord = {
   subject: string;
   message: string;
   sourcePage?: string | null;
+  intent: EnquiryIntent;
+  serviceKey?: string | null;
+  listingId?: string | null;
+  organizationId?: string | null;
+  routedAt?: string | null;
   status: EnquiryStatus;
   createdAt: string;
   updatedAt: string;
 };
 
+export type AdminEnquiryRecord = EnquiryRecord & {
+  organization?: { id: string; companyName: string } | null;
+  listing?: { id: string; name: string } | null;
+  lead?: { id: string; status: LeadStatus } | null;
+};
+
 export type AdminEnquiriesResponse = {
-  items: EnquiryRecord[];
+  items: AdminEnquiryRecord[];
   total: number;
   skip: number;
   take: number;
   statusCounts: Record<EnquiryStatus, number>;
+  unroutedNew: number;
 };
 
 export type CreateEnquiryPayload = {
@@ -501,6 +523,52 @@ export type CreateEnquiryPayload = {
   subject: string;
   message: string;
   sourcePage?: string;
+  intent?: EnquiryIntent;
+  serviceKey?: string;
+  listingId?: string;
+  organizationId?: string;
+};
+
+export type PartnerLead = {
+  id: string;
+  intent: EnquiryIntent;
+  status: LeadStatus;
+  partnerNote?: string | null;
+  contactedAt?: string | null;
+  createdAt: string;
+  enquiry: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    subject: string;
+    message: string;
+    sourcePage?: string | null;
+    serviceKey?: string | null;
+    createdAt: string;
+  };
+  listing?: { id: string; name: string; sku?: string | null } | null;
+};
+
+export type PartnerEnquiryRecord = EnquiryRecord & {
+  listing?: { id: string; name: string } | null;
+  lead?: { id: string; status: LeadStatus } | null;
+};
+
+export type PartnerEnquiriesResponse = {
+  items: PartnerEnquiryRecord[];
+  total: number;
+  skip: number;
+  take: number;
+  statusCounts: Record<EnquiryStatus, number>;
+};
+
+export type PartnerLeadsResponse = {
+  items: PartnerLead[];
+  total: number;
+  skip: number;
+  take: number;
+  statusCounts: Record<LeadStatus, number>;
 };
 
 export interface AuthTokensResponse {

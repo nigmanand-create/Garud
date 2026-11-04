@@ -101,7 +101,7 @@ export function recommendFromMessage(input: {
       actions: [
         { label: 'Browse drones', href: marketplaceBrowseHref(intent.primaryCategory) },
         { label: 'General RFQ', href: '/buyer/rfqs/new' },
-        { label: 'Contact Garud', href: '/enquiry.php?subject=Listing%20search' },
+        { label: 'Contact Garud', href: '/enquiry?subject=Listing%20search' },
       ],
     };
   }

@@ -71,19 +71,20 @@ enum CatalogCategory {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String      @map("password_hash")
   role         UserRole
   accountType  AccountType @map("account_type")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
-  organization  Organization?
-  refreshTokens RefreshToken[]
-  rfqsCreated   Rfq[] @relation("RfqBuyer")
-  cart          Cart?
-  ordersAsBuyer Order[] @relation("OrderBuyer")
+  organization         Organization?
+  refreshTokens        RefreshToken[]
+  rfqsCreated          Rfq[]          @relation("RfqBuyer")
+  cart                 Cart?
+  ordersAsBuyer        Order[]        @relation("OrderBuyer")
+  conversationsAsBuyer Conversation[] @relation("ConversationBuyer")
 
   @@map("users")
 }
@@ -103,40 +104,47 @@ model RefreshToken {
 }
 
 model Organization {
-  id        String @id @default(uuid())
-  ownerId   String @unique @map("owner_id")
-  companyName String @map("company_name")
-  country   String
-  state     String?
-  city      String?
-  website   String?
-  companyType String? @map("company_type")
-  yearEstablished Int? @map("year_established")
-  gst       String?
-  cin       String?
-  contactPersonName String @map("contact_person_name")
-  contactEmail      String @map("contact_email")
-  contactMobile     String @map("contact_mobile")
-  productsServicesDescription String? @map("products_services_description")
-  industries        String[] @default([])
-  partnershipTypes  String[] @default([]) @map("partnership_types")
-  verificationStatus VerificationStatus @default(DRAFT) @map("verification_status")
-  rejectionReason    String? @map("rejection_reason")
-  submittedAt DateTime? @map("submitted_at")
-  reviewedAt  DateTime? @map("reviewed_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id                          String             @id @default(uuid())
+  ownerId                     String             @unique @map("owner_id")
+  companyName                 String             @map("company_name")
+  country                     String
+  state                       String?
+  city                        String?
+  website                     String?
+  companyType                 String?            @map("company_type")
+  yearEstablished             Int?               @map("year_established")
+  gst                         String?
+  cin                         String?
+  contactPersonName           String             @map("contact_person_name")
+  contactEmail                String             @map("contact_email")
+  contactMobile               String             @map("contact_mobile")
+  productsServicesDescription String?            @map("products_services_description")
+  industries                  String[]           @default([])
+  partnershipTypes            String[]           @default([]) @map("partnership_types")
+  verificationStatus          VerificationStatus @default(DRAFT) @map("verification_status")
+  rejectionReason             String?            @map("rejection_reason")
+  submittedAt                 DateTime?          @map("submitted_at")
+  reviewedAt                  DateTime?          @map("reviewed_at")
+  createdAt                   DateTime           @default(now()) @map("created_at")
+  updatedAt                   DateTime           @updatedAt @map("updated_at")
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  verificationLogs VerificationAuditLog[]
-  documents OrganizationDocument[]
-  listings PartnerListing[]
-  rfqsAsBuyer Rfq[]
-  rfqInvites RfqInvite[]
-  quotations Quotation[]
-  cartsAsVendor Cart[] @relation("CartVendor")
-  ordersAsBuyer Order[] @relation("OrderBuyerOrg")
-  ordersAsVendor Order[] @relation("OrderVendor")
+  owner                       User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  verificationLogs            VerificationAuditLog[]
+  documents                   OrganizationDocument[]
+  listings                    PartnerListing[]
+  rfqsAsBuyer                 Rfq[]
+  rfqInvites                  RfqInvite[]
+  quotations                  Quotation[]
+  cartsAsVendor               Cart[]                 @relation("CartVendor")
+  ordersAsBuyer               Order[]                @relation("OrderBuyerOrg")
+  ordersAsVendor              Order[]                @relation("OrderVendor")
+  enquiries                   Enquiry[]
+  leads                       Lead[]
+  partnershipRequests         PartnershipRequest[]   @relation("PartnershipRequester")
+  partnershipRequestsReceived PartnershipRequest[]   @relation("PartnershipTarget")
+  conversationsAsPartner      Conversation[]         @relation("ConversationPartner")
+  conversationsAsBuyerOrg     Conversation[]         @relation("ConversationBuyerOrg")
+  listingViews                ListingView[]
 
   @@map("organizations")
 }
@@ -157,15 +165,15 @@ model VerificationAuditLog {
 }
 
 model OrganizationDocument {
-  id               String                 @id @default(uuid())
-  organizationId   String                 @map("organization_id")
-  documentType     ApplicationDocumentType @map("document_type")
-  originalFilename String                 @map("original_filename")
-  storedRelativePath String               @map("stored_relative_path")
-  mimeType         String                 @map("mime_type")
-  sizeBytes        Int                    @map("size_bytes")
-  uploadedByUserId String                 @map("uploaded_by_user_id")
-  createdAt        DateTime               @default(now()) @map("created_at")
+  id                 String                  @id @default(uuid())
+  organizationId     String                  @map("organization_id")
+  documentType       ApplicationDocumentType @map("document_type")
+  originalFilename   String                  @map("original_filename")
+  storedRelativePath String                  @map("stored_relative_path")
+  mimeType           String                  @map("mime_type")
+  sizeBytes          Int                     @map("size_bytes")
+  uploadedByUserId   String                  @map("uploaded_by_user_id")
+  createdAt          DateTime                @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -174,39 +182,43 @@ model OrganizationDocument {
 }
 
 model PartnerListing {
-  id               String          @id @default(uuid())
-  organizationId   String          @map("organization_id")
-  listingType      ListingType     @map("listing_type")
-  name             String
-  brand            String?
-  category         CatalogCategory
-  description      String?
-  technicalSpecs   String?         @map("technical_specs")
-  applications     String[]        @default([])
-  country          String?
-  state            String?
-  city             String?
-  sku              String?
-  primaryImageUrl  String?         @map("primary_image_url")
-  galleryImageUrls String[]        @default([]) @map("gallery_image_urls")
-  minOrderQuantity Int?            @map("min_order_quantity")
-  priceInr         Decimal?        @map("price_inr") @db.Decimal(14, 2)
-  priceOnRequest   Boolean         @default(true) @map("price_on_request")
-  warranty         String?
-  isPublished      Boolean         @default(false) @map("is_published")
-  reviewStatus     ListingReviewStatus @default(DRAFT) @map("review_status")
-  rejectionReason  String?         @map("rejection_reason")
-  submittedForReviewAt DateTime?     @map("submitted_for_review_at")
-  reviewedAt       DateTime?         @map("reviewed_at")
-  reviewedByUserId String?           @map("reviewed_by_user_id")
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @updatedAt @map("updated_at")
+  id                   String              @id @default(uuid())
+  organizationId       String              @map("organization_id")
+  listingType          ListingType         @map("listing_type")
+  name                 String
+  brand                String?
+  category             CatalogCategory
+  description          String?
+  technicalSpecs       String?             @map("technical_specs")
+  applications         String[]            @default([])
+  country              String?
+  state                String?
+  city                 String?
+  sku                  String?
+  primaryImageUrl      String?             @map("primary_image_url")
+  galleryImageUrls     String[]            @default([]) @map("gallery_image_urls")
+  minOrderQuantity     Int?                @map("min_order_quantity")
+  priceInr             Decimal?            @map("price_inr") @db.Decimal(14, 2)
+  priceOnRequest       Boolean             @default(true) @map("price_on_request")
+  warranty             String?
+  isPublished          Boolean             @default(false) @map("is_published")
+  reviewStatus         ListingReviewStatus @default(DRAFT) @map("review_status")
+  rejectionReason      String?             @map("rejection_reason")
+  submittedForReviewAt DateTime?           @map("submitted_for_review_at")
+  reviewedAt           DateTime?           @map("reviewed_at")
+  reviewedByUserId     String?             @map("reviewed_by_user_id")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  cartItems    CartItem[]
+  organization   Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cartItems      CartItem[]
   orderLineItems OrderLineItem[]
   moderationLogs ListingModerationAuditLog[]
-  rfqs         Rfq[]
+  rfqs           Rfq[]
+  enquiries      Enquiry[]
+  leads          Lead[]
+  views          ListingView[]
+  conversations  Conversation[]
 
   @@index([organizationId])
   @@index([listingType, category, isPublished])
@@ -215,13 +227,13 @@ model PartnerListing {
 }
 
 model ListingModerationAuditLog {
-  id          String               @id @default(uuid())
-  listingId   String               @map("listing_id")
-  actorUserId String               @map("actor_user_id")
-  fromStatus  ListingReviewStatus  @map("from_status")
-  toStatus    ListingReviewStatus  @map("to_status")
+  id          String              @id @default(uuid())
+  listingId   String              @map("listing_id")
+  actorUserId String              @map("actor_user_id")
+  fromStatus  ListingReviewStatus @map("from_status")
+  toStatus    ListingReviewStatus @map("to_status")
   note        String?
-  createdAt   DateTime             @default(now()) @map("created_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
 
   listing PartnerListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
@@ -249,15 +261,15 @@ enum PaymentStatus {
 }
 
 model Cart {
-  id                     String   @id @default(uuid())
-  userId                 String   @unique @map("user_id")
-  partnerOrganizationId  String   @map("partner_organization_id")
-  createdAt              DateTime @default(now()) @map("created_at")
-  updatedAt              DateTime @updatedAt @map("updated_at")
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+  partnerOrganizationId String   @map("partner_organization_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   partnerOrganization Organization @relation("CartVendor", fields: [partnerOrganizationId], references: [id], onDelete: Cascade)
-  items             CartItem[]
+  items               CartItem[]
 
   @@index([partnerOrganizationId])
   @@map("carts")
@@ -280,53 +292,53 @@ model CartItem {
 }
 
 model Order {
-  id                    String        @id @default(uuid())
-  buyerUserId           String        @map("buyer_user_id")
-  buyerOrganizationId   String        @map("buyer_organization_id")
-  vendorOrganizationId  String        @map("vendor_organization_id")
-  status                OrderStatus         @default(CONFIRMED)
-  fulfillmentStatus     FulfillmentStatus   @default(PENDING) @map("fulfillment_status")
-  paymentStatus         PaymentStatus       @default(PENDING) @map("payment_status")
-  subtotalInr           Decimal       @map("subtotal_inr") @db.Decimal(14, 2)
-  taxInr                Decimal       @default(0) @map("tax_inr") @db.Decimal(14, 2)
-  shippingInr           Decimal       @default(0) @map("shipping_inr") @db.Decimal(14, 2)
-  totalInr              Decimal       @map("total_inr") @db.Decimal(14, 2)
-  companyName           String        @map("company_name")
-  contactName           String        @map("contact_name")
-  contactPhone          String        @map("contact_phone")
-  shippingAddressLine1  String        @map("shipping_address_line1")
-  shippingAddressLine2  String?       @map("shipping_address_line2")
-  shippingCity          String        @map("shipping_city")
-  shippingState         String        @map("shipping_state")
-  shippingPincode       String        @map("shipping_pincode")
-  shippingCountry       String        @map("shipping_country")
-  billingAddressLine1   String        @map("billing_address_line1")
-  billingAddressLine2   String?       @map("billing_address_line2")
-  billingCity           String        @map("billing_city")
-  billingState          String        @map("billing_state")
-  billingPincode        String        @map("billing_pincode")
-  billingCountry        String        @map("billing_country")
+  id                    String            @id @default(uuid())
+  buyerUserId           String            @map("buyer_user_id")
+  buyerOrganizationId   String            @map("buyer_organization_id")
+  vendorOrganizationId  String            @map("vendor_organization_id")
+  status                OrderStatus       @default(CONFIRMED)
+  fulfillmentStatus     FulfillmentStatus @default(PENDING) @map("fulfillment_status")
+  paymentStatus         PaymentStatus     @default(PENDING) @map("payment_status")
+  subtotalInr           Decimal           @map("subtotal_inr") @db.Decimal(14, 2)
+  taxInr                Decimal           @default(0) @map("tax_inr") @db.Decimal(14, 2)
+  shippingInr           Decimal           @default(0) @map("shipping_inr") @db.Decimal(14, 2)
+  totalInr              Decimal           @map("total_inr") @db.Decimal(14, 2)
+  companyName           String            @map("company_name")
+  contactName           String            @map("contact_name")
+  contactPhone          String            @map("contact_phone")
+  shippingAddressLine1  String            @map("shipping_address_line1")
+  shippingAddressLine2  String?           @map("shipping_address_line2")
+  shippingCity          String            @map("shipping_city")
+  shippingState         String            @map("shipping_state")
+  shippingPincode       String            @map("shipping_pincode")
+  shippingCountry       String            @map("shipping_country")
+  billingAddressLine1   String            @map("billing_address_line1")
+  billingAddressLine2   String?           @map("billing_address_line2")
+  billingCity           String            @map("billing_city")
+  billingState          String            @map("billing_state")
+  billingPincode        String            @map("billing_pincode")
+  billingCountry        String            @map("billing_country")
   gstin                 String?
-  purchaseOrderNumber   String?       @map("purchase_order_number")
-  rfqId                 String?       @map("rfq_id")
-  quotationId           String?       @map("quotation_id")
-  carrierName           String?       @map("carrier_name")
-  trackingNumber        String?       @map("tracking_number")
-  trackingUrl           String?       @map("tracking_url")
-  dispatchedAt          DateTime?     @map("dispatched_at")
-  deliveredAt           DateTime?     @map("delivered_at")
-  estimatedDeliveryAt   DateTime?     @map("estimated_delivery_at")
-  hardwareSerialNumbers String[]      @default([]) @map("hardware_serial_numbers")
-  fulfillmentNotes      String?       @map("fulfillment_notes")
-  placedAt              DateTime      @default(now()) @map("placed_at")
-  createdAt             DateTime      @default(now()) @map("created_at")
-  updatedAt             DateTime      @updatedAt @map("updated_at")
+  purchaseOrderNumber   String?           @map("purchase_order_number")
+  rfqId                 String?           @map("rfq_id")
+  quotationId           String?           @map("quotation_id")
+  carrierName           String?           @map("carrier_name")
+  trackingNumber        String?           @map("tracking_number")
+  trackingUrl           String?           @map("tracking_url")
+  dispatchedAt          DateTime?         @map("dispatched_at")
+  deliveredAt           DateTime?         @map("delivered_at")
+  estimatedDeliveryAt   DateTime?         @map("estimated_delivery_at")
+  hardwareSerialNumbers String[]          @default([]) @map("hardware_serial_numbers")
+  fulfillmentNotes      String?           @map("fulfillment_notes")
+  placedAt              DateTime          @default(now()) @map("placed_at")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
 
-  buyerUser          User         @relation("OrderBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
-  buyerOrganization  Organization @relation("OrderBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
-  vendorOrganization Organization @relation("OrderVendor", fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
-  rfq                Rfq?         @relation(fields: [rfqId], references: [id], onDelete: SetNull)
-  quotation          Quotation?   @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+  buyerUser          User                 @relation("OrderBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  buyerOrganization  Organization         @relation("OrderBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+  vendorOrganization Organization         @relation("OrderVendor", fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
+  rfq                Rfq?                 @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  quotation          Quotation?           @relation(fields: [quotationId], references: [id], onDelete: SetNull)
   lineItems          OrderLineItem[]
   transactions       PaymentTransaction[]
 
@@ -371,7 +383,7 @@ model PaymentTransaction {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
 
-  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([gatewayOrderId])
@@ -380,15 +392,15 @@ model PaymentTransaction {
 }
 
 model OrderLineItem {
-  id            String  @id @default(uuid())
-  orderId       String  @map("order_id")
-  listingId     String? @map("listing_id")
-  snapshotName  String  @map("snapshot_name")
-  snapshotSku   String? @map("snapshot_sku")
+  id               String  @id @default(uuid())
+  orderId          String  @map("order_id")
+  listingId        String? @map("listing_id")
+  snapshotName     String  @map("snapshot_name")
+  snapshotSku      String? @map("snapshot_sku")
   snapshotImageUrl String? @map("snapshot_image_url")
-  unitPriceInr  Decimal @map("unit_price_inr") @db.Decimal(14, 2)
-  quantity      Int
-  lineTotalInr  Decimal @map("line_total_inr") @db.Decimal(14, 2)
+  unitPriceInr     Decimal @map("unit_price_inr") @db.Decimal(14, 2)
+  quantity         Int
+  lineTotalInr     Decimal @map("line_total_inr") @db.Decimal(14, 2)
 
   order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   listing PartnerListing? @relation(fields: [listingId], references: [id], onDelete: Restrict)
@@ -419,52 +431,105 @@ enum QuotationStatus {
 enum EnquiryStatus {
   NEW
   READ
+  CLOSED
+}
+
+/// Why the visitor reached out (also used as lead type for routed partner leads).
+enum EnquiryIntent {
+  GENERAL
+  PRODUCT
+  DEMO
+  DISTRIBUTOR
+  PARTNER
+  SERVICE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
 }
 
 model Enquiry {
-  id         String        @id @default(uuid())
-  name       String
-  email      String
-  phone      String?
-  subject    String
-  message    String
-  sourcePage String?       @map("source_page")
-  status     EnquiryStatus @default(NEW)
-  createdAt  DateTime      @default(now()) @map("created_at")
-  updatedAt  DateTime      @updatedAt @map("updated_at")
+  id             String        @id @default(uuid())
+  name           String
+  email          String
+  phone          String?
+  subject        String
+  message        String
+  sourcePage     String?       @map("source_page")
+  intent         EnquiryIntent @default(GENERAL)
+  serviceKey     String?       @map("service_key")
+  listingId      String?       @map("listing_id")
+  organizationId String?       @map("organization_id")
+  routedAt       DateTime?     @map("routed_at")
+  routedByUserId String?       @map("routed_by_user_id")
+  status         EnquiryStatus @default(NEW)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  listing      PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  lead         Lead?
 
   @@index([status, createdAt])
+  @@index([intent, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([listingId])
   @@map("enquiries")
 }
 
+/// Partner-facing lead created when an enquiry is routed to an organization (non-RFQ intents).
+model Lead {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  enquiryId      String        @unique @map("enquiry_id")
+  listingId      String?       @map("listing_id")
+  intent         EnquiryIntent @default(GENERAL)
+  status         LeadStatus    @default(NEW)
+  partnerNote    String?       @map("partner_note")
+  contactedAt    DateTime?     @map("contacted_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  enquiry      Enquiry         @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  listing      PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@map("leads")
+}
+
 model Rfq {
-  id                   String          @id @default(uuid())
-  buyerUserId          String          @map("buyer_user_id")
-  buyerOrganizationId  String          @map("buyer_organization_id")
-  title                String
-  description          String
-  category             CatalogCategory
-  listingType          ListingType?    @map("listing_type")
-  quantity             Int?
-  country              String?
-  state                String?
-  city                 String?
-  deadlineAt           DateTime?       @map("deadline_at")
-  status               RfqStatus       @default(OPEN)
-  closedAt             DateTime?       @map("closed_at")
-  createdAt            DateTime        @default(now()) @map("created_at")
-  updatedAt            DateTime        @updatedAt @map("updated_at")
+  id                  String          @id @default(uuid())
+  buyerUserId         String          @map("buyer_user_id")
+  buyerOrganizationId String          @map("buyer_organization_id")
+  title               String
+  description         String
+  category            CatalogCategory
+  listingType         ListingType?    @map("listing_type")
+  quantity            Int?
+  country             String?
+  state               String?
+  city                String?
+  deadlineAt          DateTime?       @map("deadline_at")
+  status              RfqStatus       @default(OPEN)
+  closedAt            DateTime?       @map("closed_at")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
 
   // Drone RFP Specifications (Phase 3)
-  payloadCapacityKg    Decimal?        @map("payload_capacity_kg") @db.Decimal(8, 2)
-  enduranceMinutes     Int?            @map("endurance_minutes")
-  isDgcaRequired       Boolean         @default(false) @map("is_dgca_required")
-  targetBudgetInr      Decimal?        @map("target_budget_inr") @db.Decimal(14, 2)
-  specsDocumentUrl     String?         @map("specs_document_url")
-  listingId            String?         @map("listing_id")
+  payloadCapacityKg Decimal? @map("payload_capacity_kg") @db.Decimal(8, 2)
+  enduranceMinutes  Int?     @map("endurance_minutes")
+  isDgcaRequired    Boolean  @default(false) @map("is_dgca_required")
+  targetBudgetInr   Decimal? @map("target_budget_inr") @db.Decimal(14, 2)
+  specsDocumentUrl  String?  @map("specs_document_url")
+  listingId         String?  @map("listing_id")
 
-  buyerUser         User           @relation("RfqBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
-  buyerOrganization Organization   @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+  buyerUser         User            @relation("RfqBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  buyerOrganization Organization    @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
   listing           PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
   invites           RfqInvite[]
   quotations        Quotation[]
@@ -477,14 +542,14 @@ model Rfq {
 }
 
 model RfqInvite {
-  id                    String          @id @default(uuid())
-  rfqId                 String          @map("rfq_id")
-  vendorOrganizationId  String          @map("vendor_organization_id")
-  status                RfqInviteStatus @default(INVITED)
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
+  id                   String          @id @default(uuid())
+  rfqId                String          @map("rfq_id")
+  vendorOrganizationId String          @map("vendor_organization_id")
+  status               RfqInviteStatus @default(INVITED)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
 
-  rfq              Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  rfq                Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
 
   @@unique([rfqId, vendorOrganizationId])
@@ -493,25 +558,25 @@ model RfqInvite {
 }
 
 model Quotation {
-  id                   String           @id @default(uuid())
-  rfqId                String           @map("rfq_id")
-  vendorOrganizationId String           @map("vendor_organization_id")
-  submittedByUserId    String           @map("submitted_by_user_id")
-  priceInr             Decimal?         @map("price_inr") @db.Decimal(14, 2)
-  priceOnRequest       Boolean          @default(false) @map("price_on_request")
-  minOrderQuantity     Int?             @map("min_order_quantity")
-  leadTimeDays         Int?             @map("lead_time_days")
+  id                   String          @id @default(uuid())
+  rfqId                String          @map("rfq_id")
+  vendorOrganizationId String          @map("vendor_organization_id")
+  submittedByUserId    String          @map("submitted_by_user_id")
+  priceInr             Decimal?        @map("price_inr") @db.Decimal(14, 2)
+  priceOnRequest       Boolean         @default(false) @map("price_on_request")
+  minOrderQuantity     Int?            @map("min_order_quantity")
+  leadTimeDays         Int?            @map("lead_time_days")
   notes                String?
-  validUntil           DateTime?        @map("valid_until")
-  status               QuotationStatus  @default(SUBMITTED)
-  createdAt            DateTime         @default(now()) @map("created_at")
-  updatedAt            DateTime         @updatedAt @map("updated_at")
+  validUntil           DateTime?       @map("valid_until")
+  status               QuotationStatus @default(SUBMITTED)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
 
   // Technical Quotation Attributes (Phase 3)
-  quotedPayloadKg      Decimal?         @map("quoted_payload_kg") @db.Decimal(8, 2)
-  quotedEnduranceMin   Int?             @map("quoted_endurance_min")
-  dgcaModelNumber      String?          @map("dgca_model_number")
-  warrantyMonths       Int?             @map("warranty_months")
+  quotedPayloadKg    Decimal? @map("quoted_payload_kg") @db.Decimal(8, 2)
+  quotedEnduranceMin Int?     @map("quoted_endurance_min")
+  dgcaModelNumber    String?  @map("dgca_model_number")
+  warrantyMonths     Int?     @map("warranty_months")
 
   rfq                Rfq          @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   vendorOrganization Organization @relation(fields: [vendorOrganizationId], references: [id], onDelete: Cascade)
@@ -520,4 +585,106 @@ model Quotation {
   @@index([rfqId])
   @@index([vendorOrganizationId])
   @@map("quotations")
+}
+
+/// One row per public PDP view (analytics v1; no dedupe).
+model ListingView {
+  id             String   @id @default(uuid())
+  listingId      String   @map("listing_id")
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  listing      PartnerListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([listingId, createdAt])
+  @@map("listing_views")
+}
+
+enum PartnershipRequestType {
+  DISTRIBUTORSHIP
+  DEALERSHIP
+  OEM_PARTNERSHIP
+  TECHNOLOGY_INTEGRATION
+  SERVICE_PARTNERSHIP
+  TRAINING_PARTNERSHIP
+  OTHER
+}
+
+enum PartnershipRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  DECLINED
+  WITHDRAWN
+}
+
+/// Partner-initiated partnership workflow (distributor/dealer/OEM etc.), moderated by admin.
+model PartnershipRequest {
+  id                   String                   @id @default(uuid())
+  organizationId       String                   @map("organization_id")
+  targetOrganizationId String?                  @map("target_organization_id")
+  type                 PartnershipRequestType
+  title                String
+  message              String
+  regions              String?
+  status               PartnershipRequestStatus @default(SUBMITTED)
+  adminNote            String?                  @map("admin_note")
+  reviewedByUserId     String?                  @map("reviewed_by_user_id")
+  reviewedAt           DateTime?                @map("reviewed_at")
+  createdAt            DateTime                 @default(now()) @map("created_at")
+  updatedAt            DateTime                 @updatedAt @map("updated_at")
+
+  organization       Organization  @relation("PartnershipRequester", fields: [organizationId], references: [id], onDelete: Cascade)
+  targetOrganization Organization? @relation("PartnershipTarget", fields: [targetOrganizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([status, createdAt])
+  @@map("partnership_requests")
+}
+
+enum MessageSenderSide {
+  BUYER
+  PARTNER
+}
+
+/// Buyer <-> partner thread (optionally anchored to a listing).
+model Conversation {
+  id                    String             @id @default(uuid())
+  buyerUserId           String             @map("buyer_user_id")
+  buyerOrganizationId   String?            @map("buyer_organization_id")
+  partnerOrganizationId String             @map("partner_organization_id")
+  listingId             String?            @map("listing_id")
+  subject               String
+  lastMessageAt         DateTime           @default(now()) @map("last_message_at")
+  lastMessageSide       MessageSenderSide? @map("last_message_side")
+  buyerLastReadAt       DateTime?          @map("buyer_last_read_at")
+  partnerLastReadAt     DateTime?          @map("partner_last_read_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  buyerUser           User            @relation("ConversationBuyer", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  buyerOrganization   Organization?   @relation("ConversationBuyerOrg", fields: [buyerOrganizationId], references: [id], onDelete: SetNull)
+  partnerOrganization Organization    @relation("ConversationPartner", fields: [partnerOrganizationId], references: [id], onDelete: Cascade)
+  listing             PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  messages            Message[]
+
+  @@index([buyerUserId, lastMessageAt])
+  @@index([partnerOrganizationId, lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String            @id @default(uuid())
+  conversationId String            @map("conversation_id")
+  senderUserId   String            @map("sender_user_id")
+  senderSide     MessageSenderSide @map("sender_side")
+  body           String
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
 }

@@ -14,6 +14,7 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { NotificationService } from '../notifications/notification.service';
 import {
   ApproveListingDto,
   RejectApplicationDto,
@@ -25,7 +26,10 @@ import {
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationService,
+  ) {}
 
   listApplications(status?: VerificationStatus) {
     return this.prisma.organization.findMany({
@@ -70,13 +74,19 @@ export class AdminService {
   }
 
   async approveApplication(orgId: string, adminUserId: string) {
-    return this.transition(
+    const approved = await this.transition(
       orgId,
       adminUserId,
       [VerificationStatus.SUBMITTED, VerificationStatus.UNDER_REVIEW],
       VerificationStatus.APPROVED,
       'Approved by platform admin',
     );
+    void this.notifications.notifyKycDecision({
+      to: approved.contactEmail,
+      companyName: approved.companyName,
+      approved: true,
+    });
+    return approved;
   }
 
   async rejectApplication(
@@ -97,7 +107,7 @@ export class AdminService {
       throw new BadRequestException('Application is not pending review');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const rejected = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.organization.update({
         where: { id: orgId },
         data: {
@@ -117,6 +127,14 @@ export class AdminService {
       });
       return updated;
     });
+
+    void this.notifications.notifyKycDecision({
+      to: rejected.contactEmail,
+      companyName: rejected.companyName,
+      approved: false,
+      reason: dto.reason,
+    });
+    return rejected;
   }
 
   private async transition(

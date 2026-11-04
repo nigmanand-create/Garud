@@ -26,6 +26,12 @@ const TONE_MAP: Record<string, StatusTone> = {
   WITHDRAWN: 'neutral',
   NEW: 'pending',
   READ: 'neutral',
+  CONTACTED: 'info',
+  QUALIFIED: 'info',
+  WON: 'success',
+  LOST: 'danger',
+  DECLINED: 'danger',
+  ACTIVE: 'success',
 };
 
 function toneForStatus(status: string): StatusTone {

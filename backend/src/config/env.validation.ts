@@ -60,6 +60,41 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   RAZORPAY_WEBHOOK_SECRET?: string;
+
+  /** Transactional mail — omit SMTP_HOST to use the log-only provider. */
+  @IsOptional()
+  @IsString()
+  SMTP_HOST?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_PORT?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_PASS?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_SECURE?: string;
+
+  @IsOptional()
+  @IsString()
+  MAIL_FROM?: string;
+
+  /** Comma-separated admin inboxes for new-enquiry alerts. */
+  @IsOptional()
+  @IsString()
+  ADMIN_NOTIFY_EMAIL?: string;
+
+  /** Public web origin used in email deep links, e.g. https://garudhub.me */
+  @IsOptional()
+  @IsString()
+  PUBLIC_APP_URL?: string;
 }
 
 const WEAK_SECRET_MARKERS = [
@@ -150,7 +185,9 @@ export function validateEnv(
     const messages = errors.flatMap((error) =>
       error.constraints ? Object.values(error.constraints) : [],
     );
-    throw new Error(`Environment validation failed:\n- ${messages.join('\n- ')}`);
+    throw new Error(
+      `Environment validation failed:\n- ${messages.join('\n- ')}`,
+    );
   }
 
   assertProductionSecrets(validated);

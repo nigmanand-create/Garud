@@ -27,12 +27,12 @@
 | P-UI-13 | Audit log UI | DB logs; no global viewer | `CODE_LEVEL_STATUS.md` feature matrix “Audit log UI **Partial**”, admin listing detail only |
 | P-UX-01 | Buyer search journey | Weak marketplace search | gap §3 Buyer journey ~78% |
 | P-UX-02 | Service vertical journeys | ~~CTAs often → `/enquiry.php`~~ **Done** on `/services` | `services/page.tsx`, gap §3 Service vertical ~30% |
-| P-UX-03 | Partner leads story | RFQs/orders only; no enquiry inbox | gap §3 Partner register ~72% |
+| P-UX-03 | Partner leads story | ~~RFQs/orders only; no enquiry inbox~~ **Done** (`/partner/enquiries`) | gap §3 Partner register ~72% |
 | P-UX-04 | Cross-surface nav | Cart not in header (import only) | `MarketingHeader.tsx` imports `CartNavLink` unused; runbook P1 |
 | P-UX-05 | International / gov journeys | Marketing copy; no dedicated UX | gap §3 |
 | P-BE-01 | Marketplace API | Filters only; no `q` / pagination contract | `marketplace.controller.ts`, `browsePublic`, CODE_LEVEL §7 #2 |
 | P-BE-02 | Payments | Razorpay + UTR OK; partner subscription ~0% | `payments.service.ts`, gap §4 Payments ~70% |
-| P-BE-03 | Enquiries backend | Proxy only; no Prisma model | gap §4 Enquiries ~10% |
+| P-BE-03 | Enquiries backend | ~~Proxy only; no Prisma model~~ **Done** (Enquiry + Lead models) | gap §4 Enquiries ~10% |
 | P-BE-04 | Partnerships | Org fields only; no workflow | `partner/application` partnershipTypes, gap §4 |
 | P-BE-05 | Training / service matching | Listing category only | gap §4 Training ~10%, Service matching ~0% |
 | P-BE-06 | Auth storage | JWT in localStorage | `AuthProvider.tsx`, README Partial bucket |

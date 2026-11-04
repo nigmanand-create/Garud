@@ -260,6 +260,17 @@ export class CatalogService {
     return listing;
   }
 
+  /** Analytics v1: best-effort PDP view counter (never blocks the page). */
+  async recordListingView(listingId: string, organizationId: string) {
+    try {
+      await this.prisma.listingView.create({
+        data: { listingId, organizationId },
+      });
+    } catch {
+      // swallow: analytics must not break the public catalog
+    }
+  }
+
   async listPublicVendors(filters: { skip?: number; take?: number; q?: string }) {
     const take = Math.min(filters.take ?? 24, 50);
     const skip = filters.skip ?? 0;

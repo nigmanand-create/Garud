@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/types';
+import { MessageSupplierButton } from '@/components/platform/MessageSupplierButton';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 
 type PartnerProfile = {
@@ -61,7 +62,7 @@ export default function PartnerPublicProfilePage() {
         }
         actions={
           <Link
-            href={`/enquiry?subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
+            href={`/enquiry?partner=${profile.id}&intent=PARTNER&subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
             className="platform-btn platform-btn-cta"
           >
             Contact partner
@@ -106,11 +107,17 @@ export default function PartnerPublicProfilePage() {
               Interested in working with {profile.companyName}?
             </p>
             <Link
-              href={`/enquiry?subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
+              href={`/enquiry?partner=${profile.id}&intent=PARTNER&subject=${encodeURIComponent(`Partner enquiry: ${profile.companyName}`)}`}
               className="platform-btn platform-btn-cta platform-btn-full"
             >
               Send enquiry
             </Link>
+            <div className="platform-mt-sm">
+              <MessageSupplierButton
+                organizationId={profile.id}
+                defaultSubject={`Question for ${profile.companyName}`}
+              />
+            </div>
             <p className="platform-sidebar-cta-foot">
               <Link href="/marketplace" className="platform-back-link">
                 ← Back to marketplace

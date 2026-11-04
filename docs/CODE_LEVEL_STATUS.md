@@ -88,7 +88,9 @@ All paths are served under the `(platform)` route group (no URL prefix). Layout:
 |-----------|------|---------|
 | `app/route.ts` | `/` | HTML snapshot home from `content/pages/` |
 | `app/[...slug]/route.ts` | e.g. `/blogging/*`, `/legal.php/*`, legacy PHP-style URLs | Snapshot HTML via `loadSnapshotHtml` |
-| `app/enquiry.php/route.ts` | Legacy enquiry entry | Routes to enquiry handling |
+| `app/enquiry.php/route.ts` | Legacy enquiry URL | Redirects to native `/enquiry` (PHP proxy retired) |
+| `app/(platform)/partner/enquiries/page.tsx` | Partner enquiries & leads inbox | `GET/PATCH /partner/leads` |
+| `app/(platform)/admin/enquiries/page.tsx` | Admin enquiry triage | filters, bulk status, assign to partner |
 | `app/platform-api/v1/[...path]/route.ts` | `/platform-api/v1/*` | Next proxy to backend API |
 
 **Note:** React routes `/about-us`, `/services`, `/b2b-partners` **take precedence** over snapshot keys for those paths when registered under `(platform)` (Next route resolution). Other marketing URLs remain snapshots.

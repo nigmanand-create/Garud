@@ -14,6 +14,7 @@ import {
   formatPrice,
 } from '@/lib/platform/labels';
 import { resolveListingImageUrl } from '@/lib/platform/listing-media';
+import { MessageSupplierButton } from '@/components/platform/MessageSupplierButton';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { sectionById } from '@/lib/platform/marketplace-sections';
 import type { MarketplaceSectionId } from '@/lib/platform/marketplace-sections';
@@ -218,18 +219,24 @@ export default function ListingDetailPage() {
               </Link>
 
               <Link
-                href={`/enquiry?subject=${encodeURIComponent(demoSubject)}`}
+                href={`/enquiry?listing=${listing.id}&intent=DEMO&subject=${encodeURIComponent(demoSubject)}`}
                 className="platform-btn platform-btn-secondary platform-btn-full"
               >
                 <span aria-hidden>▶</span> Request demo
               </Link>
 
               <Link
-                href={`/enquiry?subject=${encodeURIComponent(enquirySubject)}`}
+                href={`/enquiry?listing=${listing.id}&intent=PRODUCT&subject=${encodeURIComponent(enquirySubject)}`}
                 className="platform-btn platform-btn-secondary platform-btn-full"
               >
                 <span aria-hidden>💬</span> Contact supplier
               </Link>
+
+              <MessageSupplierButton
+                organizationId={listing.organization.id}
+                listingId={listing.id}
+                defaultSubject={enquirySubject}
+              />
 
               <Link href="/b2b-partners#dealers" className="platform-btn-ghost-distributor">
                 <span aria-hidden>🤝</span> Become a Regional Distributor

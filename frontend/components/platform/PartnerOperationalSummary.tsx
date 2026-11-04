@@ -2,64 +2,16 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { apiRequest } from '@/lib/api/client';
-import type {
-  ListingReviewStatus,
-  PartnerOrderListItem,
-} from '@/lib/api/types';
+import { getPartnerOverview, type PartnerOverview } from '@/lib/api/partner-hub';
 import { ApiError } from '@/lib/api/types';
 
-type RfqInviteRow = {
-  id: string;
-  status: string;
-  rfq: { id: string; status: string };
-};
-
-type CatalogRow = {
-  id: string;
-  reviewStatus: ListingReviewStatus;
-};
-
-type SummaryState = {
-  openRfqs: number;
-  ordersToFulfill: number;
-  catalogDrafts: number;
-  catalogPending: number;
-  catalogRejected: number;
-};
-
-function countCatalogByStatus(
-  listings: CatalogRow[],
-  status: ListingReviewStatus,
-) {
-  return listings.filter((l) => l.reviewStatus === status).length;
-}
-
 export function PartnerOperationalSummary() {
-  const [summary, setSummary] = useState<SummaryState | null>(null);
+  const [summary, setSummary] = useState<PartnerOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      apiRequest<RfqInviteRow[]>('/partner/rfqs', { auth: true }),
-      apiRequest<PartnerOrderListItem[]>('/partner/orders', { auth: true }),
-      apiRequest<CatalogRow[]>('/partner/catalog/listings', { auth: true }),
-    ])
-      .then(([rfqs, orders, listings]) => {
-        const openRfqs = rfqs.filter((r) => r.rfq.status === 'OPEN').length;
-        const ordersToFulfill = orders.filter(
-          (o) =>
-            o.fulfillmentStatus === 'PENDING' ||
-            o.fulfillmentStatus === 'PROCESSING',
-        ).length;
-        setSummary({
-          openRfqs,
-          ordersToFulfill,
-          catalogDrafts: countCatalogByStatus(listings, 'DRAFT'),
-          catalogPending: countCatalogByStatus(listings, 'PENDING_REVIEW'),
-          catalogRejected: countCatalogByStatus(listings, 'REJECTED'),
-        });
-      })
+    getPartnerOverview()
+      .then(setSummary)
       .catch((e) =>
         setError(e instanceof ApiError ? e.message : 'Failed to load summary'),
       );
@@ -80,31 +32,30 @@ export function PartnerOperationalSummary() {
     );
   }
 
-  const items = [
+  const groups: {
+    title: string;
+    items: { label: string; value: number; href: string; highlight?: boolean }[];
+  }[] = [
     {
-      label: 'Open RFQ invites',
-      value: summary.openRfqs,
-      href: '/partner/rfqs',
+      title: 'Needs your attention',
+      items: [
+        { label: 'RFQs awaiting your quote', value: summary.rfq.awaitingQuote, href: '/partner/rfqs', highlight: true },
+        { label: 'Orders to fulfill', value: summary.ordersToFulfill, href: '/partner/orders', highlight: true },
+        { label: 'New leads', value: summary.newLeads, href: '/partner/leads', highlight: true },
+        { label: 'Unread enquiries', value: summary.newEnquiries, href: '/partner/enquiries', highlight: true },
+        { label: 'Unread messages', value: summary.unreadMessages, href: '/partner/messages', highlight: true },
+      ],
     },
     {
-      label: 'Orders to fulfill',
-      value: summary.ordersToFulfill,
-      href: '/partner/orders',
-    },
-    {
-      label: 'Catalog drafts',
-      value: summary.catalogDrafts,
-      href: '/partner/catalog',
-    },
-    {
-      label: 'Pending review',
-      value: summary.catalogPending,
-      href: '/partner/catalog',
-    },
-    {
-      label: 'Needs fixes',
-      value: summary.catalogRejected,
-      href: '/partner/catalog',
+      title: 'Catalog & growth',
+      items: [
+        { label: 'Live listings', value: summary.catalog.APPROVED, href: '/partner/catalog' },
+        { label: 'Drafts', value: summary.catalog.DRAFT, href: '/partner/catalog' },
+        { label: 'Pending review', value: summary.catalog.PENDING_REVIEW, href: '/partner/catalog' },
+        { label: 'Needs fixes', value: summary.catalog.REJECTED, href: '/partner/catalog' },
+        { label: 'Listing views (30d)', value: summary.views30d, href: '/partner/analytics' },
+        { label: 'Open partnership requests', value: summary.pendingPartnerships, href: '/partner/partnerships' },
+      ],
     },
   ];
 
@@ -118,19 +69,30 @@ export function PartnerOperationalSummary() {
           Operations at a glance
         </h2>
         <p className="platform-muted platform-text-sm">
-          RFQs, orders, and catalog moderation status.
+          Live counts across RFQs, orders, leads, messages, and catalog moderation.
         </p>
       </div>
-      <ul className="platform-partner-ops-grid">
-        {items.map((item) => (
-          <li key={item.label}>
-            <Link href={item.href} className="platform-partner-ops-stat">
-              <strong>{item.value}</strong>
-              <span>{item.label}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {groups.map((g) => (
+        <div key={g.title}>
+          <h3 className="platform-text-sm platform-muted">{g.title}</h3>
+          <ul className="platform-partner-ops-grid">
+            {g.items.map((item) => (
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  className={`platform-partner-ops-stat${item.highlight && item.value > 0 ? ' platform-partner-ops-stat--alert' : ''}`}
+                >
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p className="platform-text-sm platform-muted">
+        <Link href="/partner/activity">Activity log</Link> · <Link href="/partner/analytics">Analytics</Link>
+      </p>
     </section>
   );
 }

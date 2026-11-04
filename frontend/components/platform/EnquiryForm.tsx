@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { submitEnquiry } from '@/lib/api/enquiries';
 import { ApiError } from '@/lib/api/types';
+import type { EnquiryIntent } from '@/lib/api/types';
 
 const SERVICE_SUBJECTS: Record<string, string> = {
   compliance: 'DGCA & Regulatory Compliance',
@@ -16,13 +17,22 @@ type EnquiryFormProps = {
   defaultSubject?: string;
   serviceKey?: string;
   sourcePage?: string;
+  /** Marketplace listing context — routes the enquiry to that vendor. */
+  listingId?: string;
+  /** Verified partner context — routes the enquiry to that partner. */
+  organizationId?: string;
+  intent?: EnquiryIntent;
 };
 
 export function EnquiryForm({
   defaultSubject = '',
   serviceKey,
   sourcePage,
+  listingId,
+  organizationId,
+  intent,
 }: EnquiryFormProps) {
+  const routedToPartner = Boolean(listingId || organizationId);
   const initialSubject = useMemo(() => {
     if (defaultSubject) return defaultSubject;
     if (serviceKey && SERVICE_SUBJECTS[serviceKey]) {
@@ -54,6 +64,10 @@ export function EnquiryForm({
         sourcePage:
           sourcePage ||
           (typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined),
+        intent,
+        serviceKey,
+        listingId,
+        organizationId,
       });
       setSuccessId(res.id);
     } catch (err) {
@@ -78,7 +92,9 @@ export function EnquiryForm({
   return (
     <form className="platform-card platform-form" onSubmit={handleSubmit}>
       <p className="platform-form-section-desc">
-        Submit a platform enquiry — stored securely for Garud admin review (no legacy PHP required).
+        {routedToPartner
+          ? 'Your enquiry goes to the supplier for this listing or partner; the Garud team is copied for support.'
+          : 'Submit a platform enquiry — the Garud team will review it and route it to the right partner if needed.'}
       </p>
       {error && (
         <div className="platform-error" role="alert">

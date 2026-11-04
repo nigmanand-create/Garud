@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const links = [
   { href: '/admin', label: 'Partner Applications', exact: true },
   { href: '/admin/enquiries', label: 'Enquiry Queue' },
+  { href: '/admin/partnerships', label: 'Partnerships' },
   { href: '/admin/listings', label: 'Listing Moderation' },
   { href: '/admin/orders', label: 'Order Oversight' },
 ];

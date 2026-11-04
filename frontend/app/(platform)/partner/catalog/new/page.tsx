@@ -35,6 +35,12 @@ function NewListingInner() {
   const [form, setForm] = useState<CatalogListingFormValues>(emptyCatalogListingForm());
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('type') === 'SERVICE') {
+      setForm((f) => ({ ...f, listingType: 'SERVICE' }));
+    }
+  }, []);
+
+  useEffect(() => {
     apiRequest<{ canListProducts: boolean }>('/partner/me', { auth: true })
       .then((me) => setCanListProducts(me.canListProducts))
       .catch(() => setCanListProducts(false));

@@ -92,6 +92,7 @@ model User {
   notifications        InAppNotification[]
   serviceRequests      ServiceRequest[]
   studentTrainingLeads StudentTrainingLead[]
+  govOpportunityBids   GovOpportunityBid[]
 
   @@map("users")
 }
@@ -636,11 +637,12 @@ model Quotation {
   @@map("quotations")
 }
 
-/// One row per public PDP view (analytics v1; no dedupe).
+/// Public PDP view events (deduped within 24h per listing + visitor key).
 model ListingView {
   id             String   @id @default(uuid())
   listingId      String   @map("listing_id")
   organizationId String   @map("organization_id")
+  visitorKey     String   @map("visitor_key")
   createdAt      DateTime @default(now()) @map("created_at")
 
   listing      PartnerListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -648,6 +650,7 @@ model ListingView {
 
   @@index([organizationId, createdAt])
   @@index([listingId, createdAt])
+  @@index([listingId, visitorKey, createdAt])
   @@map("listing_views")
 }
 
@@ -1073,6 +1076,28 @@ model GovOpportunity {
   createdAt         DateTime             @default(now()) @map("created_at")
   updatedAt         DateTime             @updatedAt @map("updated_at")
 
+  bids GovOpportunityBid[]
+
   @@index([status, type, closingDate])
   @@map("gov_opportunities")
+}
+
+/// Sealed tender bids (amount + optional proposal file) until opportunity closing date.
+model GovOpportunityBid {
+  id                  String   @id @default(uuid())
+  opportunityId       String   @map("opportunity_id")
+  bidderUserId        String   @map("bidder_user_id")
+  amountInr           Decimal  @map("amount_inr") @db.Decimal(16, 2)
+  storedRelativePath  String?  @map("stored_relative_path")
+  originalFilename    String?  @map("original_filename")
+  mimeType            String?  @map("mime_type")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  opportunity GovOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  bidder      User           @relation(fields: [bidderUserId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, bidderUserId])
+  @@index([opportunityId, createdAt])
+  @@map("gov_opportunity_bids")
 }

@@ -2,7 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getPartnerAnalytics, type PartnerAnalytics } from '@/lib/api/partner-hub';
+import {
+  buildPartnerAnalyticsExportPath,
+  getPartnerAnalytics,
+  type PartnerAnalytics,
+} from '@/lib/api/partner-hub';
+import { apiDownload } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
@@ -41,6 +46,17 @@ function AnalyticsInner() {
 
   const maxViews = data ? Math.max(1, ...data.views.byDay.map((d) => d.count)) : 1;
 
+  async function exportCsv() {
+    try {
+      await apiDownload(
+        buildPartnerAnalyticsExportPath(days),
+        `garudhub-partner-analytics-${new Date().toISOString().slice(0, 10)}.csv`,
+      );
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Export failed');
+    }
+  }
+
   return (
     <PartnerPageShell>
       <div className="platform-partner-form-page">
@@ -60,6 +76,14 @@ function AnalyticsInner() {
                   {r}d
                 </button>
               ))}
+              <button
+                type="button"
+                className="platform-btn platform-btn-secondary platform-btn-sm"
+                onClick={() => void exportCsv()}
+                disabled={!data}
+              >
+                Export CSV
+              </button>
             </div>
           }
         />

@@ -340,11 +340,21 @@ export class CatalogService {
     return listing;
   }
 
-  /** Analytics v1: best-effort PDP view counter (never blocks the page). */
-  async recordListingView(listingId: string, organizationId: string) {
+  /** Best-effort PDP view counter; at most one row per listing + visitor per 24h. */
+  async recordListingView(
+    listingId: string,
+    organizationId: string,
+    visitorKey: string,
+  ) {
     try {
+      const since = new Date(Date.now() - 86_400_000);
+      const recent = await this.prisma.listingView.findFirst({
+        where: { listingId, visitorKey, createdAt: { gte: since } },
+        select: { id: true },
+      });
+      if (recent) return;
       await this.prisma.listingView.create({
-        data: { listingId, organizationId },
+        data: { listingId, organizationId, visitorKey },
       });
     } catch {
       // swallow: analytics must not break the public catalog

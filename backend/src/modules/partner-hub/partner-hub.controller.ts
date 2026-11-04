@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -30,6 +31,30 @@ export class PartnerHubController {
   })
   overview(@CurrentUser() user: AuthenticatedUser) {
     return this.hub.getOverview(user.userId);
+  }
+
+  @Get('analytics/export.csv')
+  @UseGuards(VerifiedPartnerGuard)
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ summary: 'Download analytics summary as CSV' })
+  @ApiQuery({
+    name: 'days',
+    type: Number,
+    required: false,
+    description: '7–90, default 30',
+  })
+  async exportAnalyticsCsv(
+    @CurrentUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) res: Response,
+    @Query('days') days?: string,
+  ) {
+    const { csv, filename } = await this.hub.exportAnalyticsCsv(
+      user.userId,
+      days ? parseInt(days, 10) : undefined,
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return csv;
   }
 
   @Get('analytics')

@@ -13,6 +13,7 @@ import {
   QuotationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { toCsv, type CsvColumn } from '../integrations/csv.util';
 
 const DAY_MS = 86_400_000;
 
@@ -284,6 +285,40 @@ export class PartnerHubService {
         count: orderAgg._count._all,
         gmvInr: Number(orderAgg._sum.totalInr ?? 0),
       },
+    };
+  }
+
+  async exportAnalyticsCsv(userId: string, rawDays?: number) {
+    const data = await this.getAnalytics(userId, rawDays);
+    type Row = { section: string; key: string; value: string | number };
+    const rows: Row[] = [
+      { section: 'summary', key: 'period_days', value: data.periodDays },
+      { section: 'summary', key: 'listing_views_total', value: data.views.total },
+      { section: 'summary', key: 'enquiries_total', value: data.enquiries.total },
+      { section: 'summary', key: 'leads_new_in_period', value: data.leads.newInPeriod },
+      { section: 'summary', key: 'orders_count', value: data.orders.count },
+      { section: 'summary', key: 'orders_gmv_inr', value: data.orders.gmvInr },
+      { section: 'summary', key: 'rfq_invites_total', value: data.rfq.invitesTotal },
+      ...data.views.byDay.map((d) => ({
+        section: 'daily_views',
+        key: d.date,
+        value: d.count,
+      })),
+      ...data.views.topListings.map((l) => ({
+        section: 'top_listing',
+        key: l.name,
+        value: l.views,
+      })),
+    ];
+    const columns: CsvColumn<Row>[] = [
+      { header: 'section', value: (r) => r.section },
+      { header: 'key', value: (r) => r.key },
+      { header: 'value', value: (r) => r.value },
+    ];
+    const stamp = new Date().toISOString().slice(0, 10);
+    return {
+      csv: toCsv(rows, columns),
+      filename: `garudhub-partner-analytics-${stamp}.csv`,
     };
   }
 

@@ -90,6 +90,12 @@ export class AdminGovController {
     });
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Tender / scheme detail with bid vault (admin)' })
+  get(@Param('id') id: string) {
+    return this.gov.getForAdmin(id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a tender / scheme / subsidy' })
   create(

@@ -94,3 +94,71 @@ export const deleteGovOpportunity = (id: string) =>
     method: 'DELETE',
     auth: true,
   });
+
+export type GovBidVault = {
+  sealed: boolean;
+  bidCount: number;
+  unsealsAt: string | null;
+  items: Array<{
+    id: string;
+    amountInr: string | number;
+    bidderEmail: string;
+    bidderRole: string;
+    originalFilename?: string | null;
+    submittedAt: string;
+    updatedAt: string;
+  }>;
+};
+
+export type AdminGovOpportunityDetail = GovOpportunity & { bids: GovBidVault };
+
+export const getAdminGovOpportunity = (id: string) =>
+  apiRequest<AdminGovOpportunityDetail>(`/admin/gov-opportunities/${id}`, {
+    auth: true,
+  });
+
+export type GovBidDocumentUpload = {
+  storedRelativePath: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+};
+
+export const uploadGovBidDocument = (opportunityId: string, file: File) => {
+  const form = new FormData();
+  form.append('file', file);
+  return apiRequest<GovBidDocumentUpload>(
+    `/buyer/gov-opportunities/${opportunityId}/bid-document`,
+    { method: 'POST', auth: true, body: form },
+  );
+};
+
+export const submitGovBid = (
+  opportunityId: string,
+  body: {
+    amountInr: number;
+    storedRelativePath?: string;
+    originalFilename?: string;
+    mimeType?: string;
+  },
+) =>
+  apiRequest<{
+    id: string;
+    amountInr: string | number;
+    hasDocument: boolean;
+    submittedAt: string;
+  }>(`/buyer/gov-opportunities/${opportunityId}/bids`, {
+    method: 'POST',
+    auth: true,
+    body,
+  });
+
+export const getMyGovBid = (opportunityId: string) =>
+  apiRequest<{
+    bid: {
+      id: string;
+      amountInr: string | number;
+      hasDocument: boolean;
+      submittedAt: string;
+    } | null;
+  }>(`/buyer/gov-opportunities/${opportunityId}/bids/mine`, { auth: true });

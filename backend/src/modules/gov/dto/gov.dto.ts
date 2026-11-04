@@ -87,6 +87,34 @@ export class CreateGovOpportunityDto {
   status?: GovOpportunityStatus;
 }
 
+export class SubmitGovBidDto {
+  @ApiProperty({ example: 1250000 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(1)
+  amountInr: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Relative path returned from POST …/bid-document (gov-bids/{userId}/…)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  storedRelativePath?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  originalFilename?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  mimeType?: string;
+}
+
 export class UpdateGovOpportunityDto {
   @ApiPropertyOptional({ enum: GovOpportunityType })
   @IsOptional()

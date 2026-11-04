@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { EnquiryForm } from '@/components/platform/EnquiryForm';
+import { GovTenderBidForm } from '@/components/platform/GovTenderBidForm';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { getGovOpportunity, type GovOpportunity } from '@/lib/api/gov';
@@ -72,6 +73,7 @@ export default function GovernmentOpportunityPage() {
         <div className="platform-card platform-muted">This opportunity is closed.</div>
       ) : (
         <>
+          {item.type === 'TENDER' && <GovTenderBidForm opportunityId={item.id} />}
           <h2 className="platform-section-heading">Express interest</h2>
           <EnquiryForm
             serviceKey="tender"

@@ -1,4 +1,6 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { visitorKeyForListingView } from '../../shared/http/visitor-key';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -96,9 +98,18 @@ export class MarketplaceController {
 
   @Get('listings/:id')
   @ApiOperation({ summary: 'Public listing detail' })
-  async getListing(@Param('id') id: string) {
+  async getListing(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const listing = await this.catalogService.getPublicListing(id);
-    void this.catalogService.recordListingView(listing.id, listing.organization.id);
+    const visitorKey = visitorKeyForListingView(req, res);
+    void this.catalogService.recordListingView(
+      listing.id,
+      listing.organization.id,
+      visitorKey,
+    );
     return listing;
   }
 

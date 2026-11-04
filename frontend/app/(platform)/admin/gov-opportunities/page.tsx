@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { RequireAuth } from '@/components/platform/AuthProvider';
@@ -242,6 +243,12 @@ function Inner() {
                       </td>
                       <td>
                         <div className="platform-form-actions">
+                          <Link
+                            href={`/admin/gov-opportunities/${o.id}`}
+                            className="platform-btn platform-btn-secondary platform-btn-sm"
+                          >
+                            View
+                          </Link>
                           {o.status !== 'PUBLISHED' && (
                             <button
                               type="button"

@@ -1,9 +1,14 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { GovOpportunityStatus, GovOpportunityType } from '@prisma/client';
+import {
+  GovOpportunityStatus,
+  GovOpportunityType,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { GovService } from './gov.service';
-import { isOpportunityExpired } from './gov.rules';
+import { GovBidDocumentService } from './gov-bid-document.service';
+import { areTenderBidsUnsealed, isOpportunityExpired } from './gov.rules';
 
 describe('gov rules', () => {
   it('flags expired closing dates', () => {
@@ -13,6 +18,17 @@ describe('gov rules', () => {
       false,
     );
     expect(isOpportunityExpired(new Date('2026-11-03T00:00:00Z'), now)).toBe(
+      true,
+    );
+  });
+
+  it('unseals bids only after closing datetime', () => {
+    const now = new Date('2026-11-04T12:00:00Z');
+    expect(areTenderBidsUnsealed(null, now)).toBe(false);
+    expect(areTenderBidsUnsealed(new Date('2026-11-05T00:00:00Z'), now)).toBe(
+      false,
+    );
+    expect(areTenderBidsUnsealed(new Date('2026-11-04T12:00:00Z'), now)).toBe(
       true,
     );
   });
@@ -31,12 +47,25 @@ describe('GovService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    govOpportunityBid: {
+      count: jest.fn(),
+      findMany: jest.fn(),
+      upsert: jest.fn(),
+      findUnique: jest.fn(),
+    },
+  };
+  const bidDocumentsMock = {
+    assertOwnedBidPath: jest.fn(),
   };
 
   beforeEach(async () => {
     jest.resetAllMocks();
     const module = await Test.createTestingModule({
-      providers: [GovService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [
+        GovService,
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: GovBidDocumentService, useValue: bidDocumentsMock },
+      ],
     }).compile();
     service = module.get(GovService);
   });
@@ -141,5 +170,37 @@ describe('GovService', () => {
     expect(
       prismaMock.govOpportunity.update.mock.calls[1][0].data.publishedAt,
     ).toBeUndefined();
+  });
+
+  it('keeps admin bid list sealed before closing date', async () => {
+    prismaMock.govOpportunityBid.count.mockResolvedValue(3);
+    const closing = new Date('2026-12-01T00:00:00Z');
+    const res = await service.listBidsForAdmin('g1', closing);
+    expect(res.sealed).toBe(true);
+    expect(res.bidCount).toBe(3);
+    expect(res.items).toEqual([]);
+    expect(prismaMock.govOpportunityBid.findMany).not.toHaveBeenCalled();
+  });
+
+  it('submits a bid for an open tender', async () => {
+    prismaMock.govOpportunity.findUnique.mockResolvedValue({
+      id: 'g1',
+      type: 'TENDER',
+      status: 'PUBLISHED',
+      closingDate: new Date('2099-01-01'),
+      openDate: null,
+    });
+    prismaMock.govOpportunityBid.upsert.mockResolvedValue({
+      id: 'b1',
+      opportunityId: 'g1',
+      amountInr: 100,
+      storedRelativePath: null,
+      updatedAt: new Date(),
+    });
+    const res = await service.submitBid('u1', UserRole.BUYER, 'g1', {
+      amountInr: 100,
+    });
+    expect(res.id).toBe('b1');
+    expect(prismaMock.govOpportunityBid.upsert).toHaveBeenCalled();
   });
 });

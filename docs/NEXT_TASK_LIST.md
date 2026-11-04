@@ -125,8 +125,8 @@ Revenue, trust, and spec depth after launch gate. Ordered by typical dependency.
 - [x] **NEXT-P4** — Training lead consolidation — **P2** — Single inbox row for `StudentTrainingLead` + `Lead` per interest. *(Dev)* — *2026-11-04: `enquiryId` on student lead; delete duplicate `Lead` on course interest.*
 - [x] **NEXT-P5** — Partnership org picker — **P2** — Search/select counterparty org instead of raw organization ID. *(Dev)* — *2026-11-04: `GET /partner/partnerships/targets` + combobox UI.*
 - [x] **NEXT-P6** — Partnership decision notifications — **P2** — Email/in-app when admin approves or declines. *(Dev)* — *2026-11-04: `notifyPartnershipDecision` on admin decide.*
-- [ ] **NEXT-P7** — Tender bid submission vault — **P2** — Document upload + sealed bid flow for `GovOpportunity` (beyond express interest). *(Dev)* — *Deferred: spec depth — see audit Section F.*
-- [ ] **NEXT-P8** — Analytics dedupe + CSV export — **P2** — Bot/owner dedupe on listing views; partner export. *(Dev)* — *Deferred: post-launch analytics sprint.*
+- [x] **NEXT-P7** — Tender bid submission vault — **P2** — Document upload + sealed bid flow for `GovOpportunity` (beyond express interest). *(Dev)* — *2026-11-04: `GovOpportunityBid` + buyer/gov submit (amount + optional upload), admin detail bid vault sealed until `closingDate`; partial: no admin bid file download, schemes/subsidies still enquiry-only.*
+- [x] **NEXT-P8** — Analytics dedupe + CSV export — **P2** — Bot/owner dedupe on listing views; partner export. *(Dev)* — *2026-11-04: 24h dedupe via `visitor_key` (cookie or IP+UA hash); `GET /partner/analytics/export.csv` + UI button; partial: no bot/owner exclusion.*
 ---
 
 ## Sprint Business (optional)

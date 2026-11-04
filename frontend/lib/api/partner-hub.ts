@@ -98,6 +98,11 @@ export const getPartnerOverview = () =>
 export const getPartnerAnalytics = (days = 30) =>
   apiRequest<PartnerAnalytics>(`/partner/analytics?days=${days}`, { auth: true });
 
+export function buildPartnerAnalyticsExportPath(days?: number) {
+  const q = days != null ? `?days=${days}` : '';
+  return `/partner/analytics/export.csv${q}`;
+}
+
 export const getPartnerServicesHub = () =>
   apiRequest<PartnerServicesHub>('/partner/services', { auth: true });
 

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,13 +8,19 @@ import {
   GovOpportunityStatus,
   GovOpportunityType,
   Prisma,
+  UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
   CreateGovOpportunityDto,
+  SubmitGovBidDto,
   UpdateGovOpportunityDto,
 } from './dto/gov.dto';
-import { isOpportunityExpired } from './gov.rules';
+import { GovBidDocumentService } from './gov-bid-document.service';
+import {
+  areTenderBidsUnsealed,
+  isOpportunityExpired,
+} from './gov.rules';
 
 function withFlags<T extends { closingDate: Date | null }>(row: T) {
   return { ...row, isExpired: isOpportunityExpired(row.closingDate) };
@@ -21,7 +28,10 @@ function withFlags<T extends { closingDate: Date | null }>(row: T) {
 
 @Injectable()
 export class GovService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bidDocuments: GovBidDocumentService,
+  ) {}
 
   // --- public ------------------------------------------------------------------
 
@@ -209,5 +219,129 @@ export class GovService {
     if (!existing) throw new NotFoundException('Opportunity not found');
     await this.prisma.govOpportunity.delete({ where: { id } });
     return { deleted: true };
+  }
+
+  async getForAdmin(id: string) {
+    const row = await this.prisma.govOpportunity.findUnique({ where: { id } });
+    if (!row) throw new NotFoundException('Opportunity not found');
+    const bids = await this.listBidsForAdmin(id, row.closingDate);
+    return { ...withFlags(row), bids };
+  }
+
+  private async requireOpenTender(opportunityId: string) {
+    const row = await this.prisma.govOpportunity.findUnique({
+      where: { id: opportunityId },
+    });
+    if (!row || row.status !== GovOpportunityStatus.PUBLISHED) {
+      throw new NotFoundException('Opportunity not found');
+    }
+    if (row.type !== GovOpportunityType.TENDER) {
+      throw new BadRequestException('Only tenders accept sealed bids');
+    }
+    if (isOpportunityExpired(row.closingDate)) {
+      throw new BadRequestException('Bidding is closed for this tender');
+    }
+    if (row.openDate && row.openDate.getTime() > Date.now()) {
+      throw new BadRequestException('This tender is not open for bids yet');
+    }
+    return row;
+  }
+
+  assertBidderRole(role: UserRole) {
+    if (role !== UserRole.BUYER && role !== UserRole.GOVERNMENT) {
+      throw new ForbiddenException('Only buyer accounts can submit tender bids');
+    }
+  }
+
+  async submitBid(userId: string, role: UserRole, opportunityId: string, dto: SubmitGovBidDto) {
+    this.assertBidderRole(role);
+    await this.requireOpenTender(opportunityId);
+    const path = dto.storedRelativePath?.trim();
+    if (path) {
+      this.bidDocuments.assertOwnedBidPath(userId, path);
+    }
+    const row = await this.prisma.govOpportunityBid.upsert({
+      where: {
+        opportunityId_bidderUserId: {
+          opportunityId,
+          bidderUserId: userId,
+        },
+      },
+      create: {
+        opportunityId,
+        bidderUserId: userId,
+        amountInr: dto.amountInr,
+        storedRelativePath: path || null,
+        originalFilename: dto.originalFilename?.trim() || null,
+        mimeType: dto.mimeType?.trim() || null,
+      },
+      update: {
+        amountInr: dto.amountInr,
+        storedRelativePath: path || null,
+        originalFilename: dto.originalFilename?.trim() || null,
+        mimeType: dto.mimeType?.trim() || null,
+      },
+    });
+    return {
+      id: row.id,
+      opportunityId: row.opportunityId,
+      amountInr: row.amountInr,
+      hasDocument: Boolean(row.storedRelativePath),
+      submittedAt: row.updatedAt.toISOString(),
+    };
+  }
+
+  async getMyBid(userId: string, role: UserRole, opportunityId: string) {
+    this.assertBidderRole(role);
+    const bid = await this.prisma.govOpportunityBid.findUnique({
+      where: {
+        opportunityId_bidderUserId: { opportunityId, bidderUserId: userId },
+      },
+    });
+    if (!bid) return { bid: null };
+    return {
+      bid: {
+        id: bid.id,
+        amountInr: bid.amountInr,
+        hasDocument: Boolean(bid.storedRelativePath),
+        submittedAt: bid.updatedAt.toISOString(),
+      },
+    };
+  }
+
+  async listBidsForAdmin(opportunityId: string, closingDate?: Date | null) {
+    const count = await this.prisma.govOpportunityBid.count({
+      where: { opportunityId },
+    });
+    const unsealed = areTenderBidsUnsealed(closingDate ?? null);
+    if (!unsealed) {
+      return {
+        sealed: true as const,
+        bidCount: count,
+        unsealsAt: closingDate?.toISOString() ?? null,
+        items: [] as [],
+      };
+    }
+    const rows = await this.prisma.govOpportunityBid.findMany({
+      where: { opportunityId },
+      orderBy: { amountInr: 'asc' },
+      include: {
+        bidder: { select: { id: true, email: true, role: true } },
+      },
+    });
+    return {
+      sealed: false as const,
+      bidCount: count,
+      unsealsAt: closingDate?.toISOString() ?? null,
+      items: rows.map((b) => ({
+        id: b.id,
+        amountInr: b.amountInr,
+        bidderEmail: b.bidder.email,
+        bidderRole: b.bidder.role,
+        originalFilename: b.originalFilename,
+        submittedAt: b.createdAt.toISOString(),
+        updatedAt: b.updatedAt.toISOString(),
+      })),
+    };
   }
 }

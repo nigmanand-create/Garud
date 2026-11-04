@@ -208,7 +208,7 @@ graph TB
 
 ### 4.2 Application Architecture: The Two-Surface Single-Origin Model
 The repository implements a unified frontend architecture:
-1. **Marketing Surface:** Serves 50 original HTML snapshots (`frontend/content/pages/`) via catch-all route handlers `app/route.ts` and `app/[...slug]/route.ts`. The helper `lib/snapshot-html.ts` inspects incoming HTML, converts absolute links to relative paths, and bridges CTAs (e.g., rewriting `/drone-marketplace` to `/marketplace`, and Join Partner to `/auth/register`).
+1. **Marketing Surface:** Serves 50 original HTML snapshots (`frontend/content/pages/`) via catch-all route handler `app/[...slug]/route.ts` (home `/` is now a React page; see `docs/ROUTE_MAP.md`). The helper `lib/snapshot-html.ts` inspects incoming HTML, converts absolute links to relative paths, and bridges CTAs (e.g., rewriting `/drone-marketplace` to `/marketplace`, and Join Partner to `/auth/register`).
 2. **Platform Surface:** Serves 30 dynamic React routes (`frontend/app/(platform)/*`) styled with modern CSS design tokens in `frontend/app/styles/platform.css`. Both surfaces share the unified `MarketingHeader` and `MarketingFooter` inside `MarketingShell`.
 3. **API Proxy Layer:** Browser calls target `/platform-api/v1/*` on port 3001. The Next.js route handler `frontend/app/platform-api/v1/[...path]/route.ts` proxies requests to the NestJS API on port 3000 (`http://127.0.0.1:3000/api/v1/*`), forwarding headers, query parameters, and streaming request/response bodies without CORS issues.
 
@@ -364,7 +364,7 @@ garud/
 | `/admin/orders/[id]/payment` | `admin/orders/[id]/payment/page.tsx` | Admin manual payment status override | `PLATFORM_ADMIN` | `PATCH /platform-api/v1/admin/orders/:id/payment` | **Complete** | Manual payment status override for ops. |
 
 ### 7.2 Marketing Snapshots (`frontend/content/pages/`) — 50 Documented Pages
-Served via Next.js catch-all routes (`app/route.ts` and `app/[...slug]/route.ts`):
+Served via the Next.js catch-all route (`app/[...slug]/route.ts`; `/` is React — see `docs/ROUTE_MAP.md`):
 - **Core Pages:** `/` (Home), `/about-us`, `/industries-we-serve`, `/dgca-compliance`, `/drone-training`, `/repairs-maintenance`, `/finance-insurance`, `/edp-professional-services`, `/scrap-recycling`, `/drone-jobs-career`, `/government-projects-schemes`, `/india-market-entry`, `/partner-with-us`.
 - **Legacy Redirects:** `/drone-marketplace` (redirects to `/marketplace`), `/drone-accessories` (redirects to `/marketplace?section=accessories`).
 - **Legal & Compliance:** `legal.php?page=tos`, `legal.php?page=privacy`, `legal.php?page=refund`.

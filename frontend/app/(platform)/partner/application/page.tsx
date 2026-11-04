@@ -9,6 +9,7 @@ import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { FormField } from '@/components/platform/FormField';
+import { InternationalPartnerHints } from '@/components/platform/InternationalPartnerHints';
 import { ApiError } from '@/lib/api/types';
 import type { VerificationStatus } from '@/lib/api/types';
 
@@ -223,6 +224,8 @@ function ApplicationInner() {
           <div className={statusCalloutClass} role="status">
             {statusCallout}
           </div>
+
+          <InternationalPartnerHints country={form.country} />
 
           <form
             className={`platform-card platform-form platform-form-card${formReadOnly ? ' platform-form-readonly' : ''}`}

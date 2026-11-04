@@ -17,13 +17,12 @@ import {
   SERVICES_MEGA_COL2,
 } from '@/components/marketing/marketing-site';
 
-function dashboardLink(role: string | undefined): { href: string; label: string } | null {
-  if (role === 'PLATFORM_ADMIN') return { href: '/admin', label: 'Admin' };
-  if (role === 'PARTNER') return { href: '/partner', label: 'Partner' };
-  if (role === 'BUYER' || role === 'GOVERNMENT')
-    return { href: '/buyer/rfqs', label: 'My RFQs' };
-  return null;
-}
+import {
+  getAccountNavLinks,
+  getDashboardLink,
+  HEADER_LOGIN_CTA,
+  HEADER_REGISTER_PARTNER_CTA,
+} from '@/lib/platform/header-nav';
 
 function MegaColumn({
   items,
@@ -51,7 +50,9 @@ function MegaColumn({
 export function MarketingHeader() {
   const pathname = usePathname();
   const { user, logout, loading } = useAuth();
-  const dash = dashboardLink(user?.role);
+  const dash = getDashboardLink(user?.role);
+  const accountLinks = getAccountNavLinks(user?.role);
+  const isBuyer = user?.role === 'BUYER' || user?.role === 'GOVERNMENT';
   const isHome = pathname === '/';
   const isAbout = pathname === '/about-us' || pathname.startsWith('/about');
   const isMarketplace = pathname.startsWith('/marketplace');
@@ -169,37 +170,21 @@ export function MarketingHeader() {
                 <div className="header-auth-links">
                   {user ? (
                     <>
-                      {dash && (
-                        <Link href={dash.href} className="header-auth-link" style={{ fontWeight: 600, color: '#1e3a29' }}>
-                          <i className="bi bi-speedometer2" /> {dash.label}
-                        </Link>
-                      )}
-                      {(user.role === 'BUYER' || user.role === 'GOVERNMENT') && (
-                        <>
-                          <Link href="/buyer/rfqs" className="header-auth-link">
-                            My RFQs
+                      {accountLinks.map((item) =>
+                        item.cart ? (
+                          <CartNavLink key={item.href} />
+                        ) : (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="header-auth-link"
+                            style={item.href === dash?.href && !isBuyer ? { fontWeight: 600, color: '#1e3a29' } : undefined}
+                          >
+                            {item.href === dash?.href && !isBuyer && <i className={`bi ${item.icon}`} />}
+                            {item.href === dash?.href && !isBuyer ? ' ' : ''}
+                            {item.label}
                           </Link>
-                          <Link href="/buyer/orders" className="header-auth-link">
-                            My Orders
-                          </Link>
-                          <Link href="/buyer/messages" className="header-auth-link">
-                            Messages
-                          </Link>
-                          <CartNavLink />
-                        </>
-                      )}
-                      {user.role === 'PARTNER' && (
-                        <>
-                          <Link href="/partner/rfqs" className="header-auth-link">
-                            B2B RFPs
-                          </Link>
-                          <Link href="/partner/orders" className="header-auth-link">
-                            Orders
-                          </Link>
-                          <Link href="/partner/messages" className="header-auth-link">
-                            Messages
-                          </Link>
-                        </>
+                        ),
                       )}
                       <span className="header-auth-email" title={user.email}>{user.email}</span>
                       <button type="button" className="header-auth-link header-auth-btn" onClick={() => logout()}>
@@ -208,11 +193,11 @@ export function MarketingHeader() {
                     </>
                   ) : (
                     <>
-                      <Link href="/auth/login" className="header-auth-link" style={{ fontWeight: 600 }}>
-                        Login
+                      <Link href={HEADER_LOGIN_CTA.href} className="header-auth-link" style={{ fontWeight: 600 }}>
+                        {HEADER_LOGIN_CTA.label}
                       </Link>
                       <Link
-                        href="/auth/register?type=partner"
+                        href={HEADER_REGISTER_PARTNER_CTA.href}
                         style={{
                           backgroundColor: '#1e3a29',
                           color: '#ffffff',
@@ -227,7 +212,7 @@ export function MarketingHeader() {
                           gap: '0.35rem',
                         }}
                       >
-                        <i className="bi bi-patch-check-fill" /> Register as B2B Partner
+                        <i className="bi bi-patch-check-fill" /> {HEADER_REGISTER_PARTNER_CTA.label}
                       </Link>
                     </>
                   )}
@@ -345,18 +330,18 @@ export function MarketingHeader() {
           {!loading && !user && (
             <div className="mobile-auth-row" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <Link
-                href="/auth/register?type=partner"
+                href={HEADER_REGISTER_PARTNER_CTA.href}
                 className="platform-btn platform-btn-cta platform-btn-full"
                 style={{ textAlign: 'center', textDecoration: 'none' }}
               >
-                Register as B2B Partner
+                {HEADER_REGISTER_PARTNER_CTA.label}
               </Link>
               <Link
-                href="/auth/login"
+                href={HEADER_LOGIN_CTA.href}
                 className="platform-btn platform-btn-secondary platform-btn-full"
                 style={{ textAlign: 'center', textDecoration: 'none' }}
               >
-                Login to Portal
+                {HEADER_LOGIN_CTA.label}
               </Link>
             </div>
           )}
@@ -364,6 +349,23 @@ export function MarketingHeader() {
             <Link href={dash.href} className="platform-btn platform-btn-cta platform-btn-full" style={{ display: 'block', textAlign: 'center', marginBottom: '0.5rem', textDecoration: 'none' }}>
               Go to {dash.label} Dashboard
             </Link>
+          )}
+          {user && accountLinks.length > 0 && (
+            <div className="mobile-auth-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              {accountLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="platform-btn platform-btn-secondary"
+                  style={{ flex: '1 1 40%', textAlign: 'center', textDecoration: 'none' }}
+                >
+                  <i className={`bi ${item.icon}`} /> {item.label}
+                </Link>
+              ))}
+              <button type="button" className="platform-btn platform-btn-secondary" style={{ flex: '1 1 100%' }} onClick={() => logout()}>
+                Sign out ({user.email})
+              </button>
+            </div>
           )}
           <Link
             href="/enquiry"

@@ -1,5 +1,8 @@
 # GarudHub — UI/UX & Scalability Audit Report
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Date:** October 2026  
 **Repository:** `garud` (Next.js frontend + NestJS backend)  
 **Audience:** Product, design, and engineering stakeholders  

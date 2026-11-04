@@ -1,5 +1,8 @@
 # GarudHub — Spec vs Current Project Gap Analysis
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Date:** 2026-10-22  
 **Spec source:** `docs/DECODE_JWT_SPEC.txt` (wireframe / blueprint extracted from JWT decode workflow; filename is misleading — content is the **GarudHub website UI blueprint**, not JWT technical notes)  
 **Code baseline:** `docs/CODE_LEVEL_STATUS.md` + spot verification on branch `feature/task-003-004-payments-workflow` @ `9e72591` (`main` @ `1048262` is essentially README-only)  

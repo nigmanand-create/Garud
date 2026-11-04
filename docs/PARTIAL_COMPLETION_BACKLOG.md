@@ -1,5 +1,8 @@
 # Partial completion backlog (spec → done)
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Sources:** `docs/SPEC_VS_PROJECT_GAP_ANALYSIS.md`, `docs/CODE_LEVEL_STATUS.md`, `docs/DECODE_JWT_SPEC.txt`, `README.md` (Partial bucket)  
 **Production launch:** phased P0/P1/P2 checklist, smoke tests, and ops tasks → [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).  
 **Rule:** Finish **Partial** items before **Not started** mega-features (Leads DB, training batches, React home rewrite, in-app messaging).

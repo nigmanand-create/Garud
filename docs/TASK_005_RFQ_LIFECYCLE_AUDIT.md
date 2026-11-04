@@ -1,5 +1,8 @@
 # GarudHub — TASK-005 & End-to-End Workflow Verification Audit
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Status:** Completed & Verified  
 **Date:** 2026-10-22  
 **Scope:** RFQ & Vendor Bidding Lifecycle Hardening (Option 1 / TASK-005) and Full Multi-Role End-to-End Workflow Verification (Option 4)

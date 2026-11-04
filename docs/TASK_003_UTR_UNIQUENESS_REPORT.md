@@ -1,5 +1,8 @@
 # GarudHub — TASK-003: Enforce Global UTR Uniqueness Report
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Status:** Completed & Verified  
 **Date:** 2026-10-20  
 **Scope:** Payment Security & Concurrency Hardening (Bank Transfer UTR)

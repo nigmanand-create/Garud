@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { InternationalPartnerHints } from '@/components/platform/InternationalPartnerHints';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import {
   getPartnerOnboardingSteps,
@@ -47,6 +48,7 @@ export function PartnerOnboardingChecklist({
         </div>
         <StatusBadge status={verificationStatus} />
       </div>
+      <InternationalPartnerHints country={data.country} />
       <ol className="platform-checklist">
         {steps.map((step, index) => (
           <li

@@ -1,20 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { resolveSnapshotBridge } from '@/lib/snapshot-bridge';
 
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  if (pathname === '/drone-accessories' || pathname === '/drone-accessories/') {
+  const bridge = resolveSnapshotBridge(pathname);
+  if (bridge) {
     const url = request.nextUrl.clone();
-    url.pathname = '/marketplace';
-    url.search = 'section=accessories';
-    return NextResponse.redirect(url, 307);
-  }
-
-  if (pathname === '/drone-marketplace' || pathname === '/drone-marketplace/') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/marketplace';
-    url.search = '';
+    url.pathname = bridge.pathname;
+    url.search = bridge.search ?? '';
+    url.hash = bridge.hash ?? '';
     return NextResponse.redirect(url, 307);
   }
 
@@ -52,9 +48,20 @@ export const config = {
   matcher: [
     '/legal.php',
     '/blogging',
-    '/drone-accessories',
-    '/drone-accessories/',
+    // Keep in sync with SNAPSHOT_REACT_BRIDGE (lib/snapshot-bridge.ts); matcher must be literal.
     '/drone-marketplace',
     '/drone-marketplace/',
+    '/drone-accessories',
+    '/drone-accessories/',
+    '/partner-with-us',
+    '/partner-with-us/',
+    '/drone-training',
+    '/drone-training/',
+    '/dgca-compliance',
+    '/dgca-compliance/',
+    '/repairs-maintenance',
+    '/repairs-maintenance/',
+    '/finance-insurance',
+    '/finance-insurance/',
   ],
 };

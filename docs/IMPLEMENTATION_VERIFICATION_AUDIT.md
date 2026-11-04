@@ -1,5 +1,8 @@
 # GarudHub — Independent Implementation Verification Audit Report
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 > **Document Type:** Independent Technical & Functional Code Verification Audit  
 > **Repository:** `github.com/nigmanand-create/Garud` (Local workspace: `/Users/blackstar/Desktop/dev/client/garud`)  
 > **Audit Date:** October 20, 2026  

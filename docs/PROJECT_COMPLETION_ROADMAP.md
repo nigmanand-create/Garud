@@ -1,5 +1,8 @@
 # GarudHub — project completion roadmap
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Vision:** Reach **~90% of the Decode JWT / wireframe spec** while **production is live and stable on [garudhub.me](https://garudhub.me)** — partial features become “done,” mega-features (Leads DB, full messaging, React home rewrite) follow in Phase C.
 
 **Sources:** [`PARTIAL_COMPLETION_BACKLOG.md`](./PARTIAL_COMPLETION_BACKLOG.md), [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md), [`SPEC_VS_PROJECT_GAP_ANALYSIS.md`](./SPEC_VS_PROJECT_GAP_ANALYSIS.md)

@@ -12,6 +12,7 @@ import {
 import type { AccountType } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 import { useAuth } from '@/components/platform/AuthProvider';
+import { InternationalPartnerHints } from '@/components/platform/InternationalPartnerHints';
 import {
   AuthErrorBanner,
   AuthPage,
@@ -183,6 +184,9 @@ function RegisterPageContent() {
               After signup, complete your partner application and upload documents
               for admin approval.
             </p>
+          ) : null}
+          {isPartnerType ? (
+            <InternationalPartnerHints accountType={accountType} country={form.country} />
           ) : null}
         </fieldset>
 

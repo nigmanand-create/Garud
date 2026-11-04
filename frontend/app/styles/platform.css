@@ -5964,3 +5964,187 @@ button.mod-kpi-card {
   padding-left: 1.15rem;
   line-height: 1.7;
 }
+
+/* ── React home (C7) ───────────────────────────────────────────── */
+.platform-home-flow {
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+}
+
+.platform-home-flow__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-home-flow__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-home-flow__node {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--platform-text);
+  background: var(--platform-bg);
+}
+
+.platform-home-flow__node--hub {
+  border-color: var(--platform-accent);
+  color: #fff;
+  background: var(--platform-accent);
+}
+
+.platform-home-flow__node--support {
+  color: var(--platform-accent);
+  background: #f3f7f4;
+}
+
+.platform-home-flow__arrow,
+.platform-home-flow__under {
+  color: var(--platform-muted);
+}
+
+.platform-home-flow__under {
+  margin: 0.75rem 0;
+  font-size: 1.25rem;
+}
+
+.platform-home-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.platform-home-tiles--compact {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.platform-home-tile {
+  position: relative;
+  display: block;
+  margin-bottom: 0;
+  padding: 1.5rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.platform-home-tile:hover {
+  box-shadow: var(--platform-shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.platform-home-tile--compact {
+  text-align: center;
+  padding: 1.1rem 1rem;
+}
+
+.platform-home-tile__icon {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 1.6rem;
+  color: var(--platform-accent);
+}
+
+.platform-home-tile__num {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.platform-home-tile__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--platform-text);
+}
+
+.platform-home-tile__desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.platform-home-step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.platform-home .platform-b2b-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-home-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-home-chip {
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--platform-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--platform-accent);
+  background: var(--platform-surface);
+}
+
+.platform-home-final-cta {
+  margin-bottom: 0;
+  padding: 3rem 2rem;
+}
+
+.platform-home-final-cta__title {
+  margin-bottom: 1.5rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+/* ── International partner onboarding hints (P-UX-05) ───────────── */
+.platform-intl-hints {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--platform-radius);
+  font-size: 0.85rem;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.platform-intl-hints__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.platform-intl-hints__list {
+  margin: 0;
+  padding-left: 1.15rem;
+  line-height: 1.6;
+}
+
+.platform-intl-hints a {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+}

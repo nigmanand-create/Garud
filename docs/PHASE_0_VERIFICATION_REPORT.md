@@ -1,5 +1,8 @@
 # GarudHub — Phase 0: Test and Lint Infrastructure Verification Report
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 > **Document Type:** Phase 0 Infrastructure Stabilization & Verification Report  
 > **Repository:** `github.com/nigmanand-create/Garud` (Local workspace: `/Users/blackstar/Desktop/dev/client/garud`)  
 > **Date:** October 20, 2026  

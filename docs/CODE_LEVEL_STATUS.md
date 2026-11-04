@@ -1,5 +1,8 @@
 # GarudHub — Code-Level Current Status
 
+> **Baseline snapshot (2026-10-22).** Later work (PRD Phases 1–3: lead loop, partner dashboard modules, React home, header unification) is tracked in [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md); current routes in [`ROUTE_MAP.md`](./ROUTE_MAP.md). Notably `/` is now a React page and `PlatformShell` has been deleted.
+
+
 **Generated:** 2026-10-22 (filesystem + git verified)  
 **Repository:** `/Users/blackstar/Desktop/dev/client/garud`  
 **Supersedes:** `docs/PROJECT_STATUS_DETAILED.md` (2026-10-20) — treat that file as stale for route counts, migrations, RFQ→order, fulfillment, and marketing mix.

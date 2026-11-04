@@ -1,5 +1,8 @@
 # UI Design Consistency Plan — GarudHub Platform
 
+> **Point-in-time document — may be stale.** Current status: [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md) · open work: [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · routes: [`ROUTE_MAP.md`](./ROUTE_MAP.md).
+
+
 **Status:** Phase A–C implemented on all `(platform)` routes (2026-10-23). Snapshot HTML (47 pages) still out of scope.   Phase C implemented (2026-10-23).  
 **Audience:** Client presentation prep + engineering rollout.  
 **Scope:** Next.js `(platform)` routes under `frontend/app/(platform)/**/page.tsx`.  

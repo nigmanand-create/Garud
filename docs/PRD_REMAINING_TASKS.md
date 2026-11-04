@@ -1,6 +1,6 @@
 # GarudHub — PRD remaining tasks
 
-**Date:** November 3, 2026 (Phase 1 lead loop implemented; POR RFQ accept and per-vertical service routes remain)  
+**Date:** November 4, 2026 (Phases 1–3 implemented; Phase 3 platform/marketing unification — see [`ROUTE_MAP.md`](./ROUTE_MAP.md); POR RFQ accept and per-vertical service routes remain)  
 **Spec:** [`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) (wireframe / GarudHub UI blueprint; `decode_jwt.docx` is not in-repo)  
 **Gap analysis:** [`SPEC_VS_PROJECT_GAP_ANALYSIS.md`](./SPEC_VS_PROJECT_GAP_ANALYSIS.md)  
 **Code baseline:** Active product on **`dev`** branch (staging → [dev.garudhub.me](https://dev.garudhub.me)); merge **`dev` → `main`** for production ([`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md))
@@ -116,15 +116,15 @@ Spec sidebar: Profile, Products, Services, Leads, RFQs, Enquiries, Orders, Partn
 
 One coherent nav and chrome across snapshot era and React platform (gap §6.1 two-track marketing).
 
-- [ ] **Platform chrome decision (B6)** — `PlatformShell` for `/partner`, `/buyer`, `/admin` **or** documented keep-`MarketingShell` + delete dead code (P-UI-11).
-- [ ] **Fix production footer copy** — Remove “local dev” and unused PlatformShell drift (gap §2 Design ~60%).
-- [ ] **React home at `/` (C7)** — Spec hero, ecosystem, 8 tiles, register CTA—or enforce ≥90% nav parity on snapshot (P-UI-01, gap §2 Home).
-- [ ] **Marketing snapshot bridge — top 5 paths** — High-traffic slugs → React or guaranteed link parity (P-UI-12).
-- [ ] **Unified header CTAs** — LOGIN | REGISTER AS B2B PARTNER on all surfaces (spec §1.2).
-- [ ] **Buyer header parity audit** — My Orders, My RFQs, cart visible everywhere logged-in buyer/gov (P-UX-04).
-- [ ] **International partner journey UX** — Dedicated onboarding hints beyond account type enum (P-UX-05, gap §3 ~65%).
-- [ ] **Living Spec ↔ Route map** — Maintain gap §2 matrix in repo README or this doc appendix (roadmap consolidation #4).
-- [ ] **Archive or banner stale status docs** — Point readers to `CODE_LEVEL_STATUS.md` (gap §6.1 doc drift).
+- [x] **Platform chrome decision (B6)** — `PlatformShell` for `/partner`, `/buyer`, `/admin` **or** documented keep-`MarketingShell` + delete dead code (P-UI-11). *Done: decision = keep `MarketingShell` for all React routes; `PlatformShell.tsx` deleted (its CSS classes were never defined). Documented in [`ROUTE_MAP.md`](./ROUTE_MAP.md).*
+- [x] **Fix production footer copy** — Remove “local dev” and unused PlatformShell drift (gap §2 Design ~60%). *Done by deleting `PlatformShell`; the only live footer is `MarketingFooter` (no dev copy).*
+- [x] **React home at `/` (C7)** — Spec hero, ecosystem, 8 tiles, register CTA—or enforce ≥90% nav parity on snapshot (P-UI-01, gap §2 Home). *Done: `app/(platform)/page.tsx` + `lib/platform/home-content.ts` (hero, who we are, ecosystem flow, 8 service tiles, who can join, why, how it works, industries, register CTA); `app/route.ts` snapshot home removed. Partial: hero uses the shared green-gradient B2B hero (no photo) and “who we are” has no ecosystem graphic.*
+- [x] **Marketing snapshot bridge — top 5 paths** — High-traffic slugs → React or guaranteed link parity (P-UI-12). *Done: `/partner-with-us`, `/drone-training`, `/dgca-compliance`, `/repairs-maintenance`, `/finance-insurance` now redirect to React (`lib/snapshot-bridge.ts` + middleware), joining existing `/drone-marketplace`, `/drone-accessories`, `/enquiry.php`. ~30 other snapshots (blog, legal, remaining services/partner pages) stay HTML.*
+- [x] **Unified header CTAs** — LOGIN | REGISTER AS B2B PARTNER on all surfaces (spec §1.2). *Done: shared constants in `lib/platform/header-nav.ts`; React header + mobile drawer use them; snapshot pages get the same CTAs injected before “Contact Us”. Partial: snapshot headers are static, so they never show logged-in state.*
+- [x] **Buyer header parity audit** — My Orders, My RFQs, cart visible everywhere logged-in buyer/gov (P-UX-04). *Done on all React routes (desktop + mobile drawer now list My RFQs · My Orders · Messages · Cart; duplicate “My RFQs” removed). Partial: legacy snapshot pages cannot show cart/orders (static HTML).*
+- [x] **International partner journey UX** — Dedicated onboarding hints beyond account type enum (P-UX-05, gap §3 ~65%). *Done: `InternationalPartnerHints` on register (INTERNATIONAL_COMPANY or non-India country), `/partner/application`, and the dashboard onboarding checklist; links to a pre-filled India-entry enquiry. Partial: hints only — no country-specific document requirements or backend fields.*
+- [x] **Living Spec ↔ Route map** — Maintain gap §2 matrix in repo README or this doc appendix (roadmap consolidation #4). *Done: [`ROUTE_MAP.md`](./ROUTE_MAP.md) (spec nav → route, role headers, bridge table, maintenance rule).*
+- [x] **Archive or banner stale status docs** — Point readers to `CODE_LEVEL_STATUS.md` (gap §6.1 doc drift). *Done: banner added to the audit/gap/plan/task reports, backlog and roadmap; `CODE_LEVEL_STATUS.md` marked as a baseline pointing to this doc.*
 
 ---
 

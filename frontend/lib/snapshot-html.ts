@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { injectSnapshotHeaderCtas } from '@/lib/snapshot-bridge';
 
 const root = process.cwd();
 const rawDir = join(root, 'content', 'raw');
@@ -110,6 +111,7 @@ export function localizeSnapshotHtml(html: string): string {
   out = out.replaceAll('href="/about.php"', 'href="/about-us"');
 
   out = bridgeMarketingToPlatform(out);
+  out = injectSnapshotHeaderCtas(out);
 
   out = fixUtf8Mojibake(out);
 

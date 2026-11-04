@@ -225,7 +225,7 @@ export function MarketingHeader() {
             <button
               className="header-mobile-toggle"
               aria-label="Open menu"
-              aria-expanded="false"
+              aria-expanded={false}
               aria-controls="mobileMenu"
               type="button"
             >
@@ -241,8 +241,8 @@ export function MarketingHeader() {
       <div
         className="mobile-menu mobile-menu-drawer drawer-right"
         id="mobileMenu"
-        aria-hidden="true"
-        inert=""
+        aria-hidden={true}
+        inert
         style={{ backgroundColor: '#ffffff', width: '85%' }}
       >
         <div className="mobile-menu-header">

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
-import { addToCart } from '@/lib/api/cart';
+import { addToCart, clearCart } from '@/lib/api/cart';
+import { isSingleSellerConflict, SINGLE_SELLER_POLICY } from '@/lib/platform/cart';
 import { useAuth } from '@/components/platform/AuthProvider';
 import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
@@ -74,6 +75,7 @@ export default function ListingDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [cartError, setCartError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [sellerConflict, setSellerConflict] = useState(false);
   const [loading, setLoading] = useState(true);
   const isBuyer = user?.role === 'BUYER' || user?.role === 'GOVERNMENT';
   const canAddToCart =
@@ -98,6 +100,31 @@ export default function ListingDetailPage() {
   }
   if (error || !listing) {
     return <div className="platform-card platform-error">{error ?? 'Not found'}</div>;
+  }
+
+  async function handleAddToCart(replaceCart: boolean) {
+    if (!listing) return;
+    setCartError(null);
+    setSellerConflict(false);
+    if (!isBuyer) {
+      router.push('/auth/login');
+      return;
+    }
+    setAdding(true);
+    try {
+      // One seller per cart: replacing means clearing the existing (other-seller) cart first.
+      if (replaceCart) await clearCart();
+      await addToCart(listing.id, listing.minOrderQuantity ?? 1);
+      router.push('/buyer/cart');
+    } catch (e) {
+      if (isSingleSellerConflict(e)) {
+        setSellerConflict(true);
+      } else {
+        setCartError(e instanceof ApiError ? e.message : 'Could not add to cart');
+      }
+    } finally {
+      setAdding(false);
+    }
   }
 
   const sectionId = sectionForListing(listing.category, listing.listingType);
@@ -258,29 +285,35 @@ export default function ListingDetailPage() {
                     type="button"
                     className="platform-btn-add-cart"
                     disabled={adding}
-                    onClick={async () => {
-                      setCartError(null);
-                      if (!isBuyer) {
-                        router.push('/auth/login');
-                        return;
-                      }
-                      setAdding(true);
-                      try {
-                        await addToCart(listing.id, listing.minOrderQuantity ?? 1);
-                        router.push('/buyer/cart');
-                      } catch (e) {
-                        setCartError(
-                          e instanceof ApiError ? e.message : 'Could not add to cart',
-                        );
-                      } finally {
-                        setAdding(false);
-                      }
-                    }}
+                    onClick={() => handleAddToCart(false)}
                   >
                     🛒 Direct Sample Order ({formatPrice(listing.priceOnRequest, listing.priceInr)})
                   </button>
                   {cartError && (
                     <p className="platform-error platform-text-muted-sm platform-mt-sm">{cartError}</p>
+                  )}
+                  {sellerConflict && (
+                    <div className="platform-notice-warn platform-card platform-mt-sm" role="alert">
+                      <p className="platform-text-sm">
+                        <strong>Your cart has items from another seller.</strong> {SINGLE_SELLER_POLICY}
+                      </p>
+                      <p className="platform-link-row">
+                        <Link href="/buyer/cart" className="platform-btn platform-btn-secondary platform-btn-sm">
+                          Go to cart
+                        </Link>{' '}
+                        <button
+                          type="button"
+                          className="platform-btn platform-btn-sm"
+                          disabled={adding}
+                          onClick={() => handleAddToCart(true)}
+                        >
+                          Clear cart &amp; add this item
+                        </button>{' '}
+                        <Link href="/buyer/rfqs/new" className="platform-btn platform-btn-secondary platform-btn-sm">
+                          Raise an RFQ instead
+                        </Link>
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

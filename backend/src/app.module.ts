@@ -19,6 +19,7 @@ import { EnquiriesModule } from './modules/enquiries/enquiries.module';
 import { PartnerHubModule } from './modules/partner-hub/partner-hub.module';
 import { PartnershipsModule } from './modules/partnerships/partnerships.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { PartnerBillingModule } from './modules/partner-billing/partner-billing.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MessagesModule } from './modules/messages/messages.module';
     PartnerHubModule,
     PartnershipsModule,
     MessagesModule,
+    PartnerBillingModule,
   ],
   controllers: [AppController],
   providers: [

@@ -25,6 +25,7 @@ import { Roles } from '../identity/decorators/roles.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { RolesGuard } from '../identity/guards/roles.guard';
 import type { AuthenticatedUser } from '../identity/types/auth.types';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 import { VerifiedPartnerGuard } from '../partner/guards/verified-partner.guard';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
 import { CatalogService } from './catalog.service';
@@ -41,6 +42,7 @@ export class PartnerCatalogController {
   constructor(
     private readonly catalogService: CatalogService,
     private readonly listingMediaService: ListingMediaService,
+    private readonly billing: PartnerBillingService,
   ) {}
 
   @Get()
@@ -74,10 +76,11 @@ export class PartnerCatalogController {
 
   @Post()
   @ApiOperation({ summary: 'Create listing (verified partner only)' })
-  create(
+  async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateListingDto,
   ) {
+    await this.billing.assertCanCreateListing(user.userId);
     return this.catalogService.createForPartner(user.userId, dto);
   }
 

@@ -81,20 +81,6 @@ export type PartnerServicesHub = {
   }[];
 };
 
-export type PartnerSubscription = {
-  billingEnabled: boolean;
-  plan: {
-    key: string;
-    name: string;
-    priceInr: number;
-    status: string;
-    description: string;
-  };
-  entitlements: string[];
-  usage: { listings: number; listingLimit: number | null };
-  roadmap: string[];
-};
-
 export type PartnerAuditEvent = {
   id: string;
   kind: 'KYC' | 'LISTING';
@@ -114,9 +100,6 @@ export const getPartnerAnalytics = (days = 30) =>
 
 export const getPartnerServicesHub = () =>
   apiRequest<PartnerServicesHub>('/partner/services', { auth: true });
-
-export const getPartnerSubscription = () =>
-  apiRequest<PartnerSubscription>('/partner/subscription', { auth: true });
 
 export const getPartnerAuditLog = (take = 50) =>
   apiRequest<{ items: PartnerAuditEvent[] }>(`/partner/audit-log?take=${take}`, {

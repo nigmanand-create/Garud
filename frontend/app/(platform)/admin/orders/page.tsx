@@ -84,6 +84,11 @@ function OrdersInner() {
       <PlatformPageHeader
         title="Platform Order Oversight"
         subtitle="Track all B2B drone transactions, gross merchandise value (GMV), vendor fulfillment, and settlement states."
+        actions={
+          <Link href="/admin/analytics" className="platform-btn platform-btn-secondary platform-btn-sm">
+            GMV &amp; RFQ analytics →
+          </Link>
+        }
       />
       <AdminSubnav />
 

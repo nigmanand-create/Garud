@@ -30,6 +30,8 @@ const QUICK_LINKS = [
   { href: '/admin/enquiries', label: 'Triage new enquiries' },
   { href: '/admin/partnerships', label: 'Partnership requests' },
   { href: '/admin/listings', label: 'Moderate listings' },
+  { href: '/admin/analytics', label: 'GMV & RFQ analytics' },
+  { href: '/admin/billing', label: 'Partner plans & billing' },
   { href: '/admin/users', label: 'Manage admins & roles' },
   { href: '/admin/audit-log', label: 'Open audit log' },
 ];

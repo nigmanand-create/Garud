@@ -7,8 +7,12 @@ import {
   HttpStatus,
   Param,
   Post,
+  Req,
   UseGuards,
+  BadRequestException,
+  type RawBodyRequest,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
@@ -108,10 +112,12 @@ export class PaymentsController {
     summary: 'Public webhook endpoint for Razorpay payment events',
   })
   webhook(
-    @Body() body: any,
-    @Headers('x-razorpay-signature') signature: string,
+    @Req() req: RawBodyRequest<Request>,
+    @Headers('x-razorpay-signature') signature?: string,
   ) {
-    const rawBody = typeof body === 'string' ? body : JSON.stringify(body);
-    return this.paymentsService.handleRazorpayWebhook(rawBody, signature);
+    // Signature is computed over the exact bytes Razorpay sent (needs `rawBody: true` in main.ts).
+    const raw = req.rawBody?.toString('utf8');
+    if (!raw) throw new BadRequestException('Missing raw request body');
+    return this.paymentsService.handleRazorpayWebhook(raw, signature);
   }
 }

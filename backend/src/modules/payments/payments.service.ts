@@ -5,6 +5,8 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
+  BadGatewayException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +19,16 @@ import {
 } from '@prisma/client';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import {
+  isProductionDeploy,
+  verifyOrderPaymentSignature,
+  verifyWebhookSignature,
+} from '../../shared/razorpay/razorpay.util';
+import {
+  isSubscriptionEvent,
+  PartnerBillingService,
+  type SubscriptionWebhookEntity,
+} from '../partner-billing/partner-billing.service';
 import {
   AdminVerifyBankTransferDto,
   CreatePaymentIntentDto,
@@ -50,6 +62,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly partnerBilling: PartnerBillingService,
   ) {
     this.razorpayKeyId =
       this.configService.get<string>('RAZORPAY_KEY_ID') ||
@@ -116,6 +129,12 @@ export class PaymentsService {
     let gatewayOrderId = '';
     let sandboxMode = false;
 
+    if (!this.isConfigured && isProductionDeploy()) {
+      throw new ServiceUnavailableException(
+        'Online payment is not available right now. Use bank transfer or contact support.',
+      );
+    }
+
     if (this.isConfigured) {
       try {
         const auth = Buffer.from(
@@ -149,6 +168,15 @@ export class PaymentsService {
         const data = (await response.json()) as { id: string };
         gatewayOrderId = data.id;
       } catch (err) {
+        if (isProductionDeploy()) {
+          // Never simulate a payment where real money is involved.
+          this.logger.error(
+            `Razorpay order creation failed: ${(err as Error).message}`,
+          );
+          throw new BadGatewayException(
+            'Could not start the payment with the gateway. Please try again.',
+          );
+        }
         this.logger.warn(
           `Failed to contact Razorpay API, falling back to sandbox: ${(err as Error).message}`,
         );
@@ -216,23 +244,18 @@ export class PaymentsService {
       throw new ForbiddenException('Access denied for this order');
     }
 
-    const isSandboxOrder = dto.razorpayOrderId.startsWith('order_sand_');
-
-    if (!isSandboxOrder && this.isConfigured) {
-      const generatedSignature = crypto
-        .createHmac('sha256', this.razorpayKeySecret)
-        .update(`${dto.razorpayOrderId}|${dto.razorpayPaymentId}`)
-        .digest('hex');
-
-      if (generatedSignature !== dto.razorpaySignature) {
-        this.logger.warn(
-          `Invalid signature for order ${dto.orderId}. Expected ${generatedSignature}, got ${dto.razorpaySignature}`,
-        );
-        throw new BadRequestException('Payment signature verification failed');
-      }
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return {
+        success: true,
+        message: 'Order is already marked as PAID.',
+        orderId: order.id,
+        paymentStatus: PaymentStatus.PAID,
+        paymentId: dto.razorpayPaymentId,
+      };
     }
 
-    // Update or create transaction entry
+    // The gateway order must have been created by our own intent for THIS order.
+    // (A valid signature only proves the payment belongs to *some* order of the merchant.)
     const existingTx = await this.prisma.paymentTransaction.findFirst({
       where: {
         orderId: order.id,
@@ -240,6 +263,39 @@ export class PaymentsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    if (!existingTx) {
+      throw new BadRequestException(
+        'Payment does not match an open payment intent for this order',
+      );
+    }
+
+    const isSandboxOrder = dto.razorpayOrderId.startsWith('order_sand_');
+    if (isSandboxOrder) {
+      const meta = (existingTx.metadata ?? {}) as { sandboxMode?: boolean };
+      if (isProductionDeploy() || meta.sandboxMode !== true) {
+        this.logger.warn(
+          `Rejected sandbox payment verification for order ${dto.orderId}`,
+        );
+        throw new BadRequestException('Sandbox payments are not accepted here');
+      }
+    } else {
+      if (!this.isConfigured) {
+        throw new ServiceUnavailableException(
+          'Payment gateway is not configured',
+        );
+      }
+      if (
+        !verifyOrderPaymentSignature(
+          dto.razorpayOrderId,
+          dto.razorpayPaymentId,
+          dto.razorpaySignature,
+          this.razorpayKeySecret,
+        )
+      ) {
+        this.logger.warn(`Invalid payment signature for order ${dto.orderId}`);
+        throw new BadRequestException('Payment signature verification failed');
+      }
+    }
 
     await this.prisma.$transaction(async (tx) => {
       if (existingTx) {
@@ -501,63 +557,168 @@ export class PaymentsService {
   }
 
   /**
-   * Webhook listener for Razorpay async server-to-server notifications
+   * Razorpay webhook (server-to-server). Requires a valid `x-razorpay-signature` over the
+   * RAW body. Idempotent: replays of an already-applied event are no-ops.
    */
-  async handleRazorpayWebhook(rawBody: string, signature: string) {
+  async handleRazorpayWebhook(rawBody: string, signature?: string) {
     const webhookSecret = this.configService.get<string>(
       'RAZORPAY_WEBHOOK_SECRET',
     );
-    if (webhookSecret && signature) {
-      const expectedSig = crypto
-        .createHmac('sha256', webhookSecret)
-        .update(rawBody)
-        .digest('hex');
-
-      if (expectedSig !== signature) {
+    if (webhookSecret) {
+      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
         throw new BadRequestException('Invalid webhook signature');
       }
+    } else if (process.env.NODE_ENV === 'production') {
+      this.logger.error(
+        'Webhook received but RAZORPAY_WEBHOOK_SECRET is unset',
+      );
+      throw new ServiceUnavailableException('Webhook is not configured');
+    } else {
+      this.logger.warn(
+        'RAZORPAY_WEBHOOK_SECRET unset: accepting UNSIGNED webhook (non-production only)',
+      );
     }
 
-    const payload = JSON.parse(rawBody) as {
-      event: string;
-      payload?: {
-        payment?: {
-          entity?: {
-            id: string;
-            order_id: string;
-            amount: number;
-            status: string;
-          };
-        };
-      };
-    };
+    let payload: RazorpayWebhookPayload;
+    try {
+      payload = JSON.parse(rawBody) as RazorpayWebhookPayload;
+    } catch {
+      throw new BadRequestException('Webhook body is not valid JSON');
+    }
+
+    const event = payload.event;
+    const body = payload.payload ?? {};
+
+    if (isSubscriptionEvent(event) && body.subscription?.entity) {
+      const res = await this.partnerBilling.handleSubscriptionEvent(
+        event,
+        body.subscription.entity,
+      );
+      return { status: 'ok', event, handled: res.handled };
+    }
 
     if (
-      payload.event === 'payment.captured' &&
-      payload.payload?.payment?.entity
+      (event === 'payment.captured' || event === 'order.paid') &&
+      body.payment?.entity
     ) {
-      const p = payload.payload.payment.entity;
+      return {
+        status: 'ok',
+        event,
+        handled: await this.applyCapturedPayment(body.payment.entity),
+      };
+    }
+
+    if (event === 'payment.failed' && body.payment?.entity) {
+      const p = body.payment.entity;
       const tx = await this.prisma.paymentTransaction.findFirst({
         where: { gatewayOrderId: p.order_id },
+        orderBy: { createdAt: 'desc' },
       });
+      if (tx && tx.status !== TransactionStatus.SUCCESS) {
+        await this.prisma.paymentTransaction.update({
+          where: { id: tx.id },
+          data: {
+            status: TransactionStatus.FAILED,
+            gatewayPaymentId: p.id,
+            failureReason:
+              p.error_description ??
+              p.error_code ??
+              'Payment failed at gateway',
+          },
+        });
+        return { status: 'ok', event, handled: true };
+      }
+      return { status: 'ok', event, handled: false };
+    }
 
-      if (tx) {
+    if (event === 'refund.processed' && body.refund?.entity) {
+      const r = body.refund.entity;
+      const tx = await this.prisma.paymentTransaction.findFirst({
+        where: { gatewayPaymentId: r.payment_id },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (tx && tx.status === TransactionStatus.SUCCESS) {
+        const full = r.amount >= Math.round(tx.amountInr.toNumber() * 100);
         await this.prisma.$transaction(async (prismaTx) => {
           await prismaTx.paymentTransaction.update({
             where: { id: tx.id },
-            data: {
-              status: TransactionStatus.SUCCESS,
-              gatewayPaymentId: p.id,
-            },
+            data: { status: TransactionStatus.REFUNDED },
           });
-          await prismaTx.order.update({
-            where: { id: tx.orderId },
-            data: { paymentStatus: PaymentStatus.PAID },
-          });
+          if (full) {
+            await prismaTx.order.update({
+              where: { id: tx.orderId },
+              data: { paymentStatus: PaymentStatus.REFUNDED },
+            });
+          }
         });
+        return { status: 'ok', event, handled: true };
       }
+      return { status: 'ok', event, handled: false };
     }
 
-    return { status: 'ok' };
+    // Unknown / uninteresting events still get a 200 so Razorpay stops retrying.
+    return { status: 'ok', event, handled: false };
   }
+
+  private async applyCapturedPayment(p: RazorpayPaymentEntity) {
+    const tx = await this.prisma.paymentTransaction.findFirst({
+      where: { gatewayOrderId: p.order_id },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!tx) {
+      this.logger.warn(
+        `Captured payment ${p.id} for unknown order ${p.order_id}`,
+      );
+      return false;
+    }
+    if (tx.status === TransactionStatus.SUCCESS) return false; // replay
+
+    const expectedPaise = Math.round(tx.amountInr.toNumber() * 100);
+    if (p.amount !== expectedPaise) {
+      this.logger.error(
+        `Amount mismatch for ${p.order_id}: gateway ${p.amount} vs expected ${expectedPaise}; NOT marking paid`,
+      );
+      await this.prisma.paymentTransaction.update({
+        where: { id: tx.id },
+        data: {
+          failureReason: `Webhook amount mismatch (${p.amount} vs ${expectedPaise} paise) — manual review`,
+        },
+      });
+      return false;
+    }
+
+    await this.prisma.$transaction(async (prismaTx) => {
+      await prismaTx.paymentTransaction.update({
+        where: { id: tx.id },
+        data: {
+          status: TransactionStatus.SUCCESS,
+          gatewayPaymentId: p.id,
+          paymentMethod: tx.paymentMethod ?? 'online_razorpay',
+        },
+      });
+      await prismaTx.order.update({
+        where: { id: tx.orderId },
+        data: { paymentStatus: PaymentStatus.PAID },
+      });
+    });
+    return true;
+  }
+}
+
+interface RazorpayPaymentEntity {
+  id: string;
+  order_id: string;
+  amount: number;
+  status?: string;
+  error_code?: string;
+  error_description?: string;
+}
+
+interface RazorpayWebhookPayload {
+  event: string;
+  payload?: {
+    payment?: { entity?: RazorpayPaymentEntity };
+    refund?: { entity?: { payment_id: string; amount: number } };
+    subscription?: { entity?: SubscriptionWebhookEntity };
+  };
 }

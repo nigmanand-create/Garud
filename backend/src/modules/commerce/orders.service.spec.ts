@@ -17,6 +17,7 @@ import {
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { AdminService } from '../admin/admin.service';
 import { NotificationService } from '../notifications/notification.service';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 import { PaymentsService } from '../payments/payments.service';
 import { CartService } from './cart.service';
 import { CheckoutService } from './checkout.service';
@@ -49,6 +50,7 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
         AdminService,
         PaymentsService,
         PrismaService,
+        { provide: PartnerBillingService, useValue: {} },
         {
           provide: NotificationService,
           useValue: { notifyKycDecision: jest.fn() },
@@ -249,16 +251,25 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
           trackingUrl: 'https://delhivery.com/track/DEL1234567890',
           hardwareSerialNumbers: ['SN-DRONE-883', 'SN-BAT-001'],
           fulfillmentNotes: 'Dispatched via insured express shipment',
-          estimatedDeliveryAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+          estimatedDeliveryAt: new Date(
+            Date.now() + 86400000 * 3,
+          ).toISOString(),
         },
       );
 
       expect(updated.fulfillmentStatus).toBe(FulfillmentStatus.SHIPPED);
       expect(updated.carrierName).toBe('Delhivery Surface');
       expect(updated.trackingNumber).toBe('DEL1234567890');
-      expect(updated.trackingUrl).toBe('https://delhivery.com/track/DEL1234567890');
-      expect(updated.hardwareSerialNumbers).toEqual(['SN-DRONE-883', 'SN-BAT-001']);
-      expect(updated.fulfillmentNotes).toBe('Dispatched via insured express shipment');
+      expect(updated.trackingUrl).toBe(
+        'https://delhivery.com/track/DEL1234567890',
+      );
+      expect(updated.hardwareSerialNumbers).toEqual([
+        'SN-DRONE-883',
+        'SN-BAT-001',
+      ]);
+      expect(updated.fulfillmentNotes).toBe(
+        'Dispatched via insured express shipment',
+      );
       expect(updated.dispatchedAt).toBeDefined();
       expect(typeof updated.dispatchedAt).toBe('string');
     });

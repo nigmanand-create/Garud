@@ -15,6 +15,13 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
 
+  // Razorpay webhooks: the signature is an HMAC over the raw body, so it must reach Nest
+  // untouched (body is forwarded as raw bytes below).
+  const rzpSignature = request.headers.get('x-razorpay-signature');
+  if (rzpSignature) headers.set('x-razorpay-signature', rzpSignature);
+  const rzpEventId = request.headers.get('x-razorpay-event-id');
+  if (rzpEventId) headers.set('x-razorpay-event-id', rzpEventId);
+
   const method = request.method;
   let body: ArrayBuffer | undefined;
   if (method !== 'GET' && method !== 'HEAD') {

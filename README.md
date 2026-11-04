@@ -563,7 +563,7 @@ erDiagram
 
 | Service / System | Purpose | Status | Config Key(s) | Error Handling & Fallback |
 |---|---|---|---|---|
-| **Razorpay Payment Gateway** | Online B2B payments (Cards, Netbanking, UPI). | **Configured (Test Mode)** | `RAZORPAY_KEY_ID`<br>`RAZORPAY_KEY_SECRET`<br>`RAZORPAY_WEBHOOK_SECRET` | Graceful fallback to sandbox simulation mode if keys are omitted or invalid. |
+| **Razorpay Payment Gateway** | Online B2B payments (Cards, Netbanking, UPI). | **Configured (Test Mode)** | `RAZORPAY_KEY_ID`<br>`RAZORPAY_KEY_SECRET`<br>`RAZORPAY_WEBHOOK_SECRET` | Sandbox simulation if keys are omitted (non-production only); on `GARUD_DEPLOY_ENV=production` payments return 503/502 instead of simulating. Webhook requires a valid signature. See [`docs/PAYMENTS_RUNBOOK.md`](docs/PAYMENTS_RUNBOOK.md). |
 | **Corporate NEFT/RTGS Wire** | High-value B2B wire settlement. | **Complete (Offline)** | Internal banking reconciliation | Transactions recorded as `PROCESSING` pending admin UTR verification. |
 | **Local File Storage** | Storage of KYC PDFs and listing images. | **Complete (Local Disk)** | `UPLOAD_DIR=./uploads` | Validates MIME types (PDF, JPEG, PNG) and file sizes (5MB–10MB). Not durable for cloud. |
 | **DGCA / Drone Federation** | Informational compliance rules. | **Not Integrated (Static)** | None | Educational static pages only; no live API connection to DigitalSky. |

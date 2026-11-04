@@ -32,6 +32,8 @@ const TONE_MAP: Record<string, StatusTone> = {
   LOST: 'danger',
   DECLINED: 'danger',
   ACTIVE: 'success',
+  PENDING_PAYMENT: 'pending',
+  PAST_DUE: 'danger',
 };
 
 function toneForStatus(status: string): StatusTone {

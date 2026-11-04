@@ -57,11 +57,15 @@
 
 ### Payments
 
+> Full procedure, env matrix, webhook checklist and incident levers: **[`PAYMENTS_RUNBOOK.md`](./PAYMENTS_RUNBOOK.md)**.
+
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
 | P0-PAY1 | Razorpay **live** keys on prod (`rzp_live_…`) | Biz/Ops | Boot check when `GARUD_DEPLOY_ENV=production` |
 | P0-PAY2 | Webhook URL on **prod domain** | Biz/Ops | e.g. `https://garudhub.me/platform-api/v1/payments/webhook` or dedicated API host |
 | P0-PAY3 | Test checkout on **dev.garudhub.me** with test keys before go-live | QA | |
+| P0-PAY4 | Webhook go-live checklist (signature, replay, failed payment, refund) | QA/Ops | [`PAYMENTS_RUNBOOK.md` §3](./PAYMENTS_RUNBOOK.md#3-webhook-configuration) |
+| P0-PAY5 | `GARUD_DEPLOY_ENV=staging` on dev host (not `production`) so test keys boot and sandbox stays staging-only | Ops | Sandbox payments are rejected when `production` |
 
 ### Files & uploads
 
@@ -111,7 +115,7 @@ Full partial inventory: [`PARTIAL_COMPLETION_BACKLOG.md`](./PARTIAL_COMPLETION_B
 | P1-5 | DB | Managed Postgres (Neon, RDS, DO) + automated backups | Ops |
 | P1-6 | CI | **`main`** branch CI + deploy workflow (mirror dev-ci) | Eng |
 | P1-7 | Observability | Error tracking, uptime check on `/health` | Eng/Ops |
-| P1-8 | Payments | Partner subscription billing (**P-BE-02**, **C4**) | Eng/Biz |
+| P1-8 | Payments | Partner subscription billing (**P-BE-02**, **C4**) — **built (v1)**; go-live = runbook §4–5 (sync plans to live Razorpay, enable Subscriptions) | Eng/Biz |
 
 ---
 
@@ -134,6 +138,8 @@ Full partial inventory: [`PARTIAL_COMPLETION_BACKLOG.md`](./PARTIAL_COMPLETION_B
 | `GARUD_DEPLOY_ENV` | — | staging | production |
 | `SWAGGER_ENABLED` | — | true (optional) | **unset / false** |
 | Razorpay keys | test | test | **live** |
+| Razorpay webhook secret | optional | **required** | **required** |
+| Sandbox payment simulation | yes | yes (no keys) | **blocked** |
 | `prisma:seed` | yes | once if needed (`ALLOW_DEMO_SEED`) | **no** |
 | JWT secrets | example OK | strong unique | strong unique |
 

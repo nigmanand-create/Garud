@@ -6438,3 +6438,124 @@ button.mod-kpi-card {
 .platform-cell-best {
   color: var(--platform-success);
 }
+
+/* ---- Phase 6: plans, billing and commerce analytics ---- */
+.platform-plan-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.platform-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.1rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  background: var(--platform-surface);
+  box-shadow: var(--platform-shadow-card);
+}
+
+.platform-plan-card--current {
+  border-color: var(--platform-accent);
+  box-shadow: 0 0 0 2px rgb(30 58 41 / 0.15);
+}
+
+.platform-plan-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platform-accent);
+}
+
+.platform-plan-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  flex: 1;
+}
+
+.platform-meter {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--platform-border);
+  overflow: hidden;
+}
+
+.platform-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--platform-success);
+}
+
+.platform-meter--warn > span {
+  background: var(--platform-cta);
+}
+
+.platform-meter--full > span {
+  background: var(--platform-danger);
+}
+
+.platform-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 9rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--platform-border);
+}
+
+.platform-bar-chart > div {
+  flex: 1;
+  min-width: 2px;
+  background: var(--platform-accent-secondary);
+  border-radius: 3px 3px 0 0;
+}
+
+.platform-bar-chart > div[data-zero='true'] {
+  background: var(--platform-border);
+  height: 2px !important;
+}
+
+.platform-funnel {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.platform-funnel-row {
+  display: grid;
+  grid-template-columns: 11rem 1fr 6.5rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.platform-funnel-track {
+  height: 1.4rem;
+  background: var(--platform-bg);
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+  overflow: hidden;
+}
+
+.platform-funnel-track > span {
+  display: block;
+  height: 100%;
+  background: var(--platform-accent);
+}
+
+.platform-delta--up {
+  color: var(--platform-success);
+}
+
+.platform-delta--down {
+  color: var(--platform-danger);
+}
+
+.platform-notice-warn {
+  border-left: 4px solid var(--platform-cta);
+}
+
+@media (max-width: 640px) {
+  .platform-funnel-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -296,7 +296,8 @@ In Razorpay dashboard (staging vs live mode per environment):
 
 - Webhook URL: `https://app.garudhub.example/platform-api/v1/payments/webhook`  
   or `https://api.garudhub.example/api/v1/payments/webhook`
-- Set `RAZORPAY_WEBHOOK_SECRET` in `backend/.env` to match.
+- Set `RAZORPAY_WEBHOOK_SECRET` in `backend/.env` to match (**required** on staging and production — unsigned webhooks are rejected).
+- Events, checklist and staging-vs-production procedure: [`PAYMENTS_RUNBOOK.md`](./PAYMENTS_RUNBOOK.md).
 
 ---
 

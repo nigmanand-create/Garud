@@ -155,3 +155,65 @@ export const listAdminLeads = (params: {
     auth: true,
   });
 };
+
+export type CommerceAnalytics = {
+  days: number;
+  from: string;
+  to: string;
+  gmv: {
+    totalInr: number;
+    paidInr: number;
+    pendingInr: number;
+    previousPeriodInr: number;
+    changePct: number | null;
+    orders: number;
+    previousOrders: number;
+    ordersChangePct: number | null;
+    avgOrderValueInr: number;
+    cancelledOrders: number;
+    cancellationRatePct: number;
+  };
+  trend: {
+    bucketDays: number;
+    points: { date: string; orders: number; gmvInr: number; paidGmvInr: number }[];
+  };
+  paymentBreakdown: Record<string, { orders: number; gmvInr: number }>;
+  fulfillmentBreakdown: Record<string, number>;
+  sourceSplit: {
+    rfq: { orders: number; gmvInr: number };
+    direct: { orders: number; gmvInr: number };
+    rfqSharePct: number;
+  };
+  topVendors: {
+    organizationId: string;
+    companyName: string;
+    orders: number;
+    gmvInr: number;
+    sharePct: number;
+  }[];
+  rfq: {
+    created: number;
+    previousCreated: number;
+    createdChangePct: number | null;
+    byStatus: Record<string, number>;
+    funnel: { key: string; label: string; count: number; ratePct: number }[];
+    invites: {
+      total: number;
+      quoted: number;
+      declined: number;
+      responseRatePct: number;
+      quoteRatePct: number;
+    };
+    quotations: {
+      total: number;
+      accepted: number;
+      avgPerRfq: number;
+      acceptanceRatePct: number;
+    };
+    ordersFromRfq: { orders: number; gmvInr: number };
+  };
+  truncated: boolean;
+};
+
+export const getCommerceAnalytics = (days = 30) =>
+  apiRequest<CommerceAnalytics>(`/admin/analytics?days=${days}`, { auth: true });

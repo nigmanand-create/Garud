@@ -37,6 +37,8 @@ describe('admin nav', () => {
       '/admin/partnerships',
       '/admin/listings',
       '/admin/orders',
+      '/admin/analytics',
+      '/admin/billing',
       '/admin/users',
       '/admin/audit-log',
     ]) {

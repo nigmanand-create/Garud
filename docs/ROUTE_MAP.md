@@ -63,7 +63,7 @@ Header: Partner (dashboard) · B2B RFPs · Orders · Messages. Dashboard subnav 
 
 ## Admin (`PLATFORM_ADMIN`)
 
-Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Applications · Enquiry Queue · Partner Leads · Partnerships · Listing Moderation · Order Oversight · Users & Roles · Audit Log.
+Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Applications · Enquiry Queue · Partner Leads · Partnerships · Listing Moderation · Order Oversight · Commerce Analytics · Partner Billing · Users & Roles · Audit Log.
 
 | Route | Purpose |
 |-------|---------|
@@ -71,6 +71,8 @@ Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Application
 | `/admin/applications` | KYC applications queue |
 | `/admin/leads` | Partner leads oversight (read-only) |
 | `/admin/users` | Admin users & roles (create admin, promote/demote, reset password, disable) |
+| `/admin/analytics` | Commerce analytics: GMV trend, order mix, top vendors, RFQ funnel (`GET /admin/analytics`) |
+| `/admin/billing` | Partner plans/entitlements, Razorpay plan sync, subscriptions, manual assign (`/admin/billing/*`) |
 | `/admin/audit-log` | Global audit log (KYC, listings, partnerships, enquiry routing, user changes) |
 | `/admin/applications/[id]` | KYC detail |
 | `/admin/listings`, `/admin/listings/[id]` | Listing moderation |

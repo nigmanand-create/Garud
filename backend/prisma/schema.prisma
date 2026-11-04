@@ -149,6 +149,7 @@ model Organization {
   conversationsAsPartner      Conversation[]         @relation("ConversationPartner")
   conversationsAsBuyerOrg     Conversation[]         @relation("ConversationBuyerOrg")
   listingViews                ListingView[]
+  subscription                PartnerSubscription?
 
   @@map("organizations")
 }
@@ -714,4 +715,73 @@ model Message {
 
   @@index([conversationId, createdAt])
   @@map("messages")
+}
+
+// ---------------------------------------------------------------------------
+// Partner subscription billing (PRD Phase 6 / C4)
+// ---------------------------------------------------------------------------
+
+enum PlanBillingPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum PartnerSubscriptionStatus {
+  /// Subscription created at the gateway; first charge not confirmed yet.
+  PENDING_PAYMENT
+  ACTIVE
+  /// Charge failed / gateway halted the subscription.
+  PAST_DUE
+  CANCELLED
+}
+
+/// Admin-configurable plan catalog. Entitlements are first-class columns so they can be enforced.
+model PartnerPlan {
+  id                String            @id @default(uuid())
+  key               String            @unique
+  name              String
+  description       String
+  priceInr          Decimal           @default(0) @map("price_inr") @db.Decimal(14, 2)
+  billingPeriod     PlanBillingPeriod @default(MONTHLY) @map("billing_period")
+  /// Max listings the partner may hold (null = unlimited).
+  listingLimit      Int?              @map("listing_limit")
+  featuredPlacement Boolean           @default(false) @map("featured_placement")
+  rfqPriority       Boolean           @default(false) @map("rfq_priority")
+  /// Human-readable bullet list shown on the pricing UI.
+  features          String[]          @default([])
+  isActive          Boolean           @default(true) @map("is_active")
+  /// Plan applied to partners without a subscription row (exactly one should be default).
+  isDefault         Boolean           @default(false) @map("is_default")
+  sortOrder         Int               @default(0) @map("sort_order")
+  /// Razorpay plan id (plan_xxx) once synced; required for self-serve paid checkout.
+  razorpayPlanId    String?           @map("razorpay_plan_id")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  subscriptions PartnerSubscription[]
+
+  @@map("partner_plans")
+}
+
+/// One current subscription per partner organization.
+model PartnerSubscription {
+  id                     String                    @id @default(uuid())
+  organizationId         String                    @unique @map("organization_id")
+  planId                 String                    @map("plan_id")
+  status                 PartnerSubscriptionStatus @default(PENDING_PAYMENT)
+  razorpaySubscriptionId String?                   @unique @map("razorpay_subscription_id")
+  currentPeriodStart     DateTime?                 @map("current_period_start")
+  currentPeriodEnd       DateTime?                 @map("current_period_end")
+  cancelledAt            DateTime?                 @map("cancelled_at")
+  /// Set when an admin assigned the plan manually (comp / offline invoice).
+  assignedByAdminId      String?                   @map("assigned_by_admin_id")
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  updatedAt              DateTime                  @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         PartnerPlan  @relation(fields: [planId], references: [id])
+
+  @@index([planId])
+  @@index([status])
+  @@map("partner_subscriptions")
 }

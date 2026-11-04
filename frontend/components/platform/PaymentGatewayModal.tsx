@@ -74,9 +74,11 @@ export function PaymentGatewayModal({
       // Live / Sandbox Razorpay with Keys
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded || !(window as any).Razorpay) {
-        // Fallback to interactive test sandbox modal if script blocked
-        setSandboxOrderData(intent);
-        setShowSandboxModal(true);
+        // A real gateway order cannot be simulated (the server rejects sandbox
+        // verification for it), so surface the blocked-script problem instead.
+        setError(
+          'Could not load the Razorpay checkout. Disable script blockers and retry, or pay by bank transfer.',
+        );
         setLoading(false);
         return;
       }

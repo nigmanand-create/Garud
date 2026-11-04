@@ -4,7 +4,10 @@ import { AppModule } from './app.module';
 import { setupSwagger } from './shared/swagger/swagger.setup';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // Razorpay webhook signatures are verified over the raw request bytes.
+    rawBody: true,
+  });
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   const isProduction = process.env.NODE_ENV === 'production';
   const swaggerEnabled =

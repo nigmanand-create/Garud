@@ -25,7 +25,7 @@ function emptyRecord<K extends string>(keys: readonly K[]): Record<K, number> {
   return Object.fromEntries(keys.map((k) => [k, 0])) as Record<K, number>;
 }
 
-/** Partner dashboard aggregates: overview widgets, analytics, services hub, plan placeholder, audit slice. */
+/** Partner dashboard aggregates: overview widgets, analytics, services hub, audit slice (plans live in PartnerBillingService). */
 @Injectable()
 export class PartnerHubService {
   constructor(private readonly prisma: PrismaService) {}
@@ -381,37 +381,6 @@ export class PartnerHubService {
       items,
       serviceLeads: { total: serviceLeadsTotal, new: serviceLeadsNew },
       recentLeads: recent,
-    };
-  }
-
-  /** Read-only plan placeholder until partner billing (Razorpay subscriptions) ships. */
-  async getSubscription(userId: string) {
-    const org = await this.requireOrg(userId);
-    const listingCount = await this.prisma.partnerListing.count({
-      where: { organizationId: org.id },
-    });
-    return {
-      billingEnabled: false,
-      plan: {
-        key: 'FOUNDING_PARTNER',
-        name: 'Founding Partner',
-        priceInr: 0,
-        status: 'ACTIVE',
-        description:
-          'Complimentary access during the GarudHub launch period. Paid plans will be announced before any charge.',
-      },
-      entitlements: [
-        'Verified partner profile and marketplace presence',
-        'Product and service listings (moderated)',
-        'RFQ inbox, quotations, and order management',
-        'Enquiry and lead inbox, buyer messaging, analytics',
-      ],
-      usage: { listings: listingCount, listingLimit: null },
-      roadmap: [
-        'Paid tiers with featured placement and higher RFQ priority',
-        'Self-serve billing via Razorpay subscriptions',
-        'GST invoices and billing history',
-      ],
     };
   }
 

@@ -184,13 +184,6 @@ describe('PartnerHubService', () => {
     expect(res.items[0]).toMatchObject({ kind: 'LISTING', listingName: 'X10' });
   });
 
-  it('returns a read-only plan placeholder', async () => {
-    prismaMock.partnerListing.count.mockResolvedValue(3);
-    const res = await service.getSubscription('u');
-    expect(res.billingEnabled).toBe(false);
-    expect(res.usage.listings).toBe(3);
-  });
-
   it('services hub aggregates per-listing performance', async () => {
     prismaMock.partnerListing.findMany.mockResolvedValue([
       {

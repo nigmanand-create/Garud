@@ -63,14 +63,6 @@ export class PartnerHubController {
     return this.hub.getServicesHub(user.userId);
   }
 
-  @Get('subscription')
-  @ApiOperation({
-    summary: 'Read-only plan placeholder (billing not yet enabled)',
-  })
-  subscription(@CurrentUser() user: AuthenticatedUser) {
-    return this.hub.getSubscription(user.userId);
-  }
-
   @Get('audit-log')
   @ApiOperation({
     summary: 'KYC and listing moderation events for your organization',

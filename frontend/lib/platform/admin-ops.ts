@@ -19,6 +19,8 @@ export const ADMIN_NAV_LINKS: AdminNavLink[] = [
   { href: '/admin/partnerships', label: 'Partnerships' },
   { href: '/admin/listings', label: 'Listing Moderation' },
   { href: '/admin/orders', label: 'Order Oversight' },
+  { href: '/admin/analytics', label: 'Commerce Analytics' },
+  { href: '/admin/billing', label: 'Partner Billing' },
   { href: '/admin/users', label: 'Users & Roles' },
   { href: '/admin/audit-log', label: 'Audit Log' },
 ];

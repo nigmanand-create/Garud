@@ -12,6 +12,7 @@ import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { EmptyState } from '@/components/platform/EmptyState';
 import { formatPrice } from '@/lib/platform/labels';
+import { SINGLE_SELLER_POLICY } from '@/lib/platform/cart';
 import type { CartResponse } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
@@ -113,6 +114,12 @@ function BuyerCartInner() {
         }
       />
       {error && <div className="platform-card platform-error">{error}</div>}
+      {!empty && (
+        <p className="platform-muted platform-text-sm" role="note">
+          {SINGLE_SELLER_POLICY}{' '}
+          <Link href="/buyer/rfqs/new">Raise an RFQ</Link>
+        </p>
+      )}
       {empty ? (
         <EmptyState
           title="Your cart is empty"

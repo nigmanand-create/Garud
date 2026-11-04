@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { RolesGuard } from '../identity/guards/roles.guard';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
 import { AdminAuditService, parseAuditKinds } from './admin-audit.service';
+import { AdminAnalyticsService } from './admin-analytics.service';
 import { AdminOverviewService } from './admin-overview.service';
 
 function parseDate(raw?: string): Date | undefined {
@@ -36,6 +37,7 @@ export class AdminOpsController {
   constructor(
     private readonly overview: AdminOverviewService,
     private readonly audit: AdminAuditService,
+    private readonly analytics: AdminAnalyticsService,
   ) {}
 
   @Get('overview')
@@ -45,6 +47,21 @@ export class AdminOpsController {
   })
   getOverview() {
     return this.overview.overview();
+  }
+
+  @Get('analytics')
+  @ApiOperation({
+    summary:
+      'Commerce analytics: GMV trend, order mix, top vendors and the RFQ → quote → order funnel',
+  })
+  @ApiQuery({
+    name: 'days',
+    type: Number,
+    required: false,
+    description: '7–365, default 30',
+  })
+  commerceAnalytics(@Query('days') days?: string) {
+    return this.analytics.commerceAnalytics(parseIntOrUndefined(days));
   }
 
   @Get('audit-log')

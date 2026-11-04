@@ -13,6 +13,7 @@ import {
   UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 import { PaymentsService } from './payments.service';
 
 describe('PaymentsService - Bank Transfer UTR Uniqueness & Concurrency', () => {
@@ -29,6 +30,7 @@ describe('PaymentsService - Bank Transfer UTR Uniqueness & Concurrency', () => {
       providers: [
         PaymentsService,
         PrismaService,
+        { provide: PartnerBillingService, useValue: {} },
         {
           provide: ConfigService,
           useValue: {

@@ -7,9 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -72,8 +74,12 @@ export class AdminController {
   @Get('documents/:id/download')
   @ApiOperation({ summary: 'Download an application document' })
   @Header('Content-Type', 'application/octet-stream')
-  downloadDocument(@Param('id') id: string): Promise<StreamableFile> {
-    return this.documentsService.downloadForAdmin(id);
+  async downloadDocument(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile | void> {
+    const result = await this.documentsService.downloadForAdmin(id);
+    return this.documentsService.sendDownloadResult(res, result);
   }
 
   @Post('applications/:id/approve')

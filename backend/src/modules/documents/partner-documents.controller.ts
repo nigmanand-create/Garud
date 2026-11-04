@@ -6,11 +6,13 @@ import {
   Header,
   Param,
   Post,
+  Res,
   StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -98,7 +100,12 @@ export class PartnerDocumentsController {
   async download(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
-  ): Promise<StreamableFile> {
-    return this.documentsService.downloadForPartner(user.userId, id);
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile | void> {
+    const result = await this.documentsService.downloadForPartner(
+      user.userId,
+      id,
+    );
+    return this.documentsService.sendDownloadResult(res, result);
   }
 }

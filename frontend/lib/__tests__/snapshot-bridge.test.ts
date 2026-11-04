@@ -50,6 +50,22 @@ describe('snapshot → React bridge (P-UI-12)', () => {
     });
   });
 
+  it('maps batch-4 utility and legal aliases (NEXT-U1)', () => {
+    expect(resolveSnapshotBridge('/enquiry.php')).toEqual({ pathname: '/enquiry' });
+    expect(resolveSnapshotBridge('/loan-calculators.php')).toEqual({
+      pathname: '/services',
+      hash: '#finance',
+    });
+    expect(resolveSnapshotBridge('/about.php')).toEqual({ pathname: '/about-us' });
+    expect(resolveSnapshotBridge('/blog')).toEqual({ pathname: '/blogging' });
+    expect(resolveSnapshotBridge('/legal/privacy')).toEqual({
+      pathname: '/legal.php/privacy',
+    });
+    expect(resolveSnapshotBridge('/legal/terms')).toEqual({
+      pathname: '/legal.php/tos',
+    });
+  });
+
   it('keeps middleware matcher in sync with the bridge map', () => {
     const source = readFileSync(join(process.cwd(), 'middleware.ts'), 'utf8');
     for (const path of Object.keys(SNAPSHOT_REACT_BRIDGE)) {

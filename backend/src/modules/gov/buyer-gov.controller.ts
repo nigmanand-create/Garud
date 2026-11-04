@@ -9,6 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -49,9 +50,12 @@ export class BuyerGovController {
     },
   })
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_BYTES } }),
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_UPLOAD_BYTES },
+    }),
   )
-  uploadBidDocument(
+  async uploadBidDocument(
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
   ) {

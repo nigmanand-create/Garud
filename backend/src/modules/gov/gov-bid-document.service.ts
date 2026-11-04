@@ -1,28 +1,26 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createReadStream, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join, normalize } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ALLOWED_UPLOAD_MIME_TYPES,
   MAX_UPLOAD_BYTES,
 } from '../documents/documents.constants';
+import {
+  UPLOAD_STORAGE,
+  type UploadStoragePort,
+} from '../../shared/storage/upload-storage';
 
 @Injectable()
 export class GovBidDocumentService {
-  private readonly uploadRoot: string;
-
-  constructor(config: ConfigService) {
-    this.uploadRoot = config.get<string>('UPLOAD_DIR', './uploads');
-    if (!existsSync(this.uploadRoot)) {
-      mkdirSync(this.uploadRoot, { recursive: true });
-    }
-  }
+  constructor(
+    @Inject(UPLOAD_STORAGE) private readonly storage: UploadStoragePort,
+  ) {}
 
   validateFile(file: Express.Multer.File) {
     if (!file?.buffer?.length) {
@@ -40,13 +38,11 @@ export class GovBidDocumentService {
     }
   }
 
-  storeForBidder(userId: string, file: Express.Multer.File) {
+  async storeForBidder(userId: string, file: Express.Multer.File) {
     this.validateFile(file);
     const ext = extname(file.originalname) || '.pdf';
     const storedRelativePath = join('gov-bids', userId, `${randomUUID()}${ext}`);
-    const absolutePath = join(this.uploadRoot, storedRelativePath);
-    mkdirSync(join(this.uploadRoot, 'gov-bids', userId), { recursive: true });
-    writeFileSync(absolutePath, file.buffer);
+    await this.storage.write(storedRelativePath, file.buffer);
     return {
       storedRelativePath,
       originalFilename: file.originalname,
@@ -61,13 +57,6 @@ export class GovBidDocumentService {
     if (!normalized.startsWith(expectedPrefix)) {
       throw new BadRequestException('Invalid bid document path');
     }
-    const absolutePath = normalize(join(this.uploadRoot, normalized));
-    if (!absolutePath.startsWith(normalize(this.uploadRoot))) {
-      throw new BadRequestException('Invalid bid document path');
-    }
-    if (!existsSync(absolutePath)) {
-      throw new BadRequestException('Bid document not found — upload again');
-    }
   }
 
   openForAdmin(storedRelativePath: string, originalFilename: string, mimeType: string) {
@@ -75,17 +64,14 @@ export class GovBidDocumentService {
     if (!normalized.startsWith('gov-bids')) {
       throw new BadRequestException('Invalid bid document path');
     }
-    const absolutePath = normalize(join(this.uploadRoot, normalized));
-    if (!absolutePath.startsWith(normalize(this.uploadRoot))) {
-      throw new BadRequestException('Invalid bid document path');
-    }
-    if (!existsSync(absolutePath)) {
+    try {
+      const stream = this.storage.openReadStream(normalized);
+      return new StreamableFile(stream, {
+        type: mimeType || 'application/octet-stream',
+        disposition: `attachment; filename="${originalFilename || 'bid-document'}"`,
+      });
+    } catch {
       throw new NotFoundException('Bid document file missing on storage');
     }
-    const stream = createReadStream(absolutePath);
-    return new StreamableFile(stream, {
-      type: mimeType || 'application/octet-stream',
-      disposition: `attachment; filename="${originalFilename || 'bid-document'}"`,
-    });
   }
 }

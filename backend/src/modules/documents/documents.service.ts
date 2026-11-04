@@ -6,6 +6,7 @@ import {
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApplicationDocumentType, VerificationStatus } from '@prisma/client';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
@@ -23,6 +24,10 @@ const EDITABLE_DOCUMENT_STATUSES: VerificationStatus[] = [
   VerificationStatus.DRAFT,
   VerificationStatus.REJECTED,
 ];
+
+export type DocumentDownloadResult =
+  | StreamableFile
+  | { redirectUrl: string };
 
 @Injectable()
 export class DocumentsService {
@@ -100,7 +105,10 @@ export class DocumentsService {
     return { deleted: true };
   }
 
-  async downloadForPartner(userId: string, documentId: string) {
+  async downloadForPartner(
+    userId: string,
+    documentId: string,
+  ): Promise<DocumentDownloadResult> {
     const org = await this.prisma.organization.findUnique({
       where: { ownerId: userId },
     });
@@ -113,7 +121,7 @@ export class DocumentsService {
     if (!doc) {
       throw new NotFoundException('Document not found');
     }
-    return this.toStreamableFile(doc);
+    return this.toDownloadResult(doc);
   }
 
   async listForOrganization(orgId: string) {
@@ -123,26 +131,44 @@ export class DocumentsService {
     });
   }
 
-  async downloadForAdmin(documentId: string) {
+  async downloadForAdmin(documentId: string): Promise<DocumentDownloadResult> {
     const doc = await this.prisma.organizationDocument.findUnique({
       where: { id: documentId },
     });
     if (!doc) {
       throw new NotFoundException('Document not found');
     }
-    return this.toStreamableFile(doc);
+    return this.toDownloadResult(doc);
   }
 
-  private toStreamableFile(doc: {
+  private async toDownloadResult(doc: {
     storedRelativePath: string;
     mimeType: string;
     originalFilename: string;
-  }) {
+  }): Promise<DocumentDownloadResult> {
+    if (this.storage.getSignedReadUrl) {
+      const redirectUrl = await this.storage.getSignedReadUrl(
+        doc.storedRelativePath,
+      );
+      return { redirectUrl };
+    }
     const stream = this.storage.openReadStream(doc.storedRelativePath);
     return new StreamableFile(stream, {
       type: doc.mimeType,
       disposition: `attachment; filename="${doc.originalFilename}"`,
     });
+  }
+
+  /** Apply partner/admin download outcome (302 to S3 presigned URL or streamed file). */
+  sendDownloadResult(
+    res: Response,
+    result: DocumentDownloadResult,
+  ): StreamableFile | void {
+    if ('redirectUrl' in result) {
+      res.redirect(302, result.redirectUrl);
+      return;
+    }
+    return result;
   }
 
   private validateFile(file: Express.Multer.File) {

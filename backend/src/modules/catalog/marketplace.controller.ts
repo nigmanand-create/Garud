@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { isLikelyBotUserAgent } from '../../shared/http/bot-user-agent';
 import { visitorKeyForListingView } from '../../shared/http/visitor-key';
 import { OptionalJwtAuthGuard } from '../identity/guards/optional-jwt-auth.guard';
 import type { AuthenticatedUser } from '../identity/types/auth.types';
@@ -107,13 +108,16 @@ export class MarketplaceController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const listing = await this.catalogService.getPublicListing(id);
-    const visitorKey = visitorKeyForListingView(req, res);
-    void this.catalogService.recordListingView(
-      listing.id,
-      listing.organization.id,
-      visitorKey,
-      req.user?.userId,
-    );
+    const ua = req.headers['user-agent'];
+    if (!isLikelyBotUserAgent(typeof ua === 'string' ? ua : undefined)) {
+      const visitorKey = visitorKeyForListingView(req, res);
+      void this.catalogService.recordListingView(
+        listing.id,
+        listing.organization.id,
+        visitorKey,
+        req.user?.userId,
+      );
+    }
     return listing;
   }
 

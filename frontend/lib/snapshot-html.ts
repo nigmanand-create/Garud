@@ -78,6 +78,14 @@ function bridgeMarketingToPlatform(html: string): string {
   out = out.replaceAll('href="/scrap-recycling/"', 'href="/services#recycling"');
   out = out.replaceAll('href="/partner-with-us"', 'href="/b2b-partners"');
   out = out.replaceAll('href="/partner-with-us/"', 'href="/b2b-partners"');
+  out = out.replaceAll('href="/loan-calculators.php"', 'href="/services#finance"');
+  out = out.replaceAll(
+    'href="/loan-calculators.php/"',
+    'href="/services#finance"',
+  );
+  out = out.replaceAll('href="/legal.php?page=privacy"', 'href="/legal/privacy"');
+  out = out.replaceAll('href="/legal.php?page=tos"', 'href="/legal/terms"');
+  out = out.replaceAll('href="/legal.php?page=refund"', 'href="/legal/refund"');
 
   return out;
 }

@@ -23,7 +23,7 @@ Optional for Cloudflare R2 or MinIO:
 
 - **Writes** use `PutObject` with keys matching the previous local layout (`organizations/…`, `listings/…`).
 - **Reads** in the API use `GetObject` streams (same as local `createReadStream`).
-- **Signed URLs** for direct browser download are not wired in v1; use existing authenticated download routes. To add presigned GET links, call `getSignedReadUrl` on the storage port (S3 only) from a future endpoint.
+- **Partner / admin KYC downloads** — when `UPLOAD_STORAGE=s3|r2`, `GET …/documents/:id/download` responds with **302** to a short-lived presigned GET URL (`getSignedReadUrl`, default 15 min). Local disk mode still streams through the API.
 
 ## Rollback
 

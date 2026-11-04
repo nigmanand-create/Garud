@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { throttleFor } from '../../config/throttle.config';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateEnquiryDto } from './dto/enquiry.dto';
 import { EnquiryService } from './enquiry.service';
@@ -10,7 +11,7 @@ export class EnquiriesController {
   constructor(private readonly enquiryService: EnquiryService) {}
 
   @Post()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Throttle({ default: throttleFor('enquiry') })
   @ApiOperation({ summary: 'Submit a public platform enquiry (lead capture)' })
   @ApiCreatedResponse({ description: 'Enquiry stored for admin review' })
   create(@Body() dto: CreateEnquiryDto) {

@@ -91,6 +91,37 @@ class EnvironmentVariables {
   @IsString()
   ADMIN_NOTIFY_EMAIL?: string;
 
+  /** Logging: `json` (prod default) or `pretty` (dev default). */
+  @IsOptional()
+  @IsString()
+  LOG_FORMAT?: string;
+
+  /** fatal | error | warn | log | debug | verbose */
+  @IsOptional()
+  @IsString()
+  LOG_LEVEL?: string;
+
+  /** CRM webhook (enquiry.created / enquiry.routed). Needs BOTH url and secret. */
+  @IsOptional()
+  @IsString()
+  CRM_WEBHOOK_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  CRM_WEBHOOK_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
+  CRM_WEBHOOK_TIMEOUT_MS?: string;
+
+  @IsOptional()
+  @IsString()
+  CRM_WEBHOOK_MAX_ATTEMPTS?: string;
+
+  @IsOptional()
+  @IsString()
+  CRM_WEBHOOK_RETRY_DELAY_MS?: string;
+
   /** Public web origin used in email deep links, e.g. https://garudhub.me */
   @IsOptional()
   @IsString()
@@ -112,6 +143,33 @@ function isWeakSecret(value: string): boolean {
     return true;
   }
   return WEAK_SECRET_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function assertCrmWebhook(config: EnvironmentVariables): void {
+  const url = config.CRM_WEBHOOK_URL?.trim();
+  const secret = config.CRM_WEBHOOK_SECRET?.trim();
+  if (!url && !secret) {
+    return;
+  }
+  const errors: string[] = [];
+  if (!url) {
+    errors.push('CRM_WEBHOOK_SECRET is set but CRM_WEBHOOK_URL is missing');
+  } else if (!/^https?:\/\//i.test(url)) {
+    errors.push('CRM_WEBHOOK_URL must start with http:// or https://');
+  } else if (
+    config.NODE_ENV === NodeEnvironment.Production &&
+    !url.toLowerCase().startsWith('https://')
+  ) {
+    errors.push('CRM_WEBHOOK_URL must use https:// in production');
+  }
+  if (url && (!secret || secret.length < 16)) {
+    errors.push(
+      'CRM_WEBHOOK_URL requires CRM_WEBHOOK_SECRET (≥16 chars) — unsigned webhooks are never sent',
+    );
+  }
+  if (errors.length > 0) {
+    throw new Error(`Environment validation failed:\n- ${errors.join('\n- ')}`);
+  }
 }
 
 function assertProductionSecrets(config: EnvironmentVariables): void {
@@ -190,6 +248,7 @@ export function validateEnv(
     );
   }
 
+  assertCrmWebhook(validated);
   assertProductionSecrets(validated);
   return config;
 }

@@ -1,13 +1,16 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { AppLogger } from './shared/logging/app-logger';
 import { setupSwagger } from './shared/swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // Razorpay webhook signatures are verified over the raw request bytes.
     rawBody: true,
+    bufferLogs: true,
   });
+  app.useLogger(new AppLogger());
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   const isProduction = process.env.NODE_ENV === 'production';
   const swaggerEnabled =

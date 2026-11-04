@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/platform/AuthProvider';
 import { CartNavLink } from '@/components/platform/CartNavLink';
+import { NotificationBell } from '@/components/platform/NotificationBell';
 import {
   CONTACT_EMAIL,
   CONTACT_PHONE,
@@ -170,6 +171,7 @@ export function MarketingHeader() {
                 <div className="header-auth-links">
                   {user ? (
                     <>
+                      <NotificationBell />
                       {accountLinks.map((item) =>
                         item.cart ? (
                           <CartNavLink key={item.href} />

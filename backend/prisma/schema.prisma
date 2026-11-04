@@ -85,10 +85,11 @@ model User {
 
   organization         Organization?
   refreshTokens        RefreshToken[]
-  rfqsCreated          Rfq[]          @relation("RfqBuyer")
+  rfqsCreated          Rfq[]               @relation("RfqBuyer")
   cart                 Cart?
-  ordersAsBuyer        Order[]        @relation("OrderBuyer")
-  conversationsAsBuyer Conversation[] @relation("ConversationBuyer")
+  ordersAsBuyer        Order[]             @relation("OrderBuyer")
+  conversationsAsBuyer Conversation[]      @relation("ConversationBuyer")
+  notifications        InAppNotification[]
 
   @@map("users")
 }
@@ -784,4 +785,22 @@ model PartnerSubscription {
   @@index([planId])
   @@index([status])
   @@map("partner_subscriptions")
+}
+
+/// In-app (bell) notification for a single user. Email remains the primary channel.
+model InAppNotification {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  type      String
+  title     String
+  body      String?
+  /// App-relative deep link, e.g. /partner/enquiries
+  href      String?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@map("in_app_notifications")
 }

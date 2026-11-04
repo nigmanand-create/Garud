@@ -15,6 +15,18 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
 
+  // Correlation id: Nest reuses a well-formed inbound id (and echoes it back), else mints one.
+  const requestId = request.headers.get('x-request-id');
+  if (requestId) headers.set('x-request-id', requestId);
+
+  // Real client IP for per-IP rate limiting. Without this every visitor shares the Next
+  // server's IP (Nest `trust proxy 1` reads the last X-Forwarded-For hop).
+  const clientIp =
+    request.headers.get('cf-connecting-ip') ??
+    request.headers.get('x-real-ip') ??
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  if (clientIp) headers.set('x-forwarded-for', clientIp);
+
   // Razorpay webhooks: the signature is an HMAC over the raw body, so it must reach Nest
   // untouched (body is forwarded as raw bytes below).
   const rzpSignature = request.headers.get('x-razorpay-signature');
@@ -39,6 +51,8 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   if (ct) resHeaders.set('Content-Type', ct);
   const cd = upstream.headers.get('content-disposition');
   if (cd) resHeaders.set('Content-Disposition', cd);
+  const upstreamRequestId = upstream.headers.get('x-request-id');
+  if (upstreamRequestId) resHeaders.set('x-request-id', upstreamRequestId);
 
   if (upstream.status === 204) {
     return new NextResponse(null, { status: 204, headers: resHeaders });

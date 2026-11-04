@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import {
   EnquiryIntent,
@@ -12,6 +13,7 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { CrmWebhookService } from '../integrations/crm-webhook.service';
 import { NotificationService } from '../notifications/notification.service';
 import {
   AssignEnquiryDto,
@@ -34,6 +36,7 @@ const ORG_SUMMARY = {
     id: true,
     companyName: true,
     contactEmail: true,
+    ownerId: true,
     verificationStatus: true,
   },
 } as const;
@@ -43,6 +46,7 @@ type RoutingTarget = {
   listingId: string | null;
   partnerEmail: string;
   partnerCompanyName: string;
+  partnerUserId: string | null;
 };
 
 @Injectable()
@@ -52,7 +56,48 @@ export class EnquiryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationService,
+    @Optional() private readonly crmWebhook?: CrmWebhookService,
   ) {}
+
+  private crmPayload(
+    enquiry: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string | null;
+      subject: string;
+      message: string;
+      sourcePage: string | null;
+      intent: EnquiryIntent;
+      serviceKey: string | null;
+      status: EnquiryStatus;
+      listingId: string | null;
+      organizationId: string | null;
+      createdAt: Date;
+    },
+    partnerCompanyName?: string | null,
+  ) {
+    return {
+      id: enquiry.id,
+      name: enquiry.name,
+      email: enquiry.email,
+      phone: enquiry.phone,
+      subject: enquiry.subject,
+      message: enquiry.message,
+      sourcePage: enquiry.sourcePage,
+      intent: enquiry.intent,
+      serviceKey: enquiry.serviceKey,
+      status: enquiry.status,
+      createdAt: enquiry.createdAt.toISOString(),
+      routing: enquiry.organizationId
+        ? {
+            organizationId: enquiry.organizationId,
+            companyName: partnerCompanyName ?? null,
+            listingId: enquiry.listingId,
+          }
+        : null,
+    };
+  }
 
   /**
    * Routing rules (first match wins):
@@ -84,6 +129,7 @@ export class EnquiryService {
           listingId: listing.id,
           partnerEmail: listing.organization.contactEmail,
           partnerCompanyName: listing.organization.companyName,
+          partnerUserId: listing.organization.ownerId ?? null,
         };
       }
       this.logger.warn(
@@ -102,6 +148,7 @@ export class EnquiryService {
           listingId: null,
           partnerEmail: org.contactEmail,
           partnerCompanyName: org.companyName,
+          partnerUserId: org.ownerId ?? null,
         };
       }
       this.logger.warn(
@@ -167,7 +214,12 @@ export class EnquiryService {
       intent: enquiry.intent,
       partnerEmail: target?.partnerEmail ?? null,
       partnerCompanyName: target?.partnerCompanyName ?? null,
+      partnerUserId: target?.partnerUserId ?? null,
     });
+    this.crmWebhook?.emit(
+      'enquiry.created',
+      this.crmPayload(enquiry, target?.partnerCompanyName),
+    );
 
     return enquiry;
   }
@@ -320,7 +372,12 @@ export class EnquiryService {
         },
         partnerEmail: org.contactEmail,
         partnerCompanyName: org.companyName,
+        partnerUserId: org.ownerId ?? null,
       });
+      this.crmWebhook?.emit(
+        'enquiry.routed',
+        this.crmPayload(updated, org.companyName),
+      );
     }
 
     return updated;

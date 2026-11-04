@@ -1,8 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { validateEnv } from './config/env.validation';
+import { throttleLimit, throttleTtl } from './config/throttle.config';
+import { RequestIdMiddleware } from './shared/logging/request-id.middleware';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { AppController } from './app.controller';
 import { PublicPostThrottleGuard } from './shared/guards/public-post-throttle.guard';
 import { PrismaModule } from './shared/prisma/prisma.module';
@@ -28,10 +31,17 @@ import { PartnerBillingModule } from './modules/partner-billing/partner-billing.
       validate: validateEnv,
     }),
     ThrottlerModule.forRoot({
-      throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
+      throttlers: [
+        {
+          name: 'default',
+          ttl: () => throttleTtl('global'),
+          limit: () => throttleLimit('global'),
+        },
+      ],
     }),
     PrismaModule,
     NotificationsModule,
+    IntegrationsModule,
     IdentityModule,
     DocumentsModule,
     PartnerModule,
@@ -54,4 +64,8 @@ import { PartnerBillingModule } from './modules/partner-billing/partner-billing.
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*path');
+  }
+}

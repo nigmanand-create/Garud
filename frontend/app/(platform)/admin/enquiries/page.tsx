@@ -7,7 +7,8 @@ import {
   listAdminEnquiries,
   updateEnquiryStatus,
 } from '@/lib/api/enquiries';
-import { apiRequest } from '@/lib/api/client';
+import { apiDownload, apiRequest } from '@/lib/api/client';
+import { buildEnquiryExportPath } from '@/lib/platform/notifications';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
@@ -93,6 +94,21 @@ function EnquiriesInner() {
       load();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Bulk update failed');
+    }
+  }
+
+  async function exportCsv() {
+    try {
+      await apiDownload(
+        buildEnquiryExportPath({
+          status: statusFilter,
+          intent: intentFilter,
+          routing: routingFilter,
+        }),
+        `garudhub-enquiries-${new Date().toISOString().slice(0, 10)}.csv`,
+      );
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Export failed');
     }
   }
 
@@ -195,6 +211,16 @@ function EnquiriesInner() {
             <option value="UNROUTED">Unrouted (admin queue)</option>
             <option value="ROUTED">Routed to partner</option>
           </select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button
+            type="button"
+            className="platform-btn platform-btn-secondary"
+            onClick={exportCsv}
+          >
+            Export CSV (CRM)
+          </button>
         </div>
       </div>
 

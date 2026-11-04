@@ -50,7 +50,7 @@
 | # | Task | Owner | Status |
 |---|------|-------|--------|
 | P0-SEC1 | **Swagger off** on prod (`NODE_ENV=production`) | Eng | **Done** — optional `SWAGGER_ENABLED=true` on staging only |
-| P0-SEC2 | **Rate limits** on public abuse surfaces | Eng | **Done** — global 120/min; auth 10/min; enquiry 5/min |
+| P0-SEC2 | **Rate limits** on public abuse surfaces | Eng | **Done** — global 120/min; auth 10/min; enquiry 5/min; now env-tunable ([notes](#rate-limits--abuse-review-p0-sec2-tuning)) |
 | P0-SEC3 | **CORS** | Eng | Same-origin Next proxy — no browser CORS change needed if tunnel hits Next only |
 | P0-SEC4 | **Helmet** + explicit CORS for direct API hostname | Eng | **P1** if exposing `api.garudhub.me` |
 | P0-SEC5 | Razorpay webhook signature verification | Eng | Verify env `RAZORPAY_WEBHOOK_SECRET` set on prod |
@@ -79,7 +79,7 @@
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
 | P0-M1 | Hit **`GET /api/v1/health`** (or `/platform-api/v1/health` via Next) after deploy | QA/Ops | Returns `{ status: 'ok', service: 'garudhub-api' }` |
-| P0-M2 | pm2/systemd logs retained; Cloudflare analytics for 5xx | Ops | P1: structured logging / Sentry |
+| P0-M2 | pm2/systemd logs retained; Cloudflare analytics for 5xx | Ops | **Structured JSON logs + `x-request-id` shipped** ([Phase 7 notes](#integrations--nfr-notes-phase-7)); P1: Sentry |
 
 ### Branching & release
 
@@ -125,8 +125,108 @@ Full partial inventory: [`PARTIAL_COMPLETION_BACKLOG.md`](./PARTIAL_COMPLETION_B
 |---|------|------|-------|
 | P2-1 | Product | Items in Phase C of partial backlog (Leads, Messages, Analytics) | Eng |
 | P2-2 | Infra | Dockerize app images; blue/green or second VPS | Ops |
-| P2-3 | Compliance | Data retention, privacy policy alignment, audit export | Biz/Eng |
-| P2-4 | Performance | CDN for static assets; DB connection pooling review | Eng |
+| P2-3 | Compliance | Data retention, privacy policy alignment, audit export | Biz/Eng — **policy stub written** ([notes](#data-retention--privacy-stub--p2-3)); purge jobs + published policy pending |
+| P2-4 | Performance | CDN for static assets; DB connection pooling review | Eng — **documented** ([CDN](#cdn-for-static--snapshot-assets-p2-4), [pooling](#database-connection-pooling-p2-4)); no load test yet |
+
+---
+
+## Integrations & NFR notes (Phase 7)
+
+### Structured logging & request IDs (P0-M2 extension)
+
+- Every API request gets a correlation id: an inbound `x-request-id` is reused when well-formed (8–128 chars of `A-Za-z0-9._-`, e.g. sent by Cloudflare/Next), otherwise a UUID is minted. It is echoed on the response header and stamped on **every** log line for that request (AsyncLocalStorage), including the outbound CRM webhook (`X-Request-Id`).
+- One access-log line per request (`METHOD /path status ms user=<id>`); query strings are deliberately omitted (tokens/PII). Successful `/health` hits are not logged.
+- Format: `LOG_FORMAT=json|pretty` (default **json** when `NODE_ENV=production`, **pretty** otherwise); level: `LOG_LEVEL=fatal|error|warn|log|debug|verbose` (default `log` in prod, `debug` in dev). JSON line: `{"time","level","context","requestId","message","stack?"}` — ship stdout/stderr from pm2/journald to any log aggregator.
+- Support workflow: ask the user for the `x-request-id` response header (or the failing time), then `pm2 logs garudhub-api --lines 2000 | grep <id>`.
+- Not done: error tracker (Sentry) and metrics — still P1-7.
+
+### Rate limits & abuse review (P0-SEC2 tuning)
+
+All limits are **per client IP, per window**, and now env-tunable (no redeploy of code — change `.env` + restart). Defaults equal the original hard-coded values.
+
+| Bucket | Applies to | Env (limit / window ms) | Default |
+|--------|-----------|--------------------------|---------|
+| `global` | every route without an override | `THROTTLE_GLOBAL_LIMIT` / `THROTTLE_GLOBAL_TTL_MS` | 120 / 60 000 |
+| `auth` | `POST /auth/register`, `/auth/login`, `/auth/change-password` | `THROTTLE_AUTH_LIMIT` / `THROTTLE_AUTH_TTL_MS` | 10 / 60 000 |
+| `authRefresh` | `POST /auth/refresh` (silent SPA refresh) | `THROTTLE_AUTH_REFRESH_LIMIT` / `…_TTL_MS` | 30 / 60 000 |
+| `enquiry` | public `POST /enquiries` | `THROTTLE_ENQUIRY_LIMIT` / `THROTTLE_ENQUIRY_TTL_MS` | 5 / 60 000 |
+
+Tuning guidance after launch:
+
+1. **Watch 429s** (access log `… 429 …`; Cloudflare analytics). A burst of 429s from a single IP on `/auth/login` is brute force — keep `auth` low (10/min) and consider Cloudflare WAF rate rules on `/platform-api/v1/auth/*` (cheaper than hitting Node).
+2. **Shared IPs (offices, mobile carriers, government networks)** can legitimately exceed 5 enquiries/min only if many people submit at once — raise `THROTTLE_ENQUIRY_LIMIT` to 10–20 before loosening anything else. Public catalog GETs fall under `global` (120/min); raise to 300 if marketplace browsing is legitimately heavier.
+3. **Client IP is now forwarded by the Next proxy** (`cf-connecting-ip` → `x-forwarded-for`). Before this, Nest saw only the Next server's IP, so all visitors shared one bucket. This is only safe while the origin is reachable **only** through Cloudflare/Next (tunnel); if you expose the API hostname directly, keep `trust proxy` and Cloudflare in front.
+4. **Counters are in-memory per process.** With pm2 `-i N` cluster mode the effective limit is ~N× the configured value and resets on restart. Fine for the single-process MVP; move to a shared store (`@nest-lab/throttler-storage-redis`) before running multiple instances.
+5. Authenticated admin/partner APIs have no separate bucket (JWT-gated, global limit applies). Add one only if abuse is observed.
+
+### CRM export & webhook (P-INT-01)
+
+- **CSV export:** `GET /admin/enquiries/export` (PLATFORM_ADMIN) — same filters as the queue (`status`, `intent`, `routing`, plus `from` / `to` ISO dates), newest first, capped at 10 000 rows. Columns: enquiry id/date/contact/message/intent/source/status, routed partner + listing, partner **lead id + lead status**. Cells are formula-injection-safe and UTF-8 BOM-prefixed for Excel. UI: **Export CSV (CRM)** button on `/admin/enquiries`.
+- **Outbound webhook (optional):** set **both** `CRM_WEBHOOK_URL` and `CRM_WEBHOOK_SECRET` (≥16 chars; boot fails if only one is set, or if the URL is not `https://` in production). Events: `enquiry.created`, `enquiry.routed` (admin assigns/re-routes to a partner).
+  - `POST` JSON `{ id, event, createdAt, data }` with headers `X-Garud-Event`, `X-Garud-Delivery` (uuid, stable across retries), `X-Garud-Timestamp` (unix s), `X-Garud-Signature: sha256=<hex>`, `X-Request-Id`.
+  - Verify: `HMAC_SHA256(secret, "<timestamp>.<raw body>")`; reject if the timestamp is older than ~5 min (replay window) and dedupe on `X-Garud-Delivery`.
+  - Delivery is fire-and-forget (never blocks or fails the enquiry): 5 s timeout, up to 3 attempts with 0.5 s / 1 s backoff on network errors, 5xx, 408, 429. Tune with `CRM_WEBHOOK_TIMEOUT_MS`, `CRM_WEBHOOK_MAX_ATTEMPTS`, `CRM_WEBHOOK_RETRY_DELAY_MS`.
+  - Limitation: no persistent outbox — if the API restarts mid-retry or the CRM is down for >~2 s of backoff, the event is dropped (logged at error). Use the CSV export to backfill.
+
+### Notifications (email + in-app)
+
+- `NotificationService` (domain events) → **ports**: `MAIL_PROVIDER` (default SMTP/log `MailService`; swap in SES/SendGrid by providing another `MailProvider`) and `InAppNotificationService` (`in_app_notifications` table).
+- In-app (bell) is created for: partner owner on new/assigned lead, partner owner on KYC decision, invited vendors on new RFQ. API: `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:id/read`, `POST /notifications/read-all`. The header bell polls every 60 s.
+- No buyer-facing events yet (order/quote updates) and no push/SMS.
+
+### Data retention & privacy (stub — P2-3)
+
+> Working defaults for counsel/Biz to confirm. **No automated purge jobs exist yet**; this is the policy to implement and the data inventory.
+
+| Data | Table(s) | PII | Proposed retention |
+|------|----------|-----|---------------------|
+| Enquiries / leads | `enquiries`, `leads` | name, email, phone, free text | 24 months after last activity, then delete or anonymise |
+| Accounts | `users`, `organizations` | email, company, GST/KYC | Life of account; on closure soft-disable (`disabled_at`), erase on verified request unless a legal hold applies |
+| Partner KYC documents | `uploads/` + document rows | identity / business docs | Life of account + 12 months after rejection/closure |
+| Orders, payments, invoices | `orders`, payment intents, billing | buyer details, amounts | **Statutory — typically 8 years** for Indian GST/accounting records; confirm with accountant; never purge |
+| RFQ / quotations / messages | `rfqs`, `quotations`, `messages` | contact details, commercial terms | 36 months after close |
+| Refresh tokens | `refresh_tokens` | none (hash) | Purge when expired/revoked > 30 days |
+| In-app notifications | `in_app_notifications` | titles may name a contact | Purge read items > 90 days |
+| Audit logs | `verification_audit_logs`, `admin_user_audit_logs` | admin emails | 24 months minimum (security evidence) |
+| Application logs | pm2/journald | IPs, user ids (no bodies/queries) | 30–90 days via logrotate |
+| Backups | `pg_dump` / provider snapshots | all | 30 days rolling; erasure requests age out with the rotation |
+
+Suggested first jobs (cron / `psql`, run after a backup):
+
+```sql
+DELETE FROM refresh_tokens WHERE (expires_at < now() - interval '30 days') OR (revoked_at < now() - interval '30 days');
+DELETE FROM in_app_notifications WHERE read_at < now() - interval '90 days';
+```
+
+Still needed: published privacy policy matching this table, a DSAR (export/erase) procedure, cookie/consent review (JWT in localStorage — P-BE-06), and a DPA with SMTP/Razorpay/Cloudflare as processors. CRM webhook/CSV exports copy PII out of the system — restrict who holds `PLATFORM_ADMIN` and treat the receiving CRM as a processor.
+
+### CDN for static & snapshot assets (P2-4)
+
+- Cloudflare already fronts the site; static files in `frontend/public/assets/**` (marketing snapshot images/CSS/JS) are served by Next with `Cache-Control: public, max-age=86400, stale-while-revalidate=604800` (`next.config.ts`). Next's own hashed build assets (`/_next/static/*`) are already `immutable` for a year.
+- Cloudflare dashboard (Ops): Caching → keep **Standard**; add a Cache Rule "Cache eligible" for `/assets/*` and `/_next/static/*` (Edge TTL: respect origin). **Never cache** `/platform-api/*`, `/api/*`, `/admin/*`, `/partner/*`, `/buyer/*` (authenticated / per-user) — add a bypass rule for those paths. Purge `/assets/*` after replacing snapshot assets (files are not content-hashed, hence the 1-day TTL).
+- Uploads (`UPLOAD_DIR`) are private and API-served — do **not** put them behind a public CDN; move to private S3/R2 with signed URLs (P1-4).
+- Optional later: Cloudflare Images/Polish for listing media; hashing snapshot asset filenames to allow `immutable`.
+
+### Database connection pooling (P2-4)
+
+Prisma opens a pool **per Node process**: default size `num_physical_cpus * 2 + 1` (≈5 on 2 vCPU), pool timeout 10 s. Postgres defaults to `max_connections=100`; managed tiers often allow 20–100 (Neon free/small, DO basic ≈ 25).
+
+Recommended `DATABASE_URL` parameters:
+
+| Setup | Example | Notes |
+|-------|---------|-------|
+| Single VPS, Postgres in docker, 1 API process | `postgresql://u:p@127.0.0.1:5432/garudhub?schema=public&connection_limit=10&pool_timeout=20&connect_timeout=10` | 10 ≥ default; leaves ample headroom under 100 |
+| pm2 cluster / 2–3 API instances | `…&connection_limit=5&pool_timeout=20` | Budget: `instances × connection_limit` + ~10 (migrations, psql, backups) ≤ `max_connections` |
+| Managed Postgres **with PgBouncer / pooled endpoint** (Neon, Supabase, RDS Proxy) | `postgresql://…-pooler…/garudhub?sslmode=require&pgbouncer=true&connection_limit=5&connect_timeout=15` | `pgbouncer=true` disables prepared statements. **Run `prisma migrate deploy` against the direct (non-pooled) URL** — set `directUrl` in the Prisma datasource when adopting a pooler (not wired today) or export a direct `DATABASE_URL` for the deploy step only |
+| Managed Postgres, direct, TLS | `…?sslmode=require&connection_limit=5&connect_timeout=15` | Use `sslmode=verify-full` + CA if the provider supplies one |
+
+Review checklist:
+
+1. Compute the budget above before adding API instances; `PrismaClientKnownRequestError P2024` ("timed out fetching a connection") in logs means the pool is exhausted → raise `connection_limit` or add pooling, not just `pool_timeout`.
+2. Hot spots are admin analytics/overview/audit (merge-on-read, up to 20k rows) — run them sparingly; consider read replicas only if they dominate.
+3. `PrismaService` connects on boot and disconnects on shutdown (no manual pool code). Keep `pm2` graceful reload so connections are released.
+4. Monitor `SELECT count(*) FROM pg_stat_activity;` during load tests; alert at 80 % of `max_connections`.
+5. No load test has been run for this review — numbers above are conservative defaults, not measured.
 
 ---
 

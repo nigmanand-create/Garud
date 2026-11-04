@@ -146,7 +146,7 @@ export class RfqService {
     try {
       const vendors = await this.prisma.organization.findMany({
         where: { id: { in: vendorIds } },
-        select: { companyName: true, contactEmail: true },
+        select: { companyName: true, contactEmail: true, ownerId: true },
       });
       void this.notifications.notifyRfqInvites({
         rfqId,
@@ -154,6 +154,7 @@ export class RfqService {
         recipients: vendors.map((v) => ({
           email: v.contactEmail,
           companyName: v.companyName,
+          userId: v.ownerId,
         })),
       });
     } catch {

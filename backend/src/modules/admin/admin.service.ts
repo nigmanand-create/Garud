@@ -85,6 +85,7 @@ export class AdminService {
       to: approved.contactEmail,
       companyName: approved.companyName,
       approved: true,
+      userId: approved.ownerId,
     });
     return approved;
   }
@@ -133,6 +134,7 @@ export class AdminService {
       companyName: rejected.companyName,
       approved: false,
       reason: dto.reason,
+      userId: rejected.ownerId,
     });
     return rejected;
   }

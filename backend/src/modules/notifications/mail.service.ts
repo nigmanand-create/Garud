@@ -2,12 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, type Transporter } from 'nodemailer';
 
-export type MailMessage = {
-  to: string | string[];
-  subject: string;
-  text: string;
-  html?: string;
-};
+import type { MailMessage, MailProvider } from './notification.types';
+
+export type { MailMessage };
 
 /**
  * Transactional mail provider.
@@ -16,7 +13,7 @@ export type MailMessage = {
  * Failures are logged and never thrown — notifications must not break business flows.
  */
 @Injectable()
-export class MailService {
+export class MailService implements MailProvider {
   private readonly logger = new Logger(MailService.name);
   private transporter: Transporter | null = null;
   private readonly from: string;

@@ -429,3 +429,52 @@ describe('LeadService', () => {
     expect(data.contactedAt).toBeInstanceOf(Date);
   });
 });
+
+describe('EnquiryService CRM webhook', () => {
+  it('emits enquiry.created after creating an enquiry', async () => {
+    const created = {
+      id: 'enq-9',
+      name: 'A',
+      email: 'a@x.in',
+      phone: null,
+      subject: 'S',
+      message: 'M',
+      sourcePage: null,
+      intent: EnquiryIntent.GENERAL,
+      serviceKey: null,
+      listingId: null,
+      organizationId: null,
+      status: EnquiryStatus.NEW,
+      createdAt: new Date('2026-11-01T00:00:00Z'),
+    };
+    const prisma = {
+      enquiry: { create: jest.fn().mockResolvedValue(created) },
+      lead: { create: jest.fn() },
+      $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(prisma)),
+    };
+    const emit = jest.fn();
+    const svc = new EnquiryService(
+      prisma as never,
+      {
+        notifyEnquiryCreated: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      { emit } as never,
+    );
+
+    await svc.create({
+      name: 'A',
+      email: 'a@x.in',
+      subject: 'S',
+      message: 'M',
+    });
+
+    expect(emit).toHaveBeenCalledWith(
+      'enquiry.created',
+      expect.objectContaining({
+        id: 'enq-9',
+        createdAt: '2026-11-01T00:00:00.000Z',
+        routing: null,
+      }),
+    );
+  });
+});

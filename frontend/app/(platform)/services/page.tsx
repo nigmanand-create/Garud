@@ -76,7 +76,7 @@ const SERVICES: ServiceItem[] = [
       'Aviation regulatory consultancy for defense & civil operations',
     ],
     applications: ['Drone Manufacturers', 'Importers', 'Commercial Operators', 'Govt Vendors'],
-    primaryCta: { label: 'Get Compliance Assistance →', href: '/services/request?category=COMPLIANCE' },
+    primaryCta: { label: 'Get Compliance Assistance →', href: '/services/compliance' },
     secondaryCta: { label: 'Post compliance RFQ →', href: '/buyer/rfqs/new' },
   },
   {
@@ -94,7 +94,7 @@ const SERVICES: ServiceItem[] = [
       'Doorstep pickup, inspection, and return dispatch across India',
     ],
     applications: ['Fleet Operators', 'Agri-Entrepreneurs', 'Survey Firms', 'Security Agencies'],
-    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/services/request?category=REPAIR_AMC' },
+    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/services/repair' },
     secondaryCta: {
       label: 'Find repair partners →',
       href: '/marketplace?section=services',
@@ -118,7 +118,7 @@ const SERVICES: ServiceItem[] = [
     primaryCta: { label: 'Request Enterprise Project →', href: '/buyer/rfqs/new' },
     secondaryCta: {
       label: 'Match me with service operators →',
-      href: '/services/request?category=PROFESSIONAL',
+      href: '/services/professional',
     },
   },
   {
@@ -136,7 +136,7 @@ const SERVICES: ServiceItem[] = [
       'Fast loan eligibility check and minimal documentation',
     ],
     applications: ['Farmers & FPOs', 'CHCs (Custom Hiring Centers)', 'Drone Pilots', 'Commercial Startups'],
-    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/services/request?category=FINANCE_INSURANCE' },
+    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/services/finance' },
     secondaryCta: { label: 'Post financing RFQ →', href: '/buyer/rfqs/new' },
   },
   {
@@ -175,7 +175,7 @@ const SERVICES: ServiceItem[] = [
       'Certified green disposal certificates for enterprise ESG compliance',
     ],
     applications: ['Fleet Modernization', 'Corporate ESG', 'Research Labs', 'Drone Operators'],
-    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/services/request?category=SCRAP_RECYCLING' },
+    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/services/recycling' },
     secondaryCta: {
       label: 'Browse recycling partners →',
       href: '/marketplace/vendors',

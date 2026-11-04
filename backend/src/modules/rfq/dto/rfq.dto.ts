@@ -253,6 +253,16 @@ export class AcceptQuotationDto {
   @IsString()
   @MaxLength(1000)
   notes?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Negotiated unit price (INR) when accepting a price-on-request quotation',
+    example: 425000,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @Min(1)
+  agreedPriceInr?: number;
 }
 
 export class RejectQuotationDto {

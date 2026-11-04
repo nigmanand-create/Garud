@@ -1,6 +1,6 @@
 # GarudHub — PRD remaining tasks
 
-**Date:** November 4, 2026 (Phases 1–4 implemented; Phase 3 platform/marketing unification — see [`ROUTE_MAP.md`](./ROUTE_MAP.md); POR RFQ accept and per-vertical service routes remain)  
+**Date:** November 4, 2026 (Phases 1–4 implemented; Phase 3 platform/marketing unification — see [`ROUTE_MAP.md`](./ROUTE_MAP.md); POR RFQ accept + `/services/[vertical]` deep links shipped on `dev`)  
 **Spec:** [`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) (wireframe / GarudHub UI blueprint; `decode_jwt.docx` is not in-repo)  
 **Gap analysis:** [`SPEC_VS_PROJECT_GAP_ANALYSIS.md`](./SPEC_VS_PROJECT_GAP_ANALYSIS.md)  
 **Code baseline:** Active product on **`dev`** branch (staging → [dev.garudhub.me](https://dev.garudhub.me)); merge **`dev` → `main`** for production ([`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md))
@@ -89,8 +89,8 @@ Close spec **business-generation** loop: Submit → Match → Connect beyond RFQ
 - [x] **Email on KYC approve/reject and RFQ invite** — Enterprise credibility (roadmap Phase G). *Done: sent to organization `contactEmail` on admin approve/reject and per invited vendor on RFQ create (best-effort, never blocks the request).*
 - [x] **Lead entity (C1)** — Non-RFQ intents (distributor, demo, service pillar) with partner inbox (gap §4 Leads ~0%). *v1 done: `Lead` model (status NEW→CONTACTED→QUALIFIED→WON/LOST) created whenever an enquiry is routed to a partner; `EnquiryIntent` GENERAL/PRODUCT/DEMO/DISTRIBUTOR/PARTNER/SERVICE. Partial: no dedicated distributor-request UI, RFQ→lead sync, or standalone leads module (Phase 2).*
 - [x] **Admin enquiry queue enhancements** — Filters by source (listing, service vertical, demo), bulk status (P-UI-09 partial). *Done: filters for status/source/routing, bulk mark-read/close, per-row partner routing, new `CLOSED` status.*
-- [ ] **POR RFQ accept → order** — Product rule + UI when quotation is price-on-request (gap §2 RFQ buyer ~90%, roadmap Sprint 2).
-- [x] **Services per-vertical app routes (optional v1)** — Beyond `/services` anchors; trackable “Request service” per vertical (P-UI-02, gap §2 Drone Services ~55%). *Done in Phase 8: `/services/request?category=…` + `/services/track/[token]`, `/training`, `/government`.*
+- [x] **POR RFQ accept → order** — Product rule + UI when quotation is price-on-request (gap §2 RFQ buyer ~90%, roadmap Sprint 2). *Done: buyer may award POR quotes by submitting `agreedPriceInr` on `POST /rfq/:id/quotations/:quotationId/accept`; order uses agreed unit price and persisted quote row; award modal on `/buyer/rfqs/[id]` collects negotiated INR. Partial: no vendor counter-sign or audit trail beyond order/quote snapshot.*
+- [x] **Services per-vertical app routes (optional v1)** — Beyond `/services` anchors; trackable “Request service” per vertical (P-UI-02, gap §2 Drone Services ~55%). *Done: `/services/[vertical]` → preset `/services/request?category=…` (or `/training`, `/government`, `/marketplace`); home tiles + `/services` pillar CTAs wired; Phase 8 intake + `/services/track/[token]` unchanged.*
 
 ---
 
@@ -98,7 +98,7 @@ Close spec **business-generation** loop: Submit → Match → Connect beyond RFQ
 
 Spec sidebar: Profile, Products, Services, Leads, RFQs, Enquiries, Orders, Partnerships, Documents, Messages, Analytics, Subscription ([`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) §1.2).
 
-- [x] **Dedicated Partner “Services” module** — First-class hub beyond `ListingType.SERVICE` in catalog (P-UI-08, gap §2 ~60%). *v1 done: `/partner/services` + `GET /partner/services` — service listings with moderation status, 30-day views and lead counts, service-vertical coverage (compliance/repair/training/finance/recycling), recent service leads, “Add a service” deep link (`/partner/catalog/new?type=SERVICE`). Partial: coverage is inferred from catalog categories (no explicit vertical field on listings); no per-vertical public routes (Phase 1 open item).*
+- [x] **Dedicated Partner “Services” module** — First-class hub beyond `ListingType.SERVICE` in catalog (P-UI-08, gap §2 ~60%). *v1 done: `/partner/services` + `GET /partner/services` — service listings with moderation status, 30-day views and lead counts, service-vertical coverage (compliance/repair/training/finance/recycling), recent service leads, “Add a service” deep link (`/partner/catalog/new?type=SERVICE`). Partial: coverage is inferred from catalog categories (no explicit vertical field on listings).*
 - [x] **Leads module UI** — Replace “Soon” stub with live routes (PartnerSubnav roadmap labels). *Done: `/partner/leads` pipeline (stage KPIs, win rate, type/status/search filters, stage change, private note, email reply); `GET /partner/leads` gained `intent` + `q` filters.*
 - [x] **Enquiries module UI** — Full inbox vs admin-only today (spec Partner dashboard Enquiries). *Done: `/partner/enquiries` split from leads — inbox with unread/read/closed, search, detail pane, reply-by-email, mark unread/close/reopen; new `GET/PATCH /partner/enquiries` scoped to the partner org.*
 - [x] **Partnerships module** — Request/workflow beyond `partnershipTypes` on org (P-BE-04, gap §4 ~15%). *v1 done: `PartnershipRequest` model; partner `/partner/partnerships` (submit, withdraw, status + admin note, approved incoming partners); admin `/admin/partnerships` queue (approve / under review / decline). Partial: no notifications on decision, `partnershipTypes` on org not synced from approvals, target partner is entered as an organization ID (no picker), no counterparty accept step.*

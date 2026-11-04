@@ -112,7 +112,26 @@ function DetailInner() {
   const [awardingQuote, setAwardingQuote] = useState<QuotationRow | null>(null);
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [agreedUnitPrice, setAgreedUnitPrice] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  function quoteNeedsAgreedPrice(q: QuotationRow): boolean {
+    return q.priceOnRequest || q.priceInr == null;
+  }
+
+  function openAwardModal(q: QuotationRow) {
+    setAwardingQuote(q);
+    setAgreedUnitPrice('');
+    setPurchaseOrderNumber(`PO-RFQ-${id.slice(0, 8).toUpperCase()}`);
+  }
+
+  function awardUnitPrice(q: QuotationRow): number {
+    if (quoteNeedsAgreedPrice(q)) {
+      const n = Number(agreedUnitPrice);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return Number(q.priceInr) || 0;
+  }
 
   function load() {
     Promise.all([
@@ -154,6 +173,16 @@ function DetailInner() {
 
   async function handleAcceptQuotation() {
     if (!awardingQuote) return;
+    const needsAgreed = quoteNeedsAgreedPrice(awardingQuote);
+    if (needsAgreed) {
+      const agreed = Number(agreedUnitPrice);
+      if (!Number.isFinite(agreed) || agreed < 1) {
+        setError(
+          'Enter the negotiated unit price (INR) for this price-on-request quotation.',
+        );
+        return;
+      }
+    }
     setActionLoading(true);
     setError(null);
 
@@ -168,6 +197,9 @@ function DetailInner() {
         body: JSON.stringify({
           purchaseOrderNumber: purchaseOrderNumber.trim() || undefined,
           notes: deliveryNotes.trim() || undefined,
+          ...(needsAgreed
+            ? { agreedPriceInr: Number(agreedUnitPrice) }
+            : {}),
         }),
       });
 
@@ -556,11 +588,7 @@ function DetailInner() {
                                 <button
                                   type="button"
                                   className="platform-btn platform-btn-cta platform-btn-sm"
-                                  disabled={q.priceOnRequest || !q.priceInr}
-                                  onClick={() => {
-                                    setAwardingQuote(q);
-                                    setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
-                                  }}
+                                  onClick={() => openAwardModal(q)}
                                 >
                                   Award RFQ
                                 </button>
@@ -724,11 +752,7 @@ function DetailInner() {
                           <button
                             type="button"
                             className="platform-btn platform-btn-cta"
-                            disabled={q.priceOnRequest || !q.priceInr}
-                            onClick={() => {
-                              setAwardingQuote(q);
-                              setPurchaseOrderNumber(`PO-RFQ-${rfq.id.slice(0, 8).toUpperCase()}`);
-                            }}
+                            onClick={() => openAwardModal(q)}
                           >
                             🏆 Award & Order
                           </button>
@@ -793,18 +817,47 @@ function DetailInner() {
                 <span>{rfq.quantity || 1} units</span>
               </div>
               <div className="platform-summary-row">
-                <span>Quoted Unit Price:</span>
-                <span>{formatPrice(false, awardingQuote.priceInr)}</span>
+                <span>Vendor quote:</span>
+                <span>{formatPrice(awardingQuote.priceOnRequest, awardingQuote.priceInr)}</span>
               </div>
+              {!quoteNeedsAgreedPrice(awardingQuote) && (
+                <div className="platform-summary-row">
+                  <span>Unit price for order:</span>
+                  <span>{formatPrice(false, awardingQuote.priceInr)}</span>
+                </div>
+              )}
               <div className="platform-summary-total">
                 <span>Order Total:</span>
                 <span className="platform-text-success">
-                  ₹{((Number(awardingQuote.priceInr) || 0) * (rfq.quantity || 1)).toLocaleString('en-IN')}
+                  ₹{(awardUnitPrice(awardingQuote) * (rfq.quantity || 1)).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
 
             <div className="platform-stack platform-stack--lg">
+              {quoteNeedsAgreedPrice(awardingQuote) && (
+                <div className="platform-field">
+                  <label htmlFor="agreed-unit-price">
+                    Agreed unit price (INR) <span className="platform-required">*</span>
+                  </label>
+                  <p className="platform-muted platform-text-sm">
+                    This vendor submitted a price-on-request quote. Enter the unit price you agreed
+                    offline (email, call, or message) before creating the order.
+                  </p>
+                  <input
+                    id="agreed-unit-price"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={agreedUnitPrice}
+                    onChange={(e) => setAgreedUnitPrice(e.target.value)}
+                    className="platform-input"
+                    placeholder="e.g. 425000"
+                    required
+                  />
+                </div>
+              )}
+
               <div className="platform-field">
                 <label htmlFor="po-number">Purchase Order (PO) Number (Optional)</label>
                 <input

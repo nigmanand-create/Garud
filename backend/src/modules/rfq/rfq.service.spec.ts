@@ -630,6 +630,51 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('buyer accepts price-on-request quotation with agreedPriceInr and creates order', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 10);
+
+      const rfq = await service.createRfq(buyerUserId, UserRole.BUYER, {
+        title: 'Custom payload integration',
+        description: 'Need bespoke gimbal mount',
+        category: CatalogCategory.COMPONENT,
+        quantity: 2,
+        deadlineAt: futureDate.toISOString(),
+      });
+      createdRfqIds.push(rfq.id);
+
+      const porQuote = await service.submitQuotation(partnerUserId, rfq.id, {
+        priceOnRequest: true,
+        leadTimeDays: 21,
+        notes: 'Final price after site visit',
+      });
+
+      await expect(
+        service.acceptQuotation(buyerUserId, rfq.id, porQuote.id),
+      ).rejects.toThrow(BadRequestException);
+
+      const acceptResult = await service.acceptQuotation(
+        buyerUserId,
+        rfq.id,
+        porQuote.id,
+        { agreedPriceInr: 185000, purchaseOrderNumber: 'PO-POR-001' },
+      );
+
+      expect(acceptResult.success).toBe(true);
+
+      const dbQuote = await prisma.quotation.findUnique({
+        where: { id: porQuote.id },
+      });
+      expect(dbQuote?.status).toBe(QuotationStatus.ACCEPTED);
+      expect(dbQuote?.priceOnRequest).toBe(false);
+      expect(Number(dbQuote?.priceInr)).toBe(185000);
+
+      const dbOrder = await prisma.order.findUnique({
+        where: { id: acceptResult.orderId },
+      });
+      expect(Number(dbOrder?.totalInr)).toBe(185000 * 2);
+    });
+
     it('buyer can reject a specific quotation', async () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 10);

@@ -14,13 +14,13 @@ export const HOME_CONTENT = {
   ecosystemSupport: ['Service', 'Training', 'Projects'],
   services: [
     { number: '01', title: 'Marketplace', icon: 'bi-shop', href: '/marketplace', desc: 'Drones, components, accessories and services from verified sellers.' },
-    { number: '02', title: 'Training', icon: 'bi-mortarboard-fill', href: '/services#training', desc: 'DGCA remote pilot and technician training institutes.' },
-    { number: '03', title: 'Compliance', icon: 'bi-shield-check', href: '/services#compliance', desc: 'Registration, documentation and regulatory support.' },
-    { number: '04', title: 'Repair', icon: 'bi-tools', href: '/services#repair', desc: 'Repair, AMC, inspection and spare parts network.' },
-    { number: '05', title: 'Professional Services', icon: 'bi-briefcase-fill', href: '/services#professional', desc: 'Survey, mapping, agriculture and consultancy services.' },
-    { number: '06', title: 'Finance', icon: 'bi-cash-coin', href: '/services#finance', desc: 'Financing, EMI, insurance and loan assistance.' },
-    { number: '07', title: 'Projects', icon: 'bi-building-fill', href: '/services#government', desc: 'Government tenders, schemes and subsidies.' },
-    { number: '08', title: 'Recycling', icon: 'bi-recycle', href: '/services#recycling', desc: 'Scrap, buyback and responsible drone recycling.' },
+    { number: '02', title: 'Training', icon: 'bi-mortarboard-fill', href: '/services/training', desc: 'DGCA remote pilot and technician training institutes.' },
+    { number: '03', title: 'Compliance', icon: 'bi-shield-check', href: '/services/compliance', desc: 'Registration, documentation and regulatory support.' },
+    { number: '04', title: 'Repair', icon: 'bi-tools', href: '/services/repair', desc: 'Repair, AMC, inspection and spare parts network.' },
+    { number: '05', title: 'Professional Services', icon: 'bi-briefcase-fill', href: '/services/professional', desc: 'Survey, mapping, agriculture and consultancy services.' },
+    { number: '06', title: 'Finance', icon: 'bi-cash-coin', href: '/services/finance', desc: 'Financing, EMI, insurance and loan assistance.' },
+    { number: '07', title: 'Projects', icon: 'bi-building-fill', href: '/services/government', desc: 'Government tenders, schemes and subsidies.' },
+    { number: '08', title: 'Recycling', icon: 'bi-recycle', href: '/services/recycling', desc: 'Scrap, buyback and responsible drone recycling.' },
   ],
   /** `type` maps to `/auth/register?type=` (AccountType enum or `partner`). */
   whoCanJoin: [

@@ -9,6 +9,7 @@ import {
   formatInrCompact,
   missingRequiredFields,
   resolveVerticalConfig,
+  serviceVerticalRedirectPath,
   SERVICE_REQUEST_CATEGORIES,
   SERVICE_VERTICAL_CONFIGS,
   seatsLeft,
@@ -36,6 +37,15 @@ describe('service request categories', () => {
     expect(resolveVerticalConfig('compliance').category).toBe('COMPLIANCE');
     expect(resolveVerticalConfig('nonsense').category).toBe('REPAIR_AMC');
     expect(resolveVerticalConfig(null).category).toBe('REPAIR_AMC');
+  });
+
+  it('maps /services/[vertical] slugs to redirect targets', () => {
+    expect(serviceVerticalRedirectPath('compliance')).toBe(
+      '/services/request?category=COMPLIANCE',
+    );
+    expect(serviceVerticalRedirectPath('repair')).toContain('REPAIR_AMC');
+    expect(serviceVerticalRedirectPath('training')).toBe('/training');
+    expect(serviceVerticalRedirectPath('unknown-slug')).toBeNull();
   });
 
   it('uses field names the backend accepts as detail keys', () => {

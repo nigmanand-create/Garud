@@ -78,6 +78,25 @@ export function categoryForServiceKey(
   return SERVICE_KEY_TO_CATEGORY[key.trim().toLowerCase()] ?? null;
 }
 
+/** Public `/services/[vertical]` slugs → redirect target (trackable deep links). */
+export const SERVICE_VERTICAL_SLUG_REDIRECTS: Record<string, string> = {
+  compliance: '/services/request?category=COMPLIANCE',
+  repair: '/services/request?category=REPAIR_AMC',
+  professional: '/services/request?category=PROFESSIONAL',
+  finance: '/services/request?category=FINANCE_INSURANCE',
+  recycling: '/services/request?category=SCRAP_RECYCLING',
+  scrap: '/services/request?category=SCRAP_RECYCLING',
+  training: '/training',
+  government: '/government',
+  projects: '/government',
+  marketplace: '/marketplace',
+};
+
+export function serviceVerticalRedirectPath(slug: string): string | null {
+  const key = slug.trim().toLowerCase();
+  return SERVICE_VERTICAL_SLUG_REDIRECTS[key] ?? null;
+}
+
 // --- Vertical-specific intake forms -------------------------------------------
 
 export type IntakeField = {

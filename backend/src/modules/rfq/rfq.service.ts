@@ -264,10 +264,25 @@ export class RfqService {
         `Quotation cannot be accepted because it is ${quotation.status}`,
       );
     }
-    if (quotation.priceOnRequest || quotation.priceInr == null) {
-      throw new BadRequestException(
-        'Cannot place an order on a Price-on-Request quotation without a specified price',
-      );
+    const isPriceOnRequest =
+      quotation.priceOnRequest || quotation.priceInr == null;
+    let unitPrice: Prisma.Decimal;
+    if (isPriceOnRequest) {
+      if (dto.agreedPriceInr == null || dto.agreedPriceInr < 1) {
+        throw new BadRequestException(
+          'agreedPriceInr is required when accepting a price-on-request quotation',
+        );
+      }
+      unitPrice = new Prisma.Decimal(dto.agreedPriceInr);
+    } else if (quotation.priceInr == null) {
+      throw new BadRequestException('Quotation has no unit price');
+    } else {
+      unitPrice = quotation.priceInr;
+      if (dto.agreedPriceInr != null) {
+        throw new BadRequestException(
+          'agreedPriceInr applies only to price-on-request quotations',
+        );
+      }
     }
 
     // Resolve Shipping & Billing addresses
@@ -304,7 +319,6 @@ export class RfqService {
           };
 
     const quantity = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
-    const unitPrice = quotation.priceInr;
     const subtotal = new Prisma.Decimal(unitPrice).mul(quantity);
     const tax = new Prisma.Decimal(0);
     const shippingFee = new Prisma.Decimal(0);
@@ -315,7 +329,12 @@ export class RfqService {
       // 1. Mark winning quotation as ACCEPTED
       const acceptedQuote = await tx.quotation.update({
         where: { id: quotationId },
-        data: { status: QuotationStatus.ACCEPTED },
+        data: {
+          status: QuotationStatus.ACCEPTED,
+          ...(isPriceOnRequest
+            ? { priceOnRequest: false, priceInr: unitPrice }
+            : {}),
+        },
       });
 
       // 2. Mark other submitted quotations for this RFQ as REJECTED

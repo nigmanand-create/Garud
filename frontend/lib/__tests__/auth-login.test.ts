@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getLoginPageCopy,
   isLoginIntent,
+  loginIntentForRoles,
   loginPathForIntent,
   redirectPathAfterLogin,
   redirectPathForRole,
@@ -12,7 +13,7 @@ describe('auth-login', () => {
     expect(redirectPathForRole('PLATFORM_ADMIN')).toBe('/admin');
     expect(redirectPathForRole('PARTNER')).toBe('/partner');
     expect(redirectPathForRole('BUYER')).toBe('/buyer/rfqs');
-    expect(redirectPathForRole('GOVERNMENT')).toBe('/buyer/rfqs');
+    expect(redirectPathForRole('GOVERNMENT')).toBe('/government');
   });
 
   it('redirectPathAfterLogin honors mustChangePassword', () => {
@@ -20,6 +21,13 @@ describe('auth-login', () => {
       redirectPathAfterLogin({ role: 'PARTNER', mustChangePassword: true }),
     ).toBe('/auth/change-password');
     expect(redirectPathAfterLogin({ role: 'PARTNER' })).toBe('/partner');
+  });
+
+  it('loginIntentForRoles maps role gates to login URLs', () => {
+    expect(loginIntentForRoles(['BUYER', 'GOVERNMENT'])).toBe('buyer');
+    expect(loginIntentForRoles(['PARTNER'])).toBe('partner');
+    expect(loginIntentForRoles(['PLATFORM_ADMIN'])).toBe('admin');
+    expect(loginIntentForRoles(undefined)).toBe(null);
   });
 
   it('validates login intents and builds paths', () => {

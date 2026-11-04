@@ -22,10 +22,15 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
+    // Same-origin Garud Nest API (via Next proxy). Do not proxy to legacy garudhub.com.
     return [
       {
-        source: '/api/:path*',
-        destination: 'https://garudhub.com/api/:path*',
+        source: '/api/v1/:path*',
+        destination: '/platform-api/v1/:path*',
+      },
+      {
+        source: '/api/enquiry',
+        destination: '/platform-api/v1/enquiries',
       },
     ];
   },

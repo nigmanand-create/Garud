@@ -16,8 +16,14 @@ import {
   usesCookieSession,
 } from '@/lib/api/auth-storage';
 import type { AuthTokensResponse, AuthUser } from '@/lib/api/types';
-import { redirectPathAfterLogin } from '@/lib/platform/auth-login';
+import {
+  loginIntentForRoles,
+  loginPathForIntent,
+  redirectPathAfterLogin,
+  type LoginIntent,
+} from '@/lib/platform/auth-login';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type AuthState = {
   user: AuthUser | null;
@@ -30,8 +36,17 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const AUTH_ME_TIMEOUT_MS = 10_000;
+
 function homeForUser(user: AuthUser): string {
   return redirectPathAfterLogin(user);
+}
+
+async function fetchCurrentUser(): Promise<AuthUser> {
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('auth_me_timeout')), AUTH_ME_TIMEOUT_MS);
+  });
+  return Promise.race([authApi.me(), timeout]);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -52,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const me = await authApi.me();
+      const me = await fetchCurrentUser();
       setUser(me);
     } catch {
       clearTokens();
@@ -127,16 +142,34 @@ export function useAuthRedirectPath() {
 export function RequireAuth({
   roles,
   children,
+  loginIntent,
 }: {
   roles?: AuthUser['role'][];
   children: React.ReactNode;
+  /** Override role-derived login URL when redirecting signed-out users. */
+  loginIntent?: LoginIntent | null;
 }) {
   const { user, loading } = useAuth();
+  const router = useRouter();
+  const resolvedIntent =
+    loginIntent === undefined ? loginIntentForRoles(roles) : loginIntent;
+  const loginHref = resolvedIntent
+    ? loginPathForIntent(resolvedIntent)
+    : '/auth/login';
+
+  useEffect(() => {
+    if (!loading && !user && resolvedIntent) {
+      router.replace(loginHref);
+    }
+  }, [loading, user, resolvedIntent, loginHref, router]);
 
   if (loading) {
     return <p className="platform-muted">Loading…</p>;
   }
   if (!user) {
+    if (resolvedIntent) {
+      return <p className="platform-muted">Redirecting to sign in…</p>;
+    }
     return (
       <div className="platform-card">
         <p>Please sign in to continue.</p>

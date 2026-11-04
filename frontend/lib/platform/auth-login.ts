@@ -3,6 +3,7 @@
 export function redirectPathForRole(role: string): string {
   if (role === 'PLATFORM_ADMIN') return '/admin';
   if (role === 'PARTNER') return '/partner';
+  if (role === 'GOVERNMENT') return '/government';
   return '/buyer/rfqs';
 }
 
@@ -24,6 +25,17 @@ export function isLoginIntent(value: string): value is LoginIntent {
 
 export function loginPathForIntent(intent: LoginIntent): string {
   return `/auth/login/${intent}`;
+}
+
+/** Map RequireAuth role gates to role-specific login URLs. */
+export function loginIntentForRoles(
+  roles: readonly string[] | undefined,
+): LoginIntent | null {
+  if (!roles?.length) return null;
+  if (roles.length === 1 && roles[0] === 'PLATFORM_ADMIN') return 'admin';
+  if (roles.length === 1 && roles[0] === 'PARTNER') return 'partner';
+  if (roles.every((r) => r === 'BUYER' || r === 'GOVERNMENT')) return 'buyer';
+  return null;
 }
 
 export type LoginPageCopy = {

@@ -40,7 +40,8 @@ export const PAGE_PATHS = [
 function localize(s) {
   return s
     .replaceAll('https://garudhub.com/assets/', '/assets/')
-    .replaceAll('https://garudhub.com/api/', '/api/')
+    .replaceAll('https://garudhub.com/api/v1/', '/platform-api/v1/')
+    .replaceAll('https://garudhub.com/api/', '/platform-api/v1/')
     .replaceAll('https://garudhub.com/', '/');
 }
 

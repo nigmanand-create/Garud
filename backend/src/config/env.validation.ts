@@ -83,6 +83,11 @@ class EnvironmentVariables {
   @IsString()
   AUTH_SESSION_MODE?: string;
 
+  /** Force Secure on auth cookies (`true` / `false`; default secure in production). */
+  @IsOptional()
+  @IsString()
+  AUTH_COOKIE_SECURE?: string;
+
   @IsOptional()
   @IsString()
   RAZORPAY_KEY_ID?: string;

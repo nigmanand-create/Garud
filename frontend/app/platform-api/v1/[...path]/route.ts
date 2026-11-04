@@ -79,6 +79,11 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   return proxy(req, path);
 }
 
+export async function HEAD(req: NextRequest, ctx: Ctx) {
+  const { path } = await ctx.params;
+  return proxy(req, path);
+}
+
 export async function POST(req: NextRequest, ctx: Ctx) {
   const { path } = await ctx.params;
   return proxy(req, path);

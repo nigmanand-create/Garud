@@ -160,6 +160,32 @@ export class PartnerBillingService {
     return org;
   }
 
+  /** Batch entitlement flags for marketplace / RFQ ranking (NEXT-P3). */
+  async getEntitlementsForOrganizations(organizationIds: string[]) {
+    const unique = [...new Set(organizationIds.filter(Boolean))];
+    const map = new Map<
+      string,
+      { featuredPlacement: boolean; rfqPriority: boolean }
+    >();
+    if (!unique.length) return map;
+
+    const defaultPlan = await this.getDefaultPlan();
+    const subs = await this.prisma.partnerSubscription.findMany({
+      where: { organizationId: { in: unique } },
+      include: { plan: true },
+    });
+    for (const orgId of unique) {
+      const sub = subs.find((s) => s.organizationId === orgId);
+      const plan =
+        sub && subscriptionGrantsPlan(sub) ? sub.plan : defaultPlan;
+      map.set(orgId, {
+        featuredPlacement: plan.featuredPlacement,
+        rfqPriority: plan.rfqPriority,
+      });
+    }
+    return map;
+  }
+
   /** The plan a partner organization is entitled to right now. */
   async resolveEffectivePlan(organizationId: string) {
     const sub = await this.prisma.partnerSubscription.findUnique({

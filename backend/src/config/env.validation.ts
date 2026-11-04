@@ -49,6 +49,36 @@ class EnvironmentVariables {
   @IsString()
   UPLOAD_DIR?: string;
 
+  /** `local` (default) or `s3` / `r2` (stub until P1-4 full adapter). */
+  @IsOptional()
+  @IsString()
+  UPLOAD_STORAGE?: string;
+
+  @IsOptional()
+  @IsString()
+  S3_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
+  S3_REGION?: string;
+
+  @IsOptional()
+  @IsString()
+  S3_ACCESS_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  S3_SECRET_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  SENTRY_DSN?: string;
+
+  /** cookies | bearer | dual — see docs/PRODUCTION_READINESS.md P1-1 */
+  @IsOptional()
+  @IsString()
+  AUTH_SESSION_MODE?: string;
+
   @IsOptional()
   @IsString()
   RAZORPAY_KEY_ID?: string;

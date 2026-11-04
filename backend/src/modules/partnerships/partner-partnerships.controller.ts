@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../identity/decorators/current-user.decorator';
@@ -25,6 +33,20 @@ export class PartnerPartnershipsController {
   })
   list(@CurrentUser() user: AuthenticatedUser) {
     return this.partnerships.listForPartner(user.userId);
+  }
+
+  @Get('targets')
+  @ApiOperation({ summary: 'Search verified partners to target in a request' })
+  searchTargets(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('q') q?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.partnerships.searchTargetOrganizations(
+      user.userId,
+      q ?? '',
+      take ? parseInt(take, 10) : undefined,
+    );
   }
 
   @Post()

@@ -8,9 +8,14 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CatalogService } from './catalog.service';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 
 describe('CatalogService', () => {
   let service: CatalogService;
+
+  const billingMock = {
+    getEntitlementsForOrganizations: jest.fn().mockResolvedValue(new Map()),
+  };
 
   const prismaMock = {
     partnerListing: {
@@ -29,6 +34,7 @@ describe('CatalogService', () => {
       providers: [
         CatalogService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: PartnerBillingService, useValue: billingMock },
       ],
     }).compile();
 

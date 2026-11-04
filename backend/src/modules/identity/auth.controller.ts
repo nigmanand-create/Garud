@@ -4,8 +4,12 @@ import {
   Get,
   HttpCode,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { throttleFor } from '../../config/throttle.config';
 import {
@@ -28,11 +32,19 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { AuthenticatedUser } from './types/auth.types';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
+import {
+  applyAuthSession,
+  clearAuthSession,
+  readRefreshTokenFromRequest,
+} from './auth-session.helper';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post('register')
   @Throttle({ default: throttleFor('auth') })
@@ -40,8 +52,12 @@ export class AuthController {
     summary: 'Register by account type (creates user + organization)',
   })
   @ApiOkResponse({ type: AuthTokensResponse })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.register(dto);
+    return applyAuthSession({} as Request, res, this.config, tokens);
   }
 
   @Post('login')
@@ -49,8 +65,12 @@ export class AuthController {
   @Throttle({ default: throttleFor('auth') })
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiOkResponse({ type: AuthTokensResponse })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.login(dto);
+    return applyAuthSession({} as Request, res, this.config, tokens);
   }
 
   @Post('refresh')
@@ -58,8 +78,14 @@ export class AuthController {
   @Throttle({ default: throttleFor('authRefresh') })
   @ApiOperation({ summary: 'Rotate refresh token and get new access token' })
   @ApiOkResponse({ type: AuthTokensResponse })
-  refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refresh(dto);
+  async refresh(
+    @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = readRefreshTokenFromRequest(req, dto.refreshToken);
+    const tokens = await this.authService.refresh({ refreshToken: refreshToken ?? '' });
+    return applyAuthSession(req, res, this.config, tokens);
   }
 
   @Post('logout')
@@ -71,8 +97,14 @@ export class AuthController {
   async logout(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.logout(user.userId, dto);
+    const refreshToken = readRefreshTokenFromRequest(req, dto.refreshToken);
+    await this.authService.logout(user.userId, {
+      refreshToken: refreshToken ?? '',
+    });
+    clearAuthSession(res, this.config);
   }
 
   @Post('change-password')

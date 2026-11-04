@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { PartnershipsService } from './partnerships.service';
+import { NotificationService } from '../notifications/notification.service';
 
 describe('PartnershipsService', () => {
   let service: PartnershipsService;
@@ -30,6 +31,10 @@ describe('PartnershipsService', () => {
       providers: [
         PartnershipsService,
         { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: NotificationService,
+          useValue: { notifyPartnershipDecision: jest.fn() },
+        },
       ],
     }).compile();
     service = module.get(PartnershipsService);
@@ -123,7 +128,16 @@ describe('PartnershipsService', () => {
       id: 'pr-2',
       status: PartnershipRequestStatus.SUBMITTED,
     });
-    prismaMock.partnershipRequest.update.mockResolvedValue({ id: 'pr-2' });
+    prismaMock.partnershipRequest.update.mockResolvedValue({
+      id: 'pr-2',
+      title: 'South India distribution',
+      adminNote: 'ok',
+      organization: {
+        contactEmail: 'partner@example.com',
+        companyName: 'Acme Drones',
+        ownerId: 'user-1',
+      },
+    });
     await service.decide('admin-1', 'pr-2', {
       status: PartnershipRequestStatus.APPROVED,
       adminNote: ' ok ',

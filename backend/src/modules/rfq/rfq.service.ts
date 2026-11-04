@@ -25,6 +25,7 @@ import {
 } from './dto/rfq.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { RfqMatchingService } from './rfq-matching.service';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 
 @Injectable()
 export class RfqService {
@@ -32,6 +33,7 @@ export class RfqService {
     private readonly prisma: PrismaService,
     private readonly matching: RfqMatchingService,
     private readonly notifications: NotificationService,
+    private readonly billing: PartnerBillingService,
   ) {}
 
   async createRfq(buyerUserId: string, buyerRole: UserRole, dto: CreateRfqDto) {
@@ -73,15 +75,23 @@ export class RfqService {
     const effectiveListingType =
       dto.listingType ?? listingContext?.listingType ?? undefined;
 
+    const matched = await this.matching.findVendorOrganizationIds(
+      dto.category,
+      effectiveListingType,
+    );
     const vendorIds = [
       ...new Set([
-        ...(await this.matching.findVendorOrganizationIds(
-          dto.category,
-          effectiveListingType,
-        )),
+        ...matched,
         ...(listingContext ? [listingContext.organizationId] : []),
       ]),
     ];
+    const entitlements =
+      await this.billing.getEntitlementsForOrganizations(vendorIds);
+    vendorIds.sort((a, b) => {
+      const pa = entitlements.get(a)?.rfqPriority ? 1 : 0;
+      const pb = entitlements.get(b)?.rfqPriority ? 1 : 0;
+      return pb - pa;
+    });
 
     const created = await this.prisma.$transaction(async (tx) => {
       const rfq = await tx.rfq.create({

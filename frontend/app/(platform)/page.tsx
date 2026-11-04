@@ -13,7 +13,7 @@ export default function HomePage() {
 
   return (
     <div className="platform-marketing-page platform-home">
-      <section className="platform-b2b-hero">
+      <section className="platform-b2b-hero platform-b2b-hero--cinematic">
         <div className="platform-b2b-hero__inner">
           <span className="platform-b2b-hero__eyebrow">{c.hero.eyebrow}</span>
           <h1 className="platform-b2b-hero__title">{c.hero.title}</h1>
@@ -43,7 +43,7 @@ export default function HomePage() {
             One trusted hub between drone makers and the people who buy, service and fly them.
           </p>
         </div>
-        <div className="platform-card platform-home-flow">
+        <div className="platform-card platform-home-flow platform-home-flow--graphic">
           <ol className="platform-home-flow__row" aria-label="Ecosystem flow">
             {c.ecosystemFlow.map((node, i) => (
               <li key={node} className="platform-home-flow__item">
@@ -148,7 +148,10 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section className="platform-b2b-hero platform-home-final-cta" aria-label="Register">
+      <section
+        className="platform-b2b-hero platform-home-final-cta platform-cta-dark-band"
+        aria-label="Register"
+      >
         <div className="platform-b2b-hero__inner">
           <h2 className="platform-b2b-hero__title platform-home-final-cta__title">
             Ready to grow your drone business in India?

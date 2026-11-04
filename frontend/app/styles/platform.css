@@ -2706,6 +2706,50 @@ a.platform-section-tab {
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 15%);
 }
 
+.platform-b2b-hero--cinematic {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgb(15 23 42 / 92%) 0%, rgb(30 58 138 / 78%) 100%),
+    url('https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1600&q=80')
+      center / cover no-repeat;
+}
+
+.platform-home-flow--graphic {
+  background: linear-gradient(180deg, rgb(248 250 252) 0%, rgb(241 245 249) 100%);
+  border: 1px solid rgb(226 232 240);
+}
+
+.platform-cta-dark-band {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0f172a 100%);
+}
+
+.platform-combobox-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  border: 1px solid var(--platform-border, #e2e8f0);
+  border-radius: 8px;
+  max-height: 12rem;
+  overflow: auto;
+  background: #fff;
+}
+
+.platform-combobox-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.platform-combobox-option:hover {
+  background: rgb(241 245 249);
+}
+
 .platform-b2b-hero__inner {
   max-width: 850px;
   margin: 0 auto;

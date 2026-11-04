@@ -15,10 +15,14 @@ import {
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { categoryAllowedForListingType } from './catalog-category.constants';
 import { CreateListingDto, UpdateListingDto } from './dto/listing.dto';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly billing: PartnerBillingService,
+  ) {}
 
   async createForPartner(userId: string, dto: CreateListingDto) {
     const org = await this.requireApprovedPartnerOrg(userId);
@@ -231,7 +235,7 @@ export class CatalogService {
           ? [{ priceInr: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }]
           : [{ updatedAt: 'desc' }];
 
-    const [items, total] = await Promise.all([
+    const [rawItems, total] = await Promise.all([
       this.prisma.partnerListing.findMany({
         where,
         include: {
@@ -252,7 +256,34 @@ export class CatalogService {
       this.prisma.partnerListing.count({ where }),
     ]);
 
+    const items =
+      filters.sort === 'price_asc' || filters.sort === 'price_desc'
+        ? rawItems
+        : await this.rankListingsByEntitlements(rawItems);
+
     return { items, total, skip, take };
+  }
+
+  /** Boost admin-featured + plan `featuredPlacement` within the current page (NEXT-P3). */
+  private async rankListingsByEntitlements<
+    T extends {
+      featuredOnMarketplace: boolean;
+      updatedAt: Date;
+      organization: { id: string };
+    },
+  >(items: T[]): Promise<T[]> {
+    if (items.length < 2) return items;
+    const entitlements = await this.billing.getEntitlementsForOrganizations(
+      items.map((i) => i.organization.id),
+    );
+    const score = (row: T) =>
+      (row.featuredOnMarketplace ? 100 : 0) +
+      (entitlements.get(row.organization.id)?.featuredPlacement ? 50 : 0);
+    return [...items].sort((a, b) => {
+      const diff = score(b) - score(a);
+      if (diff !== 0) return diff;
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    });
   }
 
   /** Admin-featured listings for the marketplace hero row (newest featured first). */
@@ -275,9 +306,10 @@ export class CatalogService {
         },
       },
       orderBy: [{ updatedAt: 'desc' }],
-      take: limit,
+      take: limit * 2,
     });
-    return { items };
+    const ranked = await this.rankListingsByEntitlements(items);
+    return { items: ranked.slice(0, limit) };
   }
 
   async getPublicListing(listingId: string) {

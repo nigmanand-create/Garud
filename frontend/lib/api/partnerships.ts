@@ -55,6 +55,19 @@ export type AdminPartnershipsResponse = {
 export const listPartnerPartnerships = () =>
   apiRequest<PartnerPartnershipsResponse>('/partner/partnerships', { auth: true });
 
+export type PartnershipTargetOrg = {
+  id: string;
+  companyName: string;
+  state?: string | null;
+  city?: string | null;
+};
+
+export const searchPartnershipTargets = (q: string) =>
+  apiRequest<{ items: PartnershipTargetOrg[] }>(
+    `/partner/partnerships/targets?q=${encodeURIComponent(q)}`,
+    { auth: true },
+  );
+
 export const createPartnershipRequest = (body: {
   type: PartnershipRequestType;
   title: string;

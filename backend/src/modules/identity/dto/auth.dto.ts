@@ -83,9 +83,13 @@ export class LoginDto {
 }
 
 export class RefreshTokenDto {
-  @ApiProperty({ description: 'Refresh token from login/register/refresh' })
+  @ApiPropertyOptional({
+    description:
+      'Refresh token (optional when sent via httpOnly cookie garud_refresh)',
+  })
+  @IsOptional()
   @IsString()
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export class ChangePasswordDto {

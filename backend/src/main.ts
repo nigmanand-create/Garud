@@ -1,9 +1,13 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AppLogger } from './shared/logging/app-logger';
+import { initSentry } from './shared/sentry/sentry.init';
 import { setupSwagger } from './shared/swagger/swagger.setup';
+
+initSentry();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -13,6 +17,7 @@ async function bootstrap() {
   });
   app.useLogger(new AppLogger());
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  app.use(cookieParser());
   app.use(
     helmet({
       contentSecurityPolicy: false,

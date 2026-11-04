@@ -58,6 +58,8 @@ describe('TrainingService', () => {
     update: jest.fn(),
   };
   const prismaMock = {
+    $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
+    lead: { deleteMany: jest.fn().mockResolvedValue({ count: 1 }) },
     organization: { findUnique: jest.fn() },
     instituteProfile: { findUnique: jest.fn(), upsert: jest.fn() },
     studentTrainingLead: prismaStudent,

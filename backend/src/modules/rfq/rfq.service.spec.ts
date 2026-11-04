@@ -19,6 +19,7 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { RfqMatchingService } from './rfq-matching.service';
 import { RfqService } from './rfq.service';
+import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 
 describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
   let service: RfqService;
@@ -45,6 +46,14 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
           useValue: {
             notifyRfqInvites: jest.fn(),
             notifyBuyerQuoteReceived: jest.fn(),
+          },
+        },
+        {
+          provide: PartnerBillingService,
+          useValue: {
+            getEntitlementsForOrganizations: jest
+              .fn()
+              .mockResolvedValue(new Map()),
           },
         },
       ],

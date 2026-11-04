@@ -4,9 +4,11 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import {
   createPartnershipRequest,
   listPartnerPartnerships,
+  searchPartnershipTargets,
   withdrawPartnershipRequest,
   type PartnerPartnershipsResponse,
   type PartnershipRequestType,
+  type PartnershipTargetOrg,
 } from '@/lib/api/partnerships';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { EmptyState } from '@/components/platform/EmptyState';
@@ -40,6 +42,9 @@ function PartnershipsInner() {
   const [message, setMessage] = useState('');
   const [regions, setRegions] = useState('');
   const [targetId, setTargetId] = useState('');
+  const [targetLabel, setTargetLabel] = useState('');
+  const [targetQuery, setTargetQuery] = useState('');
+  const [targetHits, setTargetHits] = useState<PartnershipTargetOrg[]>([]);
 
   const load = useCallback(() => {
     listPartnerPartnerships()
@@ -54,6 +59,19 @@ function PartnershipsInner() {
     const target = new URLSearchParams(window.location.search).get('target');
     if (target) setTargetId(target);
   }, [load]);
+
+  useEffect(() => {
+    if (targetQuery.trim().length < 2) {
+      setTargetHits([]);
+      return;
+    }
+    const t = window.setTimeout(() => {
+      searchPartnershipTargets(targetQuery.trim())
+        .then((r) => setTargetHits(r.items))
+        .catch(() => setTargetHits([]));
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [targetQuery]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -72,6 +90,8 @@ function PartnershipsInner() {
       setMessage('');
       setRegions('');
       setTargetId('');
+      setTargetLabel('');
+      setTargetQuery('');
       setNotice('Request submitted. The GarudHub team will review it shortly.');
       load();
     } catch (err) {
@@ -140,14 +160,66 @@ function PartnershipsInner() {
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-            <div>
-              <label htmlFor="pr-target">Target partner ID (optional)</label>
+            <div className="platform-form-field">
+              <label htmlFor="pr-target">Target partner (optional)</label>
               <input
                 id="pr-target"
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                placeholder="Organization ID from a marketplace vendor profile"
+                value={targetQuery}
+                onChange={(e) => {
+                  setTargetQuery(e.target.value);
+                  setTargetId('');
+                  setTargetLabel('');
+                }}
+                placeholder="Search verified company name or city"
+                autoComplete="off"
               />
+              {targetLabel && targetId && (
+                <p className="platform-muted platform-form-hint">
+                  Selected: <strong>{targetLabel}</strong>{' '}
+                  <button
+                    type="button"
+                    className="platform-link-button"
+                    onClick={() => {
+                      setTargetId('');
+                      setTargetLabel('');
+                      setTargetQuery('');
+                    }}
+                  >
+                    Clear
+                  </button>
+                </p>
+              )}
+              {targetHits.length > 0 && !targetId && (
+                <ul className="platform-combobox-list" role="listbox">
+                  {targetHits.map((org) => (
+                    <li key={org.id}>
+                      <button
+                        type="button"
+                        role="option"
+                        className="platform-combobox-option"
+                        onClick={() => {
+                          setTargetId(org.id);
+                          setTargetLabel(
+                            [org.companyName, org.city, org.state]
+                              .filter(Boolean)
+                              .join(' · '),
+                          );
+                          setTargetQuery(org.companyName);
+                          setTargetHits([]);
+                        }}
+                      >
+                        {org.companyName}
+                        {(org.city || org.state) && (
+                          <span className="platform-muted">
+                            {' '}
+                            — {[org.city, org.state].filter(Boolean).join(', ')}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div>
               <label htmlFor="pr-message">Details</label>

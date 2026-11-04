@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ACCESS_COOKIE } from '../auth-cookies';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { AuthenticatedUser, JwtPayload } from '../types/auth.types';
 
@@ -16,7 +17,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new Error('JWT_ACCESS_SECRET is not configured');
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req) => {
+          const cookies = req?.cookies as Record<string, string> | undefined;
+          if (cookies?.[ACCESS_COOKIE]) return cookies[ACCESS_COOKIE];
+          return ExtractJwt.fromAuthHeaderAsBearerToken()(req) ?? null;
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
     });

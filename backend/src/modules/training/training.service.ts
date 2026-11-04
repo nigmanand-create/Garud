@@ -378,20 +378,24 @@ export class TrainingService {
       serviceKey: 'training',
       organizationId: course.organizationId,
     });
-    // Course-specific inbox row (the enquiry above keeps admin triage / CRM in the loop).
-    await this.prisma.studentTrainingLead.create({
-      data: {
-        courseId: course.id,
-        batchId: dto.batchId ?? null,
-        organizationId: course.organizationId,
-        userId: userId ?? null,
-        name: dto.name.trim(),
-        email: dto.email.trim().toLowerCase(),
-        phone: dto.phone?.trim() || null,
-        city: dto.city?.trim() || null,
-        message: dto.message?.trim() || null,
-      },
-    });
+    await this.prisma.$transaction([
+      this.prisma.studentTrainingLead.create({
+        data: {
+          enquiryId: enquiry.id,
+          courseId: course.id,
+          batchId: dto.batchId ?? null,
+          organizationId: course.organizationId,
+          userId: userId ?? null,
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          phone: dto.phone?.trim() || null,
+          city: dto.city?.trim() || null,
+          message: dto.message?.trim() || null,
+        },
+      }),
+      // Single partner inbox row: institute uses training lead; drop duplicate Lead.
+      this.prisma.lead.deleteMany({ where: { enquiryId: enquiry.id } }),
+    ]);
     return { id: enquiry.id, routed: Boolean(enquiry.organizationId) };
   }
 

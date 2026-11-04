@@ -519,8 +519,9 @@ model Enquiry {
 
   listing        PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
   organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  lead           Lead?
-  serviceRequest ServiceRequest?
+  lead                 Lead?
+  serviceRequest       ServiceRequest?
+  studentTrainingLead  StudentTrainingLead?
 
   @@index([status, createdAt])
   @@index([intent, createdAt])
@@ -920,6 +921,7 @@ enum StudentLeadStatus {
 /// Student interest in a published course (public form -> institute inbox).
 model StudentTrainingLead {
   id             String            @id @default(uuid())
+  enquiryId      String?           @unique @map("enquiry_id")
   courseId       String            @map("course_id")
   batchId        String?           @map("batch_id")
   organizationId String            @map("organization_id")
@@ -934,6 +936,7 @@ model StudentTrainingLead {
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
 
+  enquiry      Enquiry?       @relation(fields: [enquiryId], references: [id], onDelete: SetNull)
   course       TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
   batch        TrainingBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)

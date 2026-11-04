@@ -1,0 +1,17 @@
+[Unit]
+Description=GarudHub Nest API
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/home/deploy/Garud/backend
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=/home/deploy/Garud/backend/.env
+ExecStart=/usr/bin/npm run start:prod
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

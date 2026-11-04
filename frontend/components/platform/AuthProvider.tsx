@@ -9,7 +9,12 @@ import {
   useState,
 } from 'react';
 import { authApi } from '@/lib/api/client';
-import { clearTokens, getAccessToken, setTokens } from '@/lib/api/auth-storage';
+import {
+  clearTokens,
+  getAccessToken,
+  setTokens,
+  usesCookieSession,
+} from '@/lib/api/auth-storage';
 import type { AuthTokensResponse, AuthUser } from '@/lib/api/types';
 import Link from 'next/link';
 
@@ -36,13 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const applyTokens = useCallback((data: AuthTokensResponse) => {
-    setTokens(data.accessToken, data.refreshToken);
+    if (data.accessToken && data.refreshToken) {
+      setTokens(data.accessToken, data.refreshToken);
+    }
     setUser(data.user);
     return data.user;
   }, []);
 
   const refreshUser = useCallback(async () => {
-    if (!getAccessToken()) {
+    if (!usesCookieSession() && !getAccessToken()) {
       setUser(null);
       return;
     }

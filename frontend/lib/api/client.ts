@@ -9,6 +9,7 @@ import {
   getAccessToken,
   getRefreshToken,
   setTokens,
+  usesCookieSession,
 } from './auth-storage';
 
 export function getApiBase(): string {
@@ -35,12 +36,13 @@ async function parseError(res: Response): Promise<ApiError> {
 
 async function refreshAccessToken(): Promise<boolean> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
+  if (!usesCookieSession() && !refreshToken) return false;
 
   const res = await fetch(`${getApiBase()}/auth/refresh`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
   });
 
   if (!res.ok) {
@@ -49,7 +51,9 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 
   const data = (await res.json()) as AuthTokensResponse;
-  setTokens(data.accessToken, data.refreshToken);
+  if (data.accessToken && data.refreshToken) {
+    setTokens(data.accessToken, data.refreshToken);
+  }
   return true;
 }
 
@@ -80,6 +84,7 @@ export async function apiRequest<T>(
 
   const init: RequestInit = {
     ...rest,
+    credentials: usesCookieSession() ? 'include' : rest.credentials,
     headers: reqHeaders,
     body:
       body instanceof FormData
@@ -121,7 +126,10 @@ export async function apiDownload(
   const headers: HeadersInit = {};
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  let res = await fetch(`${getApiBase()}${path}`, { headers });
+  let res = await fetch(`${getApiBase()}${path}`, {
+    headers,
+    credentials: usesCookieSession() ? 'include' : 'same-origin',
+  });
   if (res.status === 401) {
     const ok = await ensureRefreshed();
     if (ok) {
@@ -156,7 +164,7 @@ export const authApi = {
     apiRequest<void>('/auth/logout', {
       method: 'POST',
       auth: true,
-      body: { refreshToken: getRefreshToken() },
+      body: getRefreshToken() ? { refreshToken: getRefreshToken() } : {},
     }),
   me: () => apiRequest<AuthUser>('/auth/me', { auth: true }),
   changePassword: (currentPassword: string, newPassword: string) =>

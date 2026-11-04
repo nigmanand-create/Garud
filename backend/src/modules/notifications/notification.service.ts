@@ -163,6 +163,36 @@ export class NotificationService {
     });
   }
 
+  notifyPartnershipDecision(args: {
+    to: string;
+    companyName: string;
+    approved: boolean;
+    title: string;
+    adminNote?: string | null;
+    userId?: string | null;
+  }) {
+    return this.safe('partnership-decision', async () => {
+      await this.bell({
+        userId: args.userId,
+        type: args.approved ? 'PARTNERSHIP_APPROVED' : 'PARTNERSHIP_DECLINED',
+        title: args.approved
+          ? `Partnership approved: ${args.title}`
+          : `Partnership update: ${args.title}`,
+        body: args.adminNote ?? undefined,
+        href: '/partner/partnerships',
+      });
+      const subject = args.approved
+        ? `[GarudHub] Partnership request approved: ${args.title}`
+        : `[GarudHub] Partnership request update: ${args.title}`;
+      const text = args.approved
+        ? `Hello ${args.companyName},\n\nGarudHub approved your partnership request "${args.title}".\n\nView status: ${this.appUrl}/partner/partnerships`
+        : `Hello ${args.companyName},\n\nGarudHub reviewed your partnership request "${args.title}".${
+            args.adminNote ? `\n\nNote: ${args.adminNote}` : ''
+          }\n\nDetails: ${this.appUrl}/partner/partnerships`;
+      await this.mail.send({ to: args.to, subject, text });
+    });
+  }
+
   notifyKycDecision(args: {
     to: string;
     companyName: string;

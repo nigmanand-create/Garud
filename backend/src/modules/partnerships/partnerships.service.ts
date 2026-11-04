@@ -9,6 +9,7 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { NotificationService } from '../notifications/notification.service';
 import {
   CreatePartnershipRequestDto,
   DecidePartnershipRequestDto,
@@ -38,7 +39,10 @@ const ADMIN_INCLUDE = {
 
 @Injectable()
 export class PartnershipsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationService,
+  ) {}
 
   private async requireOrgId(userId: string): Promise<string> {
     const org = await this.prisma.organization.findUnique({
@@ -130,6 +134,36 @@ export class PartnershipsService {
     });
   }
 
+  /** Verified org search for partnership target picker (NEXT-P5). */
+  async searchTargetOrganizations(userId: string, q: string, take = 10) {
+    const organizationId = await this.requireOrgId(userId);
+    const term = q.trim();
+    if (term.length < 2) {
+      return { items: [] as { id: string; companyName: string; state: string | null; city: string | null }[] };
+    }
+    const limit = Math.min(Math.max(take, 1), 20);
+    const items = await this.prisma.organization.findMany({
+      where: {
+        id: { not: organizationId },
+        verificationStatus: VerificationStatus.APPROVED,
+        OR: [
+          { companyName: { contains: term, mode: 'insensitive' } },
+          { city: { contains: term, mode: 'insensitive' } },
+          { state: { contains: term, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        companyName: true,
+        state: true,
+        city: true,
+      },
+      orderBy: { companyName: 'asc' },
+      take: limit,
+    });
+    return { items };
+  }
+
   async withdraw(userId: string, id: string) {
     const organizationId = await this.requireOrgId(userId);
     const request = await this.prisma.partnershipRequest.findFirst({
@@ -201,7 +235,7 @@ export class PartnershipsService {
     if (request.status === PartnershipRequestStatus.WITHDRAWN) {
       throw new BadRequestException('Request was withdrawn by the partner');
     }
-    return this.prisma.partnershipRequest.update({
+    const updated = await this.prisma.partnershipRequest.update({
       where: { id },
       data: {
         status: dto.status,
@@ -209,7 +243,33 @@ export class PartnershipsService {
         reviewedByUserId: adminUserId,
         reviewedAt: new Date(),
       },
-      include: ADMIN_INCLUDE,
+      include: {
+        organization: {
+          select: {
+            id: true,
+            companyName: true,
+            contactEmail: true,
+            ownerId: true,
+          },
+        },
+        targetOrganization: { select: { id: true, companyName: true } },
+      },
     });
+
+    if (
+      dto.status === PartnershipRequestStatus.APPROVED ||
+      dto.status === PartnershipRequestStatus.DECLINED
+    ) {
+      void this.notifications.notifyPartnershipDecision({
+        to: updated.organization.contactEmail,
+        companyName: updated.organization.companyName,
+        approved: dto.status === PartnershipRequestStatus.APPROVED,
+        title: updated.title,
+        adminNote: updated.adminNote,
+        userId: updated.organization.ownerId,
+      });
+    }
+
+    return updated;
   }
 }

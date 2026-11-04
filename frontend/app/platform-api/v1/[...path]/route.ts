@@ -12,6 +12,8 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const headers = new Headers();
   const auth = request.headers.get('authorization');
   if (auth) headers.set('Authorization', auth);
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers.set('Cookie', cookie);
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
 
@@ -44,6 +46,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     method,
     headers,
     body: body?.byteLength ? body : undefined,
+    redirect: 'manual',
   });
 
   const resHeaders = new Headers();
@@ -53,6 +56,10 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   if (cd) resHeaders.set('Content-Disposition', cd);
   const upstreamRequestId = upstream.headers.get('x-request-id');
   if (upstreamRequestId) resHeaders.set('x-request-id', upstreamRequestId);
+  const setCookies = upstream.headers.getSetCookie?.() ?? [];
+  for (const c of setCookies) {
+    resHeaders.append('Set-Cookie', c);
+  }
 
   if (upstream.status === 204) {
     return new NextResponse(null, { status: 204, headers: resHeaders });

@@ -105,6 +105,7 @@ export type GovBidVault = {
     bidderEmail: string;
     bidderRole: string;
     originalFilename?: string | null;
+    hasDocument?: boolean;
     submittedAt: string;
     updatedAt: string;
   }>;
@@ -152,6 +153,18 @@ export const submitGovBid = (
     auth: true,
     body,
   });
+
+export const downloadAdminGovBidDocument = (
+  opportunityId: string,
+  bidId: string,
+  filename: string,
+) =>
+  import('./client').then(({ apiDownload }) =>
+    apiDownload(
+      `/admin/gov-opportunities/${opportunityId}/bids/${bidId}/document`,
+      filename,
+    ),
+  );
 
 export const getMyGovBid = (opportunityId: string) =>
   apiRequest<{

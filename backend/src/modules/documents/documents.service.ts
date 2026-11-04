@@ -1,26 +1,23 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ApplicationDocumentType, VerificationStatus } from '@prisma/client';
-import {
-  createReadStream,
-  existsSync,
-  mkdirSync,
-  unlinkSync,
-  writeFileSync,
-} from 'fs';
-import { join, extname } from 'path';
+import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
   ALLOWED_UPLOAD_MIME_TYPES,
   MAX_UPLOAD_BYTES,
 } from './documents.constants';
+import {
+  UPLOAD_STORAGE,
+  type UploadStoragePort,
+} from '../../shared/storage/upload-storage';
 
 const EDITABLE_DOCUMENT_STATUSES: VerificationStatus[] = [
   VerificationStatus.DRAFT,
@@ -29,15 +26,10 @@ const EDITABLE_DOCUMENT_STATUSES: VerificationStatus[] = [
 
 @Injectable()
 export class DocumentsService {
-  private readonly uploadRoot: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.uploadRoot = config.get<string>('UPLOAD_DIR', './uploads');
-    this.ensureUploadRoot();
-  }
+    @Inject(UPLOAD_STORAGE) private readonly storage: UploadStoragePort,
+  ) {}
 
   async uploadForPartner(
     userId: string,
@@ -59,12 +51,7 @@ export class DocumentsService {
       org.id,
       `${randomUUID()}${ext}`,
     );
-    const absolutePath = join(this.uploadRoot, storedRelativePath);
-    mkdirSync(join(this.uploadRoot, 'organizations', org.id), {
-      recursive: true,
-    });
-
-    writeFileSync(absolutePath, file.buffer);
+    await this.storage.write(storedRelativePath, file.buffer);
 
     return this.prisma.organizationDocument.create({
       data: {
@@ -108,7 +95,7 @@ export class DocumentsService {
       throw new NotFoundException('Document not found');
     }
 
-    this.removeFileFromDisk(doc.storedRelativePath);
+    await this.storage.delete(doc.storedRelativePath);
     await this.prisma.organizationDocument.delete({ where: { id: doc.id } });
     return { deleted: true };
   }
@@ -151,11 +138,7 @@ export class DocumentsService {
     mimeType: string;
     originalFilename: string;
   }) {
-    const absolutePath = join(this.uploadRoot, doc.storedRelativePath);
-    if (!existsSync(absolutePath)) {
-      throw new NotFoundException('File missing on storage');
-    }
-    const stream = createReadStream(absolutePath);
+    const stream = this.storage.openReadStream(doc.storedRelativePath);
     return new StreamableFile(stream, {
       type: doc.mimeType,
       disposition: `attachment; filename="${doc.originalFilename}"`,
@@ -167,7 +150,7 @@ export class DocumentsService {
       throw new BadRequestException('File is required');
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      throw new BadRequestException('File exceeds 5MB limit');
+      throw new BadRequestException('File exceeds 5 MB limit');
     }
     if (
       !ALLOWED_UPLOAD_MIME_TYPES.includes(
@@ -183,19 +166,6 @@ export class DocumentsService {
       throw new ForbiddenException(
         'Documents cannot be changed while application is under review or approved',
       );
-    }
-  }
-
-  private ensureUploadRoot() {
-    if (!existsSync(this.uploadRoot)) {
-      mkdirSync(this.uploadRoot, { recursive: true });
-    }
-  }
-
-  private removeFileFromDisk(storedRelativePath: string) {
-    const absolutePath = join(this.uploadRoot, storedRelativePath);
-    if (existsSync(absolutePath)) {
-      unlinkSync(absolutePath);
     }
   }
 

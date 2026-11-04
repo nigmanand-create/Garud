@@ -9,6 +9,7 @@ import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import {
+  downloadAdminGovBidDocument,
   getAdminGovOpportunity,
   type AdminGovOpportunityDetail,
 } from '@/lib/api/gov';
@@ -113,7 +114,25 @@ function Inner() {
                               <div className="platform-text-muted">{b.bidderRole}</div>
                             </td>
                             <td>{inr(b.amountInr)}</td>
-                            <td>{b.originalFilename ?? '—'}</td>
+                            <td>
+                              {b.hasDocument ? (
+                                <button
+                                  type="button"
+                                  className="platform-link-btn"
+                                  onClick={() =>
+                                    void downloadAdminGovBidDocument(
+                                      id,
+                                      b.id,
+                                      b.originalFilename ?? 'bid-document.pdf',
+                                    )
+                                  }
+                                >
+                                  {b.originalFilename ?? 'Download'}
+                                </button>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
                             <td>{new Date(b.submittedAt).toLocaleString('en-IN')}</td>
                           </tr>
                         ))}

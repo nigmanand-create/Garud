@@ -1,12 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createReadStream, existsSync, mkdirSync, writeFileSync } from 'fs';
-import { extname, join, normalize } from 'path';
+import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
@@ -14,20 +13,17 @@ import {
   LISTING_MEDIA_URL_PREFIX,
   MAX_LISTING_IMAGE_BYTES,
 } from './listing-media.constants';
+import {
+  UPLOAD_STORAGE,
+  type UploadStoragePort,
+} from '../../shared/storage/upload-storage';
 
 @Injectable()
 export class ListingMediaService {
-  private readonly uploadRoot: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.uploadRoot = config.get<string>('UPLOAD_DIR', './uploads');
-    if (!existsSync(this.uploadRoot)) {
-      mkdirSync(this.uploadRoot, { recursive: true });
-    }
-  }
+    @Inject(UPLOAD_STORAGE) private readonly storage: UploadStoragePort,
+  ) {}
 
   async uploadForPartner(userId: string, file: Express.Multer.File) {
     this.validateFile(file);
@@ -41,9 +37,7 @@ export class ListingMediaService {
     const ext = extname(file.originalname) || this.extFromMime(file.mimetype);
     const fileName = `${randomUUID()}${ext}`;
     const storedRelativePath = join('listings', org.id, fileName);
-    const absolutePath = join(this.uploadRoot, storedRelativePath);
-    mkdirSync(join(this.uploadRoot, 'listings', org.id), { recursive: true });
-    writeFileSync(absolutePath, file.buffer);
+    await this.storage.write(storedRelativePath, file.buffer);
 
     const url = `${LISTING_MEDIA_URL_PREFIX}/${org.id}/${fileName}`;
     return { url, organizationId: org.id, fileName };
@@ -55,15 +49,11 @@ export class ListingMediaService {
       throw new NotFoundException('Invalid file name');
     }
     const storedRelativePath = join('listings', orgId, safeName);
-    const absolutePath = normalize(join(this.uploadRoot, storedRelativePath));
-    const listingsRoot = normalize(join(this.uploadRoot, 'listings'));
-    if (!absolutePath.startsWith(listingsRoot)) {
+    const normalizedKey = storedRelativePath.replace(/\\/g, '/');
+    if (normalizedKey.includes('..')) {
       throw new NotFoundException('File not found');
     }
-    if (!existsSync(absolutePath)) {
-      throw new NotFoundException('File not found');
-    }
-    const stream = createReadStream(absolutePath);
+    const stream = this.storage.openReadStream(storedRelativePath);
     const mime = this.mimeFromExt(extname(safeName));
     return new StreamableFile(stream, {
       type: mime,

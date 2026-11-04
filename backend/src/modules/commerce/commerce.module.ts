@@ -9,9 +9,10 @@ import { PartnerOrdersController } from './partner-orders.controller';
 import { CartService } from './cart.service';
 import { CheckoutService } from './checkout.service';
 import { OrdersService } from './orders.service';
+import { BillingReceiptsModule } from '../../shared/billing/billing-receipts.module';
 
 @Module({
-  imports: [IdentityModule, NotificationsModule],
+  imports: [IdentityModule, NotificationsModule, BillingReceiptsModule],
   controllers: [
     BuyerCartController,
     BuyerCheckoutController,

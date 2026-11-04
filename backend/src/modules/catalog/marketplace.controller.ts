@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { visitorKeyForListingView } from '../../shared/http/visitor-key';
+import { OptionalJwtAuthGuard } from '../identity/guards/optional-jwt-auth.guard';
+import type { AuthenticatedUser } from '../identity/types/auth.types';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -97,10 +99,11 @@ export class MarketplaceController {
   }
 
   @Get('listings/:id')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Public listing detail' })
   async getListing(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Req() req: Request & { user?: AuthenticatedUser | null },
     @Res({ passthrough: true }) res: Response,
   ) {
     const listing = await this.catalogService.getPublicListing(id);
@@ -109,6 +112,7 @@ export class MarketplaceController {
       listing.id,
       listing.organization.id,
       visitorKey,
+      req.user?.userId,
     );
     return listing;
   }

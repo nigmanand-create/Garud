@@ -72,6 +72,10 @@ class EnvironmentVariables {
 
   @IsOptional()
   @IsString()
+  S3_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsString()
   SENTRY_DSN?: string;
 
   /** cookies | bearer | dual — see docs/PRODUCTION_READINESS.md P1-1 */

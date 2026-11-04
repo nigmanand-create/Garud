@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -94,6 +95,17 @@ export class AdminGovController {
   @ApiOperation({ summary: 'Tender / scheme detail with bid vault (admin)' })
   get(@Param('id') id: string) {
     return this.gov.getForAdmin(id);
+  }
+
+  @Get(':opportunityId/bids/:bidId/document')
+  @ApiOperation({
+    summary: 'Download sealed bid proposal (after closing date)',
+  })
+  downloadBidDocument(
+    @Param('opportunityId') opportunityId: string,
+    @Param('bidId') bidId: string,
+  ): Promise<StreamableFile> {
+    return this.gov.downloadBidDocumentForAdmin(opportunityId, bidId);
   }
 
   @Post()

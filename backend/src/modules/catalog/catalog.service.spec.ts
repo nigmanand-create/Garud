@@ -25,6 +25,11 @@ describe('CatalogService', () => {
     organization: {
       findMany: jest.fn(),
       count: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    listingView: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
     },
   };
 
@@ -39,6 +44,22 @@ describe('CatalogService', () => {
     }).compile();
 
     service = module.get<CatalogService>(CatalogService);
+  });
+
+  describe('recordListingView', () => {
+    it('skips when the viewer owns the listing organization', async () => {
+      prismaMock.organization.findUnique.mockResolvedValue({ id: 'org-1' });
+      await service.recordListingView('listing-1', 'org-1', 'visitor-1', 'partner-user');
+      expect(prismaMock.listingView.create).not.toHaveBeenCalled();
+    });
+
+    it('records a view for other visitors', async () => {
+      prismaMock.organization.findUnique.mockResolvedValue({ id: 'org-other' });
+      prismaMock.listingView.findFirst.mockResolvedValue(null);
+      prismaMock.listingView.create.mockResolvedValue({});
+      await service.recordListingView('listing-1', 'org-1', 'visitor-1', 'buyer-user');
+      expect(prismaMock.listingView.create).toHaveBeenCalled();
+    });
   });
 
   describe('browsePublic', () => {

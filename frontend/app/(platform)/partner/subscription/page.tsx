@@ -23,6 +23,7 @@ import {
   usageSummary,
 } from '@/lib/platform/partner-billing';
 import { ApiError } from '@/lib/api/types';
+import { getApiBase } from '@/lib/api/client';
 
 export default function PartnerSubscriptionPage() {
   return (
@@ -202,6 +203,19 @@ function SubscriptionInner() {
                   {data.plan.renewsAt && <> · Renews {fmtDate(data.plan.renewsAt)}</>}
                   {data.plan.endsAt && <> · Ends {fmtDate(data.plan.endsAt)} (cancelled)</>}
                 </p>
+                {currentIsPaid && data.plan.status === 'ACTIVE' && (
+                  <p className="platform-text-sm">
+                    <a
+                      href={`${getApiBase()}/partner/subscription/receipt.html`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="platform-link-btn"
+                    >
+                      Payment record (stub)
+                    </a>
+                    <span className="platform-muted"> · Not a statutory GST invoice</span>
+                  </p>
+                )}
                 {data.plan.status === 'PAST_DUE' && (
                   <p className="platform-error platform-text-sm">
                     Your last payment failed. Update your payment method in Razorpay to avoid losing

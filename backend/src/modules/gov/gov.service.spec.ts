@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import {
   GovOpportunityStatus,
@@ -56,6 +60,7 @@ describe('GovService', () => {
   };
   const bidDocumentsMock = {
     assertOwnedBidPath: jest.fn(),
+    openForAdmin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -202,5 +207,15 @@ describe('GovService', () => {
     });
     expect(res.id).toBe('b1');
     expect(prismaMock.govOpportunityBid.upsert).toHaveBeenCalled();
+  });
+
+  it('blocks admin bid download while sealed', async () => {
+    prismaMock.govOpportunity.findUnique.mockResolvedValue({
+      type: 'TENDER',
+      closingDate: new Date('2099-01-01'),
+    });
+    await expect(
+      service.downloadBidDocumentForAdmin('g1', 'b1'),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

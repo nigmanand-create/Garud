@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  StreamableFile,
 } from '@nestjs/common';
 import {
   GovOpportunityStatus,
@@ -339,9 +340,37 @@ export class GovService {
         bidderEmail: b.bidder.email,
         bidderRole: b.bidder.role,
         originalFilename: b.originalFilename,
+        hasDocument: Boolean(b.storedRelativePath),
         submittedAt: b.createdAt.toISOString(),
         updatedAt: b.updatedAt.toISOString(),
       })),
     };
+  }
+
+  async downloadBidDocumentForAdmin(
+    opportunityId: string,
+    bidId: string,
+  ): Promise<StreamableFile> {
+    const opp = await this.prisma.govOpportunity.findUnique({
+      where: { id: opportunityId },
+      select: { closingDate: true, type: true },
+    });
+    if (!opp || opp.type !== GovOpportunityType.TENDER) {
+      throw new NotFoundException('Opportunity not found');
+    }
+    if (!areTenderBidsUnsealed(opp.closingDate ?? null)) {
+      throw new ForbiddenException('Bid documents stay sealed until closing');
+    }
+    const bid = await this.prisma.govOpportunityBid.findFirst({
+      where: { id: bidId, opportunityId },
+    });
+    if (!bid?.storedRelativePath) {
+      throw new NotFoundException('Bid has no uploaded document');
+    }
+    return this.bidDocuments.openForAdmin(
+      bid.storedRelativePath,
+      bid.originalFilename ?? 'bid-document.pdf',
+      bid.mimeType ?? 'application/pdf',
+    );
   }
 }

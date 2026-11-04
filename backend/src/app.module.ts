@@ -26,6 +26,7 @@ import { PartnerBillingModule } from './modules/partner-billing/partner-billing.
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 import { TrainingModule } from './modules/training/training.module';
 import { GovModule } from './modules/gov/gov.module';
+import { UploadStorageModule } from './shared/storage/upload-storage.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { GovModule } from './modules/gov/gov.module';
       ],
     }),
     PrismaModule,
+    UploadStorageModule,
     NotificationsModule,
     IntegrationsModule,
     IdentityModule,

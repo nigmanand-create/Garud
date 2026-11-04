@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   Post,
   UseGuards,
@@ -17,6 +18,7 @@ import type { AuthenticatedUser } from '../identity/types/auth.types';
 import { VerifiedPartnerGuard } from '../partner/guards/verified-partner.guard';
 import { CheckoutPlanDto, VerifySubscriptionDto } from './dto/billing.dto';
 import { PartnerBillingService } from './partner-billing.service';
+import { BillingReceiptsService } from '../../shared/billing/billing-receipts.service';
 
 @ApiTags('Partner Billing')
 @ApiBearerAuth(BEARER_AUTH_NAME)
@@ -24,7 +26,20 @@ import { PartnerBillingService } from './partner-billing.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.PARTNER)
 export class PartnerBillingController {
-  constructor(private readonly billing: PartnerBillingService) {}
+  constructor(
+    private readonly billing: PartnerBillingService,
+    private readonly receipts: BillingReceiptsService,
+  ) {}
+
+  @Get('receipt.html')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  @ApiOperation({
+    summary:
+      'HTML subscription payment record stub (paid plans; not a statutory GST invoice)',
+  })
+  receipt(@CurrentUser() user: AuthenticatedUser) {
+    return this.receipts.subscriptionReceiptHtml(user.userId);
+  }
 
   @Get()
   @ApiOperation({

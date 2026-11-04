@@ -14,7 +14,7 @@ describe('snapshot → React bridge (P-UI-12)', () => {
     expect(resolveSnapshotBridge('/partner-with-us/')).toEqual({ pathname: '/b2b-partners' });
     expect(resolveSnapshotBridge('/drone-training')).toEqual({ pathname: '/services', hash: '#training' });
     expect(resolveSnapshotBridge('/drone-accessories')?.search).toBe('?section=accessories');
-    expect(resolveSnapshotBridge('/about-us')).toBeNull();
+    expect(resolveSnapshotBridge('/drone-marketplace')?.pathname).toBe('/marketplace');
   });
 
   it('maps batch-2 legacy slugs (NEXT-U1)', () => {
@@ -35,6 +35,17 @@ describe('snapshot → React bridge (P-UI-12)', () => {
       hash: '#professional',
     });
     expect(resolveSnapshotBridge('/india-market-entry')).toEqual({
+      pathname: '/b2b-partners',
+    });
+  });
+
+  it('maps batch-3 legacy slugs (NEXT-U1)', () => {
+    expect(resolveSnapshotBridge('/about-us')).toEqual({ pathname: '/about-us' });
+    expect(resolveSnapshotBridge('/drone-jobs-career')).toEqual({
+      pathname: '/services',
+      hash: '#training',
+    });
+    expect(resolveSnapshotBridge('/market-entry-consultancy')).toEqual({
       pathname: '/b2b-partners',
     });
   });

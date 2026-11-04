@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join, normalize } from 'path';
 import { randomUUID } from 'crypto';
 import {
@@ -63,5 +68,24 @@ export class GovBidDocumentService {
     if (!existsSync(absolutePath)) {
       throw new BadRequestException('Bid document not found — upload again');
     }
+  }
+
+  openForAdmin(storedRelativePath: string, originalFilename: string, mimeType: string) {
+    const normalized = normalize(storedRelativePath);
+    if (!normalized.startsWith('gov-bids')) {
+      throw new BadRequestException('Invalid bid document path');
+    }
+    const absolutePath = normalize(join(this.uploadRoot, normalized));
+    if (!absolutePath.startsWith(normalize(this.uploadRoot))) {
+      throw new BadRequestException('Invalid bid document path');
+    }
+    if (!existsSync(absolutePath)) {
+      throw new NotFoundException('Bid document file missing on storage');
+    }
+    const stream = createReadStream(absolutePath);
+    return new StreamableFile(stream, {
+      type: mimeType || 'application/octet-stream',
+      disposition: `attachment; filename="${originalFilename || 'bid-document'}"`,
+    });
   }
 }

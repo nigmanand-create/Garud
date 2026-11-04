@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { apiRequest } from '@/lib/api/client';
+import { apiRequest, getApiBase } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -233,9 +233,22 @@ function BuyerOrderDetailInner() {
             </div>
 
             {order.paymentStatus === 'PAID' ? (
-              <p className="platform-text-sm platform-mt-sm" style={{ color: 'var(--platform-success)', lineHeight: 1.5 }}>
-                ✓ Order settlement completed in full. The vendor has been notified to proceed with dispatch & fulfillment.
-              </p>
+              <>
+                <p className="platform-text-sm platform-mt-sm" style={{ color: 'var(--platform-success)', lineHeight: 1.5 }}>
+                  ✓ Order settlement completed in full. The vendor has been notified to proceed with dispatch & fulfillment.
+                </p>
+                <p className="platform-text-sm platform-mt-sm">
+                  <a
+                    href={`${getApiBase()}/buyer/orders/${id}/receipt.html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="platform-link-btn"
+                  >
+                    Download payment receipt (stub)
+                  </a>
+                  <span className="platform-muted"> · Not a statutory GST invoice</span>
+                </p>
+              </>
             ) : order.paymentStatus === 'PENDING' ? (
               <div className="platform-payment-card__body">
                 <p className="platform-muted platform-text-sm" style={{ margin: '0 0 1rem', lineHeight: 1.5 }}>

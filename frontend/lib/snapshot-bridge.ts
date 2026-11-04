@@ -20,6 +20,13 @@ export const SNAPSHOT_REACT_BRIDGE: Record<string, SnapshotBridgeTarget> = {
   '/industries-we-serve': { pathname: '/', hash: '#home-industries' },
   '/edp-professional-services': { pathname: '/services', hash: '#professional' },
   '/india-market-entry': { pathname: '/b2b-partners' },
+  // NEXT-U1 batch 3 — industry / partner snapshots → React surfaces
+  '/about-us': { pathname: '/about-us' },
+  '/drone-jobs-career': { pathname: '/services', hash: '#training' },
+  '/drone-operations-setup': { pathname: '/services', hash: '#compliance' },
+  '/business-setup-in-india': { pathname: '/b2b-partners' },
+  '/manufacturing-technology-collaboration': { pathname: '/b2b-partners' },
+  '/market-entry-consultancy': { pathname: '/b2b-partners' },
 };
 
 export const SNAPSHOT_BRIDGE_PATHS = Object.keys(SNAPSHOT_REACT_BRIDGE).flatMap((p) => [

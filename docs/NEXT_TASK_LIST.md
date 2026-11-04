@@ -1,7 +1,7 @@
 # GarudHub — NEXT task list
 
 **Date:** 4 November 2026  
-**Code baseline:** `dev` @ **`33439b8`** (post sprint batch)  
+**Code baseline:** `dev` @ **`6504885`** (post product backlog batch)  
 **Purpose:** Ordered “what to do next” for launch and the following sprints — not a full PRD ledger.
 
 **Source of truth (detail):**
@@ -95,7 +95,7 @@ Security, observability, and platform hygiene. Owner: **Dev** unless noted **Ops
 - [x] **P1-1** — httpOnly session cookies — **P1** — Replace localStorage JWT; document break-glass for future mobile clients. *(Dev)* — *2026-11-04: cookie auth + proxy; [AUTH_HTTPONLY.md](./AUTH_HTTPONLY.md); `AUTH_SESSION_MODE` / `NEXT_PUBLIC_AUTH_SESSION`.*
 - [x] **P1-2** — Helmet + Cloudflare WAF — **P1** — Security headers and edge rules on public hostnames. *(Dev/Ops)* — *2026-11-04: Helmet on Nest API; Cloudflare WAF still Ops.*
 - [x] **P1-3** — Dedicated API host + CORS — **P1** — Only if exposing `api.garudhub.me` to non-browser clients. *(Dev)* — *2026-11-04: deferred until needed; runbook P1 table — no code change required for same-origin proxy.*
-- [x] **P1-4** — S3/R2 uploads — **P1** — Private object storage with signed URLs replaces sole reliance on local disk. *(Dev/Ops)* — *2026-11-04: `UPLOAD_STORAGE` env + `S3UploadStorageStub`; local default unchanged — full signed URLs still backlog.*
+- [x] **P1-4** — S3/R2 uploads — **P1** — Private object storage with signed URLs replaces sole reliance on local disk. *(Dev/Ops)* — *2026-11-04: `UPLOAD_STORAGE=s3|r2` → `S3UploadStorage` (`PutObject`/`GetObject`); partner docs + listing media wired via `UploadStorageModule`; presigned browser URLs still backlog — see [S3_UPLOAD_STORAGE.md](./S3_UPLOAD_STORAGE.md).*
 - [ ] **P1-5** — Managed Postgres + automated backups — **P1** — Neon/RDS/DO or equivalent with scheduled snapshots. *(Ops)* — *2026-11-04: runbook P1-5 row — **Ops runbook ready — execute on host**.*
 - [x] **P1-6** — `main` branch CI + deploy workflow — **P1** — Mirror `dev-ci` for production branch. *(Dev)* — *2026-11-04: [`.github/workflows/main-ci.yml`](../.github/workflows/main-ci.yml).*
 - [x] **P1-7** — Error tracking + uptime — **P1** — Sentry (or equivalent) + external ping on `/health`. *(Dev/Ops)* — *2026-11-04: `SENTRY_DSN` init in Nest `main.ts`; external uptime ping — **Ops runbook ready — execute on host**.*
@@ -108,7 +108,7 @@ Security, observability, and platform hygiene. Owner: **Dev** unless noted **Ops
 
 Wireframe fidelity and marketing unity without blocking MVP commerce.
 
-- [x] **NEXT-U1** — Snapshot migration batch 2 — **P1** — Bridge or React-ify next 5–10 high-traffic slugs (e.g. government-projects, scrap-recycling, industries-we-serve). *(Dev)* — *2026-11-04: +5 redirects in `snapshot-bridge.ts`.*
+- [x] **NEXT-U1** — Snapshot migration batch 2 — **P1** — Bridge or React-ify next 5–10 high-traffic slugs (e.g. government-projects, scrap-recycling, industries-we-serve). *(Dev)* — *2026-11-04: batch 2 +5; batch 3 +6 (`about-us`, jobs/ops setup, business setup, manufacturing collab, market-entry consultancy) in `snapshot-bridge.ts` + middleware.*
 - [x] **NEXT-U2** — Mobile notification bell — **P1** — In-app bell + unread badge in mobile drawer (desktop bell exists). *(Dev)* — *2026-11-04: `MarketingHeader` mobile drawer.*
 - [x] **NEXT-U3** — Buyer in-app notifications — **P1** — Events for quote received, order status (partner bell events exist). *(Dev)* — *2026-11-04: RFQ quote + order fulfillment bell events.*
 - [x] **NEXT-U5** — Cinematic home hero — **P2** — Premium aviation photography on `/` per spec §5. *(Design/Dev)* — *2026-11-04: `platform-b2b-hero--cinematic` CSS (Unsplash aviation bg).*
@@ -125,8 +125,8 @@ Revenue, trust, and spec depth after launch gate. Ordered by typical dependency.
 - [x] **NEXT-P4** — Training lead consolidation — **P2** — Single inbox row for `StudentTrainingLead` + `Lead` per interest. *(Dev)* — *2026-11-04: `enquiryId` on student lead; delete duplicate `Lead` on course interest.*
 - [x] **NEXT-P5** — Partnership org picker — **P2** — Search/select counterparty org instead of raw organization ID. *(Dev)* — *2026-11-04: `GET /partner/partnerships/targets` + combobox UI.*
 - [x] **NEXT-P6** — Partnership decision notifications — **P2** — Email/in-app when admin approves or declines. *(Dev)* — *2026-11-04: `notifyPartnershipDecision` on admin decide.*
-- [x] **NEXT-P7** — Tender bid submission vault — **P2** — Document upload + sealed bid flow for `GovOpportunity` (beyond express interest). *(Dev)* — *2026-11-04: `GovOpportunityBid` + buyer/gov submit (amount + optional upload), admin detail bid vault sealed until `closingDate`; partial: no admin bid file download, schemes/subsidies still enquiry-only.*
-- [x] **NEXT-P8** — Analytics dedupe + CSV export — **P2** — Bot/owner dedupe on listing views; partner export. *(Dev)* — *2026-11-04: 24h dedupe via `visitor_key` (cookie or IP+UA hash); `GET /partner/analytics/export.csv` + UI button; partial: no bot/owner exclusion.*
+- [x] **NEXT-P7** — Tender bid submission vault — **P2** — Document upload + sealed bid flow for `GovOpportunity` (beyond express interest). *(Dev)* — *2026-11-04: bid vault + `GET /admin/gov-opportunities/:id/bids/:bidId/document` after unseal; partial: schemes/subsidies still enquiry-only; gov bid files still local disk (not S3 port yet).*
+- [x] **NEXT-P8** — Analytics dedupe + CSV export — **P2** — Bot/owner dedupe on listing views; partner export. *(Dev)* — *2026-11-04: 24h dedupe + CSV export; partner self-views on own listings skipped when JWT present on PDP fetch; partial: no bot filtering.*
 ---
 
 ## Sprint Business (optional)
@@ -135,7 +135,7 @@ Requires product/legal decisions; not launch blockers.
 
 - [ ] **NEXT-B1** — COD payment decision — **P2** — Biz chooses whether to wire `CASH_ON_DELIVERY` end-to-end ([PRD Phase 4 deferral](./PRD_REMAINING_TASKS.md#phase-4--marketplace-prd-gaps)). *(Biz)* — **Blocked on business decision.**
 - [ ] **NEXT-B2** — COD implementation — **P2** — If approved: checkout, order state, and admin reconciliation for COD. *(Dev)* — **Blocked on NEXT-B1.**
-- [ ] **NEXT-B3** — GST invoices / billing history — **P2** — Partner subscription and order invoices for Indian B2B compliance. *(Dev/Biz)* — *Backlog after launch.*
+- [x] **NEXT-B3** — GST invoices / billing history — **P2** — Partner subscription and order invoices for Indian B2B compliance. *(Dev/Biz)* — *2026-11-04: HTML receipt stubs — `GET /buyer/orders/:id/receipt.html` (paid), `GET /partner/subscription/receipt.html` (active paid plan); UI links on order + subscription pages; **not** statutory GST / e-invoice — Biz + formal compliance still backlog.*
 
 ---
 
@@ -152,9 +152,9 @@ Multi-vendor cart, DGCA portal integration, finance lender APIs, repair pickup s
 | Launch (Phase 0 + sequence) | 4 (QA/live proof only) |
 | Hardening (P1) | 2 |
 | UX / Brand | 0 |
-| Product depth | 2 |
-| Business (optional) | 3 |
-| **Total open checkboxes** | **11** |
+| Product depth | 0 |
+| Business (optional) | 2 |
+| **Total open checkboxes** | **8** |
 
 *httpOnly auth: **P1-1** done. Partnership picker + notifications: **NEXT-P5/P6** done. Launch gate = execute runbook on host + QA smokes.*
 

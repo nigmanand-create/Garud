@@ -1,5 +1,17 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   createReadStream,
   existsSync,
@@ -9,6 +21,7 @@ import {
 } from 'fs';
 import { join } from 'path';
 import type { ReadStream } from 'fs';
+import { Readable } from 'stream';
 
 export type StoredObject = {
   /** Path key relative to storage root (local) or object key (S3). */
@@ -20,6 +33,8 @@ export interface UploadStoragePort {
   openReadStream(key: string): ReadStream;
   delete(key: string): Promise<void>;
   absolutePathForKey(key: string): string;
+  /** Presigned GET for direct browser download (S3/R2 only). */
+  getSignedReadUrl?(key: string, expiresInSeconds?: number): Promise<string>;
 }
 
 @Injectable()
@@ -56,49 +71,91 @@ export class LocalUploadStorage implements UploadStoragePort {
   }
 }
 
-/**
- * S3/R2 adapter stub — set UPLOAD_STORAGE=s3 and configure bucket/region.
- * Full signed-URL delivery is P1-4 follow-up; local disk remains the default.
- */
 @Injectable()
-export class S3UploadStorageStub implements UploadStoragePort {
-  private readonly logger = new Logger(S3UploadStorageStub.name);
+export class S3UploadStorage implements UploadStoragePort {
+  private readonly logger = new Logger(S3UploadStorage.name);
+  private readonly client: S3Client;
+  private readonly bucket: string;
 
   constructor(private readonly config: ConfigService) {
-    this.logger.warn(
-      'UPLOAD_STORAGE=s3 is configured but the S3 adapter is a stub — set UPLOAD_STORAGE=local or implement P1-4',
-    );
-  }
-
-  private assertConfigured(): void {
-    const bucket = this.config.get<string>('S3_BUCKET');
+    const bucket = config.get<string>('S3_BUCKET')?.trim();
     if (!bucket) {
       throw new ServiceUnavailableException(
-        'S3 upload storage is not configured (set S3_BUCKET, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY)',
+        'S3 upload storage requires S3_BUCKET (and S3_REGION, credentials)',
       );
     }
-    throw new ServiceUnavailableException(
-      'S3 upload storage adapter is not implemented yet — use UPLOAD_STORAGE=local',
+    this.bucket = bucket;
+    const region = config.get<string>('S3_REGION', 'ap-south-1');
+    const endpoint = config.get<string>('S3_ENDPOINT')?.trim();
+    this.client = new S3Client({
+      region,
+      ...(endpoint ? { endpoint, forcePathStyle: true } : {}),
+      credentials: {
+        accessKeyId: config.get<string>('S3_ACCESS_KEY_ID', ''),
+        secretAccessKey: config.get<string>('S3_SECRET_ACCESS_KEY', ''),
+      },
+    });
+    this.logger.log(`Upload storage: S3 bucket ${bucket}`);
+  }
+
+  async write(key: string, buffer: Buffer): Promise<StoredObject> {
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key.replace(/\\/g, '/'),
+        Body: buffer,
+      }),
     );
+    return { key };
   }
 
-  write(_key: string, _buffer: Buffer): Promise<StoredObject> {
-    this.assertConfigured();
-    return Promise.reject(new Error('unreachable'));
+  openReadStream(key: string): ReadStream {
+    const normalized = key.replace(/\\/g, '/');
+    const bodyPromise = this.readBody(normalized);
+    const stream = Readable.from(
+      (async function* () {
+        yield await bodyPromise;
+      })(),
+    );
+    return stream as ReadStream;
   }
 
-  openReadStream(_key: string): ReadStream {
-    this.assertConfigured();
-    throw new Error('unreachable');
+  private async readBody(key: string): Promise<Buffer> {
+    const out = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    if (!out.Body) {
+      throw new NotFoundException('Upload file missing in object storage');
+    }
+    const chunks: Buffer[] = [];
+    for await (const chunk of out.Body as AsyncIterable<Buffer>) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
   }
 
-  delete(_key: string): Promise<void> {
-    this.assertConfigured();
-    return Promise.reject(new Error('unreachable'));
+  async delete(key: string): Promise<void> {
+    await this.client.send(
+      new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: key.replace(/\\/g, '/'),
+      }),
+    );
   }
 
   absolutePathForKey(key: string): string {
-    return key;
+    return key.replace(/\\/g, '/');
+  }
+
+  async getSignedReadUrl(key: string, expiresInSeconds = 900): Promise<string> {
+    return getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key.replace(/\\/g, '/'),
+      }),
+      { expiresIn: expiresInSeconds },
+    );
   }
 }
 
@@ -109,7 +166,7 @@ export function uploadStorageFactory(
 ): UploadStoragePort {
   const mode = (config.get<string>(UPLOAD_STORAGE) ?? 'local').toLowerCase();
   if (mode === 's3' || mode === 'r2') {
-    return new S3UploadStorageStub(config);
+    return new S3UploadStorage(config);
   }
   return new LocalUploadStorage(config);
 }

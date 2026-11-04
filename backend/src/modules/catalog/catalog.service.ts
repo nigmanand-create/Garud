@@ -345,8 +345,18 @@ export class CatalogService {
     listingId: string,
     organizationId: string,
     visitorKey: string,
+    viewerUserId?: string | null,
   ) {
     try {
+      if (viewerUserId) {
+        const ownerOrg = await this.prisma.organization.findUnique({
+          where: { ownerId: viewerUserId },
+          select: { id: true },
+        });
+        if (ownerOrg?.id === organizationId) {
+          return;
+        }
+      }
       const since = new Date(Date.now() - 86_400_000);
       const recent = await this.prisma.listingView.findFirst({
         where: { listingId, visitorKey, createdAt: { gte: since } },

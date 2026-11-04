@@ -17,6 +17,13 @@ import type {
   RfqStatus,
 } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
+import {
+  computeQuoteBest,
+  QUOTE_SORT_OPTIONS,
+  sortQuotes,
+  summarizeQuotes,
+  type QuoteSortKey,
+} from '@/lib/platform/quote-compare';
 
 type RfqOrderInfo = {
   id: string;
@@ -100,6 +107,7 @@ function DetailInner() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'matrix' | 'cards'>('matrix');
+  const [sortKey, setSortKey] = useState<QuoteSortKey>('price');
 
   const [awardingQuote, setAwardingQuote] = useState<QuotationRow | null>(null);
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
@@ -202,23 +210,11 @@ function DetailInner() {
     return <p className="platform-muted">Loading RFQ details…</p>;
   }
 
+  const best = computeQuoteBest(quotes);
+  const summary = summarizeQuotes(quotes);
+  const sortedQuotes = sortQuotes(quotes, sortKey);
+
   const generatedOrder = rfq?.orders && rfq.orders.length > 0 ? rfq.orders[0] : null;
-
-  const validQuotes = quotes.filter((q) => !q.priceOnRequest && q.priceInr != null);
-  const lowestPriceQuoteId =
-    validQuotes.length > 1
-      ? [...validQuotes].sort(
-          (a, b) => Number(a.priceInr) - Number(b.priceInr),
-        )[0]?.id
-      : null;
-
-  const validLeadTimeQuotes = quotes.filter((q) => q.leadTimeDays != null);
-  const fastestDeliveryQuoteId =
-    validLeadTimeQuotes.length > 1
-      ? [...validLeadTimeQuotes].sort(
-          (a, b) => Number(a.leadTimeDays) - Number(b.leadTimeDays),
-        )[0]?.id
-      : null;
 
   return (
     <>
@@ -388,6 +384,48 @@ function DetailInner() {
             )}
           </div>
 
+          {quotes.length > 0 && (
+            <div className="platform-quote-toolbar">
+              <div className="platform-quote-summary" aria-label="Quotation summary">
+                <div>
+                  <span className="platform-stat-spec-label">Active bids</span>
+                  <div className="platform-stat-spec-value">
+                    {summary.active}
+                    {summary.active !== summary.total ? ` of ${summary.total}` : ''}
+                  </div>
+                </div>
+                <div>
+                  <span className="platform-stat-spec-label">Lowest price</span>
+                  <div className="platform-stat-spec-value">
+                    {summary.lowestPrice != null ? formatPrice(false, String(summary.lowestPrice)) : '—'}
+                  </div>
+                </div>
+                <div>
+                  <span className="platform-stat-spec-label">Price spread</span>
+                  <div className="platform-stat-spec-value">
+                    {summary.priceSpreadPct != null ? `${summary.priceSpreadPct}%` : '—'}
+                  </div>
+                </div>
+                <div>
+                  <span className="platform-stat-spec-label">Fastest delivery</span>
+                  <div className="platform-stat-spec-value">
+                    {summary.fastestLeadDays != null ? `${summary.fastestLeadDays} days` : '—'}
+                  </div>
+                </div>
+              </div>
+              <label className="platform-marketplace-filter">
+                <span>Sort bids</span>
+                <select value={sortKey} onChange={(e) => setSortKey(e.target.value as QuoteSortKey)}>
+                  {QUOTE_SORT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+
           {viewMode === 'matrix' && quotes.length > 0 && (
             <div className="platform-card platform-card--flush">
               <div className="platform-table-wrap">
@@ -406,12 +444,12 @@ function DetailInner() {
                     </tr>
                   </thead>
                   <tbody>
-                    {quotes.map((q) => {
+                    {sortedQuotes.map((q) => {
                       const isAccepted = q.status === 'ACCEPTED';
                       const isRejected = q.status === 'REJECTED';
                       const isSubmitted = q.status === 'SUBMITTED';
-                      const isLowest = q.id === lowestPriceQuoteId;
-                      const isFastest = q.id === fastestDeliveryQuoteId;
+                      const isLowest = q.id === best.price;
+                      const isFastest = q.id === best.lead;
 
                       const unitPriceNum = q.priceInr ? Number(q.priceInr) : 0;
                       const qtyNum = rfq.quantity && rfq.quantity > 0 ? rfq.quantity : 1;
@@ -455,7 +493,10 @@ function DetailInner() {
 
                           <td>
                             {q.quotedPayloadKg != null ? (
-                              <strong>{Number(q.quotedPayloadKg)} kg</strong>
+                              <strong className={q.id === best.payload ? 'platform-cell-best' : ''}>
+                                {Number(q.quotedPayloadKg)} kg
+                                {q.id === best.payload && <span aria-label="Highest payload"> ▲</span>}
+                              </strong>
                             ) : (
                               <span className="platform-text-faint">—</span>
                             )}
@@ -463,7 +504,10 @@ function DetailInner() {
 
                           <td>
                             {q.quotedEnduranceMin != null ? (
-                              <strong>{q.quotedEnduranceMin} mins</strong>
+                              <strong className={q.id === best.endurance ? 'platform-cell-best' : ''}>
+                                {q.quotedEnduranceMin} mins
+                                {q.id === best.endurance && <span aria-label="Longest endurance"> ▲</span>}
+                              </strong>
                             ) : (
                               <span className="platform-text-faint">—</span>
                             )}
@@ -480,7 +524,14 @@ function DetailInner() {
                           </td>
 
                           <td>
-                            {q.warrantyMonths != null ? `${q.warrantyMonths} mos` : 'Standard'}
+                            {q.warrantyMonths != null ? (
+                              <span className={q.id === best.warranty ? 'platform-cell-best' : ''}>
+                                {q.warrantyMonths} mos
+                                {q.id === best.warranty && <span aria-label="Longest warranty"> ▲</span>}
+                              </span>
+                            ) : (
+                              'Standard'
+                            )}
                           </td>
 
                           <td>
@@ -536,7 +587,7 @@ function DetailInner() {
 
           {viewMode === 'cards' && (
             <div className="platform-grid platform-grid--quote-cards">
-              {quotes.map((q) => {
+              {sortedQuotes.map((q) => {
                 const isAccepted = q.status === 'ACCEPTED';
                 const isRejected = q.status === 'REJECTED';
                 const isSubmitted = q.status === 'SUBMITTED';
@@ -561,6 +612,16 @@ function DetailInner() {
                         <h3 className="platform-section-heading">{q.vendorOrganization.companyName}</h3>
                         <StatusBadge status={q.status} />
                       </div>
+                      {(q.id === best.price || q.id === best.lead) && (
+                        <div className="platform-quote-card__flags">
+                          {q.id === best.price && (
+                            <span className="platform-badge-pill platform-badge-pill--success">🏷️ Lowest Price</span>
+                          )}
+                          {q.id === best.lead && (
+                            <span className="platform-badge-pill platform-badge-pill--info">⚡ Fastest</span>
+                          )}
+                        </div>
+                      )}
 
                       <div
                         className={`platform-quote-price-box ${

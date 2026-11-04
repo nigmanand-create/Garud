@@ -26,6 +26,8 @@ Spec main nav: `HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | 
 | Marketplace | `/marketplace` (`?section=drones\|accessories\|components\|courses\|services`) | React | |
 | Marketplace → Vendors | `/marketplace/vendors`, `/marketplace/partners/[orgId]` | React | |
 | Marketplace → Listing | `/marketplace/listings/[id]` | React | |
+| Marketplace → Compare | `/marketplace/compare?ids=a,b,c` | React | Product compare v1 (max 4, selection in localStorage). |
+| Marketplace → Become distributor / dealer | `/marketplace/distributor?type=DISTRIBUTOR\|DEALER&listing=<id>&partner=<orgId>` | React | Creates a DISTRIBUTOR-intent enquiry → partner lead. |
 | Marketplace → RFQ | `/buyer/rfqs/new` | React (buyer/gov) | Nav CTA “Post B2B Drone RFQ”. |
 | B2B partners | `/b2b-partners` (`#manufacturers`, `#international`, `#dealers`, `#services`, `#training`, `#technology`) | React | |
 | Join → Registration | `/auth/register` (`?type=partner` or an account type, e.g. `?type=OEM`) | React | International hints (P-UX-05). |

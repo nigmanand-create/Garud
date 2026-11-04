@@ -6148,3 +6148,293 @@ button.mod-kpi-card {
   color: inherit;
   text-decoration: underline;
 }
+
+/* ── Phase 4: marketplace filters, RFQ / opportunities blocks, compare ───────── */
+.platform-marketplace-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.platform-marketplace-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--platform-muted);
+}
+
+.platform-marketplace-filter select {
+  min-width: 11rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+  background: var(--platform-surface);
+  color: var(--platform-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.platform-marketplace-filters__vendors {
+  margin-left: auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--platform-accent-secondary);
+}
+
+.platform-badge--verified {
+  background: #dcfce7;
+  color: var(--platform-success);
+}
+
+.platform-marketplace-block-eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--platform-cta);
+}
+
+.platform-marketplace-block-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.platform-marketplace-rfq,
+.platform-marketplace-opportunities {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  background: var(--platform-surface);
+  box-shadow: var(--platform-shadow-card);
+}
+
+.platform-marketplace-rfq__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.platform-marketplace-rfq__head p {
+  max-width: 40rem;
+  margin: 0;
+}
+
+.platform-marketplace-rfq__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-marketplace-rfq__step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: var(--platform-radius);
+  background: var(--platform-bg);
+}
+
+.platform-marketplace-rfq__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--platform-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.platform-marketplace-opportunities__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.platform-marketplace-opportunity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius);
+}
+
+.platform-marketplace-opportunity h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.platform-marketplace-opportunity p {
+  margin: 0;
+  flex: 1;
+}
+
+.platform-marketplace-opportunity__icon {
+  font-size: 1.5rem;
+  color: var(--platform-accent);
+}
+
+.platform-marketplace-opportunity__cta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--platform-cta);
+}
+
+.platform-marketplace-opportunity__cta:hover {
+  color: var(--platform-cta-hover);
+}
+
+.platform-listing-card-compare {
+  padding: 0 1rem 0.5rem;
+}
+
+.platform-compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--platform-border);
+  border-radius: 999px;
+  background: var(--platform-surface);
+  color: var(--platform-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.platform-compare-toggle:hover:not(:disabled) {
+  border-color: var(--platform-accent);
+  color: var(--platform-accent);
+}
+
+.platform-compare-toggle--active {
+  border-color: var(--platform-accent);
+  background: #e8f0e9;
+  color: var(--platform-accent);
+}
+
+.platform-compare-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.platform-compare-tray {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  width: min(36rem, calc(100vw - 2rem));
+  padding: 0.75rem 1rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  background: var(--platform-surface);
+  box-shadow: var(--platform-shadow-card-hover);
+}
+
+.platform-compare-tray__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.platform-compare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.platform-compare-table {
+  table-layout: fixed;
+  min-width: 40rem;
+}
+
+.platform-compare-table__label {
+  width: 10rem;
+  text-align: left;
+  color: var(--platform-muted);
+  font-weight: 600;
+}
+
+.platform-compare-table__product {
+  vertical-align: top;
+  text-align: left;
+}
+
+.platform-compare-table__img {
+  display: block;
+  width: 100%;
+  max-height: 8rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--platform-radius);
+  object-fit: cover;
+}
+
+.platform-compare-table__actions {
+  margin-top: 0.5rem;
+}
+
+.platform-compare-row--diff td {
+  background: #fffbeb;
+}
+
+.platform-compare-steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.platform-quote-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.platform-quote-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.platform-quote-card__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+}
+
+.platform-cell-best {
+  color: var(--platform-success);
+}

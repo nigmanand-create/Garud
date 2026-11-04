@@ -6,6 +6,7 @@ import {
   formatPrice,
 } from '@/lib/platform/labels';
 import { resolveListingImageUrl } from '@/lib/platform/listing-media';
+import { CompareToggle } from './CompareToggle';
 
 export type ListingCardData = {
   id: string;
@@ -23,7 +24,14 @@ export type ListingCardData = {
   };
 };
 
-export function ListingCard({ item }: { item: ListingCardData }) {
+export function ListingCard({
+  item,
+  compare = false,
+}: {
+  item: ListingCardData;
+  /** Show the "Compare" toggle (marketplace browse only). */
+  compare?: boolean;
+}) {
   const location = [item.organization.city, item.organization.state]
     .filter(Boolean)
     .join(', ');
@@ -70,6 +78,11 @@ export function ListingCard({ item }: { item: ListingCardData }) {
           </p>
         </div>
       </Link>
+      {compare && (
+        <div className="platform-listing-card-compare">
+          <CompareToggle listingId={item.id} />
+        </div>
+      )}
       <div className="platform-listing-card-footer">
         <Link
           href={`/marketplace/listings/${item.id}`}

@@ -14,6 +14,8 @@ import {
   formatPrice,
 } from '@/lib/platform/labels';
 import { resolveListingImageUrl } from '@/lib/platform/listing-media';
+import { CompareToggle } from '@/components/platform/CompareToggle';
+import { CompareTray } from '@/components/platform/CompareTray';
 import { MessageSupplierButton } from '@/components/platform/MessageSupplierButton';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { sectionById } from '@/lib/platform/marketplace-sections';
@@ -238,9 +240,17 @@ export default function ListingDetailPage() {
                 defaultSubject={enquirySubject}
               />
 
-              <Link href="/b2b-partners#dealers" className="platform-btn-ghost-distributor">
+              <Link
+                href={`/marketplace/distributor?listing=${listing.id}&type=DISTRIBUTOR`}
+                className="platform-btn-ghost-distributor"
+              >
                 <span aria-hidden>🤝</span> Become a Regional Distributor
               </Link>
+
+              <CompareToggle
+                listingId={listing.id}
+                className="platform-btn platform-btn-secondary platform-btn-full"
+              />
 
               {canAddToCart && (
                 <div className="platform-cart-add-divider">
@@ -308,6 +318,7 @@ export default function ListingDetailPage() {
           </div>
         </aside>
       </div>
+      <CompareTray />
     </>
   );
 }

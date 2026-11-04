@@ -1,6 +1,6 @@
 # GarudHub — PRD remaining tasks
 
-**Date:** November 4, 2026 (Phases 1–3 implemented; Phase 3 platform/marketing unification — see [`ROUTE_MAP.md`](./ROUTE_MAP.md); POR RFQ accept and per-vertical service routes remain)  
+**Date:** November 4, 2026 (Phases 1–4 implemented; Phase 3 platform/marketing unification — see [`ROUTE_MAP.md`](./ROUTE_MAP.md); POR RFQ accept and per-vertical service routes remain)  
 **Spec:** [`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) (wireframe / GarudHub UI blueprint; `decode_jwt.docx` is not in-repo)  
 **Gap analysis:** [`SPEC_VS_PROJECT_GAP_ANALYSIS.md`](./SPEC_VS_PROJECT_GAP_ANALYSIS.md)  
 **Code baseline:** Active product on **`dev`** branch (staging → [dev.garudhub.me](https://dev.garudhub.me)); merge **`dev` → `main`** for production ([`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md))
@@ -132,14 +132,14 @@ One coherent nav and chrome across snapshot era and React platform (gap §6.1 tw
 
 Spec marketplace: search, categories, vendors, PDP CTAs, RFQ, business opportunities ([`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) §1.4).
 
-- [ ] **Marketplace discoverability polish** — Filters, empty states, featured module if spec-required (P-UI-03, P-UX-01 follow-ups).
-- [ ] **“Business opportunities” block** — Distributor, dealership, projects, partnerships surfacing (spec §1.4 extra block).
-- [ ] **Product compare matrix (non-RFQ)** — Side-by-side SKU compare v1 if prioritized (defer note in gap §7).
-- [ ] **Become distributor flow** — PDP CTA → partnership or lead capture with context (spec listing actions).
-- [ ] **RFQ quotation compare v2** — Enhance buyer matrix UX beyond current Phase 3 compare (roadmap Sprint 3).
-- [ ] **Marketplace RFQ entry prominence** — Spec nav MARKETPLACE includes RFQ sub-journey (§1.2).
-- [ ] **Public vendor filters** — Category, location, verification badges on `/marketplace/vendors` (extend B3).
-- [ ] **COD payment path** — `CASH_ON_DELIVERY` enum wired end-to-end if business requires (gap §4 Payments).
+- [x] **Marketplace discoverability polish** — Filters, empty states, featured module if spec-required (P-UI-03, P-UX-01 follow-ups). *Done: location (state), pricing (listed vs price-on-request) and sort (newest / price asc / desc) filters on `/marketplace` (URL params `state`, `price`, `sort`; backend `GET /marketplace/listings` extended, `GET /marketplace/filters` facets); distinct “no results” empty state (RFQ + enquiry CTAs, reset filters) vs. “listings coming soon”; result count in search hint. Partial: no ranked “Featured products” module (no featuring/ranking signal exists — spec’s featured row is approximated by newest-first); categories keep Components + Payloads merged in one tab.*
+- [x] **“Business opportunities” block** — Distributor, dealership, projects, partnerships surfacing (spec §1.4 extra block). *Done: `BusinessOpportunitiesBlock` on `/marketplace` (content in `lib/platform/business-opportunities.ts`) — distributor/dealership → distributor flow; projects/partnerships → `/enquiry?intent=PARTNER` with subject. Partial: “Projects” is an enquiry, not a project listing board (see Phase 8 tenders).*
+- [x] **Product compare matrix (non-RFQ)** — Side-by-side SKU compare v1 if prioritized (defer note in gap §7). *v1 done: “Compare” toggle on marketplace cards + PDP, sticky `CompareTray`, `/marketplace/compare?ids=` (max 4, shareable URL, “differences only”, request-quote CTAs); backend `GET /marketplace/listings/compare` (published-only, no view counted). Partial: specs are free text, so no structured spec rows/normalisation; selection is per-browser (localStorage), not per account.*
+- [x] **Become distributor flow** — PDP CTA → partnership or lead capture with context (spec listing actions). *Done: PDP “Become a Regional Distributor” → `/marketplace/distributor?listing=<id>` (territory, experience, volume, company; DISTRIBUTOR/DEALER type) → enquiry with `intent=DISTRIBUTOR` + `listingId` ⇒ routed to vendor as a Lead + admin/partner email. Verified partners also get a link to the formal partnership request (`/partner/partnerships?target=<org>`). Partial: structured fields are packed into the enquiry message (no dedicated schema); no accept/decline loop back to the applicant.*
+- [x] **RFQ quotation compare v2** — Enhance buyer matrix UX beyond current Phase 3 compare (roadmap Sprint 3). *Done: summary strip (active bids, lowest price, spread %, fastest delivery), sort (price / lead time / payload / endurance / warranty / newest), best-in-column highlighting for price, lead time, payload, endurance, warranty (ties and rejected bids ignored), badges in cards view; logic in `lib/platform/quote-compare.ts` (tested). Partial: no shortlist/notes, no CSV export, no side-by-side vendor attachments.*
+- [x] **Marketplace RFQ entry prominence** — Spec nav MARKETPLACE includes RFQ sub-journey (§1.2). *Done: “B2B RFQ — What are you looking for?” block with 5-step “How RFQ works” on `/marketplace` (plus existing hero CTA), RFQ CTA in empty/no-result states and the vendor directory.*
+- [x] **Public vendor filters** — Category, location, verification badges on `/marketplace/vendors` (extend B3). *Done: state, partner type (account type) and “sells/offers” category filters (backend `GET /marketplace/vendors` extended), reset + empty state with RFQ CTA, “Verified (KYC)” + partner-type badges. Partial: all listed vendors are KYC-approved, so the badge is uniform (no tiered badges); location is state-level only (no city/radius).*
+- [ ] **COD payment path** — `CASH_ON_DELIVERY` enum wired end-to-end if business requires (gap §4 Payments). *Deferred (Phase 4): conditional on a business decision; B2B drone orders are paid via Razorpay/NEFT and the enum is unused in code.*
 
 ---
 

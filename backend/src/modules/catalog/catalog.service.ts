@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  AccountType,
   CatalogCategory,
   ListingReviewStatus,
   ListingType,
@@ -170,8 +171,11 @@ export class CatalogService {
     category?: CatalogCategory;
     categories?: CatalogCategory[];
     q?: string;
+    state?: string;
+    priceType?: 'priced' | 'rfq';
   }): Prisma.PartnerListingWhereInput {
     const q = filters.q?.trim();
+    const state = filters.state?.trim();
     const categoryFilter = filters.categories?.length
       ? { category: { in: filters.categories } }
       : filters.category
@@ -183,7 +187,17 @@ export class CatalogService {
       reviewStatus: ListingReviewStatus.APPROVED,
       listingType: filters.listingType,
       ...categoryFilter,
-      organization: { verificationStatus: VerificationStatus.APPROVED },
+      ...(filters.priceType === 'priced'
+        ? { priceOnRequest: false }
+        : filters.priceType === 'rfq'
+          ? { priceOnRequest: true }
+          : {}),
+      organization: {
+        verificationStatus: VerificationStatus.APPROVED,
+        ...(state
+          ? { state: { equals: state, mode: 'insensitive' as const } }
+          : {}),
+      },
       ...(q
         ? {
             OR: [
@@ -201,12 +215,21 @@ export class CatalogService {
     category?: CatalogCategory;
     categories?: CatalogCategory[];
     q?: string;
+    state?: string;
+    priceType?: 'priced' | 'rfq';
+    sort?: 'newest' | 'price_asc' | 'price_desc';
     skip?: number;
     take?: number;
   }) {
     const take = Math.min(filters.take ?? 20, 50);
     const skip = filters.skip ?? 0;
     const where = this.buildBrowsePublicWhere(filters);
+    const orderBy: Prisma.PartnerListingOrderByWithRelationInput[] =
+      filters.sort === 'price_asc'
+        ? [{ priceInr: { sort: 'asc', nulls: 'last' } }, { updatedAt: 'desc' }]
+        : filters.sort === 'price_desc'
+          ? [{ priceInr: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }]
+          : [{ updatedAt: 'desc' }];
 
     const [items, total] = await Promise.all([
       this.prisma.partnerListing.findMany({
@@ -222,7 +245,7 @@ export class CatalogService {
             },
           },
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy,
         skip,
         take,
       }),
@@ -271,13 +294,41 @@ export class CatalogService {
     }
   }
 
-  async listPublicVendors(filters: { skip?: number; take?: number; q?: string }) {
+  async listPublicVendors(filters: {
+    skip?: number;
+    take?: number;
+    q?: string;
+    state?: string;
+    accountType?: AccountType;
+    category?: CatalogCategory;
+    hasListings?: boolean;
+  }) {
     const take = Math.min(filters.take ?? 24, 50);
     const skip = filters.skip ?? 0;
     const q = filters.q?.trim();
+    const state = filters.state?.trim();
+    const publishedListing = {
+      isPublished: true,
+      reviewStatus: ListingReviewStatus.APPROVED,
+    };
 
-    const where = {
+    const where: Prisma.OrganizationWhereInput = {
       verificationStatus: VerificationStatus.APPROVED,
+      ...(state
+        ? { state: { equals: state, mode: 'insensitive' as const } }
+        : {}),
+      ...(filters.accountType
+        ? { owner: { accountType: filters.accountType } }
+        : {}),
+      ...(filters.category
+        ? {
+            listings: {
+              some: { ...publishedListing, category: filters.category },
+            },
+          }
+        : filters.hasListings
+          ? { listings: { some: publishedListing } }
+          : {}),
       ...(q
         ? {
             OR: [
@@ -300,6 +351,7 @@ export class CatalogService {
           city: true,
           website: true,
           industries: true,
+          owner: { select: { accountType: true } },
           _count: {
             select: {
               listings: {
@@ -319,6 +371,62 @@ export class CatalogService {
     ]);
 
     return { items, total, skip, take };
+  }
+
+  /** Distinct states of verified vendors with published listings (filter facets). */
+  async listPublicFacets() {
+    const rows = await this.prisma.organization.findMany({
+      where: {
+        verificationStatus: VerificationStatus.APPROVED,
+        state: { not: null },
+        listings: {
+          some: {
+            isPublished: true,
+            reviewStatus: ListingReviewStatus.APPROVED,
+          },
+        },
+      },
+      select: { state: true },
+      distinct: ['state'],
+      orderBy: { state: 'asc' },
+    });
+    return {
+      states: rows
+        .map((r) => r.state?.trim())
+        .filter((v): v is string => Boolean(v)),
+    };
+  }
+
+  /** Compare v1: up to 4 published listings by id (no analytics view recorded). */
+  async getPublicListingsByIds(ids: string[]) {
+    const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))].slice(
+      0,
+      4,
+    );
+    if (unique.length === 0) return { items: [] };
+    const items = await this.prisma.partnerListing.findMany({
+      where: {
+        id: { in: unique },
+        isPublished: true,
+        reviewStatus: ListingReviewStatus.APPROVED,
+        organization: { verificationStatus: VerificationStatus.APPROVED },
+      },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            companyName: true,
+            country: true,
+            state: true,
+            city: true,
+            website: true,
+          },
+        },
+      },
+    });
+    const order = new Map(unique.map((id, i) => [id, i]));
+    items.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    return { items };
   }
 
   async getPublicPartnerProfile(orgId: string) {

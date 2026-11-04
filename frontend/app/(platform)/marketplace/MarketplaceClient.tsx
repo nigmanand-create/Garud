@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { browseMarketplaceListings } from '@/lib/api/marketplace';
+import { browseMarketplaceListings, fetchMarketplaceFacets } from '@/lib/api/marketplace';
 import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import {
   MARKETPLACE_SECTIONS,
@@ -20,6 +20,11 @@ import {
 } from '@/components/platform/ListingCard';
 import { MarketingLandingHero } from '@/components/marketing/MarketingLandingHero';
 import { SectionTabs } from '@/components/platform/SectionTabs';
+import {
+  BusinessOpportunitiesBlock,
+  MarketplaceRfqBlock,
+} from '@/components/platform/BusinessOpportunities';
+import { CompareTray } from '@/components/platform/CompareTray';
 
 const MARKETPLACE_HERO_IMAGE =
   'https://i.ibb.co/B5tNxyyB/Chat-GPT-Image-Aug-26-2026-02-37-37-PM-1.webp';
@@ -61,6 +66,25 @@ function parseSectionFromSearch(
   return 'all';
 }
 
+type SortValue = 'newest' | 'price_asc' | 'price_desc';
+type PriceValue = '' | 'priced' | 'rfq';
+
+type ListingFilters = {
+  state: string;
+  price: PriceValue;
+  sort: SortValue;
+};
+
+function parseFiltersFromSearch(search: URLSearchParams): ListingFilters {
+  const price = search.get('price');
+  const sort = search.get('sort');
+  return {
+    state: search.get('state')?.trim() ?? '',
+    price: price === 'priced' || price === 'rfq' ? price : '',
+    sort: sort === 'price_asc' || sort === 'price_desc' ? sort : 'newest',
+  };
+}
+
 function parsePageFromSearch(search: URLSearchParams): number {
   const raw = parseInt(search.get('page') ?? '1', 10);
   return Number.isFinite(raw) && raw >= 1 ? raw : 1;
@@ -91,10 +115,14 @@ async function fetchMarketplacePage(
   section: MarketplaceSection | null,
   q: string,
   page: number,
+  filters: ListingFilters,
 ): Promise<{ items: ListingRow[]; total: number }> {
   const skip = (page - 1) * PAGE_SIZE;
   const params: Parameters<typeof browseMarketplaceListings>[0] = {
     q: q || undefined,
+    state: filters.state || undefined,
+    priceType: filters.price || undefined,
+    sort: filters.sort,
     skip,
     take: PAGE_SIZE,
   };
@@ -201,7 +229,15 @@ export function MarketplaceClient() {
     () => parsePageFromSearch(searchParams),
     [searchParams],
   );
+  const filters = useMemo(() => parseFiltersFromSearch(searchParams), [searchParams]);
+  const [states, setStates] = useState<string[]>([]);
   const [searchDraft, setSearchDraft] = useState(searchQuery);
+
+  useEffect(() => {
+    fetchMarketplaceFacets()
+      .then((f) => setStates(f.states))
+      .catch(() => setStates([]));
+  }, []);
 
   useEffect(() => {
     setSearchDraft(searchQuery);
@@ -221,7 +257,16 @@ export function MarketplaceClient() {
 
   const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
 
-  const showEmptyState = !initialLoading && !error && listings.length === 0;
+  const hasActiveFilters = Boolean(
+    searchQuery || filters.state || filters.price || filters.sort !== 'newest',
+  );
+  const noResultsForFilters =
+    !initialLoading &&
+    !error &&
+    listings.length === 0 &&
+    (hasActiveFilters || activeSection !== 'all');
+  const showEmptyState =
+    !initialLoading && !error && listings.length === 0 && !noResultsForFilters;
   const showPartnerNudge = !error && !fetching && listings.length > 0;
 
   useEffect(() => {
@@ -246,6 +291,7 @@ export function MarketplaceClient() {
           activeSectionConfig ?? null,
           searchQuery,
           currentPage,
+          filters,
         );
         if (cancelled) return;
         setListings(items);
@@ -266,6 +312,7 @@ export function MarketplaceClient() {
     activeSectionConfig,
     currentPage,
     fetchGeneration,
+    filters,
     searchQuery,
   ]);
 
@@ -293,6 +340,26 @@ export function MarketplaceClient() {
     },
     [replaceSearchParams],
   );
+
+  const setFilter = useCallback(
+    (key: 'state' | 'price' | 'sort', value: string) => {
+      replaceSearchParams((params) => {
+        if (!value || (key === 'sort' && value === 'newest')) params.delete(key);
+        else params.set(key, value);
+        params.delete('page');
+      });
+    },
+    [replaceSearchParams],
+  );
+
+  const clearAllFilters = useCallback(() => {
+    setSearchDraft('');
+    replaceSearchParams((params) => {
+      ['q', 'state', 'price', 'sort', 'page', 'section', 'type', 'listingType', 'category', 'categories'].forEach(
+        (k) => params.delete(k),
+      );
+    });
+  }, [replaceSearchParams]);
 
   const goToPage = useCallback(
     (page: number) => {
@@ -410,6 +477,60 @@ export function MarketplaceClient() {
         />
       </div>
 
+      <div className="platform-marketplace-filters" role="group" aria-label="Refine results">
+        <label className="platform-marketplace-filter">
+          <span>Location</span>
+          <select
+            value={filters.state}
+            onChange={(e) => setFilter('state', e.target.value)}
+          >
+            <option value="">All India</option>
+            {filters.state && !states.includes(filters.state) && (
+              <option value={filters.state}>{filters.state}</option>
+            )}
+            {states.map((st) => (
+              <option key={st} value={st}>
+                {st}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="platform-marketplace-filter">
+          <span>Pricing</span>
+          <select
+            value={filters.price}
+            onChange={(e) => setFilter('price', e.target.value)}
+          >
+            <option value="">Any pricing</option>
+            <option value="priced">Listed price (buy now)</option>
+            <option value="rfq">Price on request</option>
+          </select>
+        </label>
+        <label className="platform-marketplace-filter">
+          <span>Sort by</span>
+          <select
+            value={filters.sort}
+            onChange={(e) => setFilter('sort', e.target.value)}
+          >
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+          </select>
+        </label>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
+            onClick={clearAllFilters}
+          >
+            Reset filters
+          </button>
+        )}
+        <Link href="/marketplace/vendors" className="platform-marketplace-filters__vendors">
+          Browse verified vendors →
+        </Link>
+      </div>
+
       {error && (
         <div className="platform-marketplace-error" role="alert">
           <h2 className="platform-marketplace-error-title">Couldn&apos;t load the marketplace</h2>
@@ -440,13 +561,13 @@ export function MarketplaceClient() {
               {(activeSection === 'all' || searchQuery) && (
                 <p className="platform-marketplace-results-hint platform-muted">
                   {searchQuery
-                    ? `Results for “${searchQuery}”.`
+                    ? `${totalResults} result${totalResults === 1 ? '' : 's'} for “${searchQuery}”.`
                     : 'Showing listings across categories. Pick a tab above to narrow your search.'}
                 </p>
               )}
               <div className="platform-grid">
                 {listings.map((item) => (
-                  <ListingCard key={item.id} item={item} />
+                  <ListingCard key={item.id} item={item} compare />
                 ))}
               </div>
               <MarketplacePagination
@@ -456,6 +577,39 @@ export function MarketplaceClient() {
                 onPage={goToPage}
               />
             </>
+          )}
+
+          {noResultsForFilters && (
+            <EmptyState
+              title="No listings match your search"
+              description={
+                searchQuery
+                  ? `Nothing found for “${searchQuery}” with the current filters. Try fewer filters or post an RFQ — verified vendors will quote for exactly what you need.`
+                  : 'No published listings match these filters yet. Try widening your filters or post an RFQ so vendors can respond.'
+              }
+              primaryAction={{
+                label: 'Post a requirement (RFQ)',
+                href: '/buyer/rfqs/new',
+              }}
+              secondaryAction={{
+                label: 'Ask our team',
+                href: `/enquiry?intent=PRODUCT&subject=${encodeURIComponent(
+                  searchQuery ? `Looking for: ${searchQuery}` : 'Marketplace sourcing help',
+                )}`,
+              }}
+              icon="🔎"
+            />
+          )}
+          {noResultsForFilters && (
+            <p className="platform-marketplace-partner-nudge">
+              <button
+                type="button"
+                className="platform-btn platform-btn-secondary platform-btn-sm"
+                onClick={clearAllFilters}
+              >
+                Reset all filters
+              </button>
+            </p>
           )}
 
           {showEmptyState && (
@@ -485,6 +639,9 @@ export function MarketplaceClient() {
         </div>
       )}
 
+      <MarketplaceRfqBlock />
+      <BusinessOpportunitiesBlock />
+
       {showEmptyState && (
         <div className="platform-marketplace-sticky-cta" aria-hidden={false}>
           <Link href="/auth/register?type=partner" className="platform-btn platform-btn-cta platform-btn-full">
@@ -493,6 +650,7 @@ export function MarketplaceClient() {
         </div>
       )}
       </div>
+      <CompareTray />
     </div>
   );
 }

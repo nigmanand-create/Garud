@@ -5,7 +5,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { CatalogCategory, ListingType } from '@prisma/client';
+import { AccountType, CatalogCategory, ListingType } from '@prisma/client';
 import { CatalogService } from './catalog.service';
 
 @ApiTags('Marketplace')
@@ -24,6 +24,9 @@ export class MarketplaceController {
   })
   @ApiQuery({ name: 'skip', required: false, type: Number })
   @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 50' })
+  @ApiQuery({ name: 'state', required: false, description: 'Vendor state (exact, case-insensitive)' })
+  @ApiQuery({ name: 'priceType', required: false, enum: ['priced', 'rfq'] })
+  @ApiQuery({ name: 'sort', required: false, enum: ['newest', 'price_asc', 'price_desc'] })
   @ApiQuery({
     name: 'q',
     required: false,
@@ -39,6 +42,9 @@ export class MarketplaceController {
     @Query('q') q?: string,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
+    @Query('state') state?: string,
+    @Query('priceType') priceType?: string,
+    @Query('sort') sort?: string,
   ) {
     const categories = categoriesRaw
       ? (categoriesRaw
@@ -52,9 +58,31 @@ export class MarketplaceController {
       category: categories?.length ? undefined : category,
       categories,
       q,
+      state,
+      priceType:
+        priceType === 'priced' || priceType === 'rfq' ? priceType : undefined,
+      sort:
+        sort === 'price_asc' || sort === 'price_desc' || sort === 'newest'
+          ? sort
+          : undefined,
       skip: skip ? parseInt(skip, 10) : undefined,
       take: take ? parseInt(take, 10) : undefined,
     });
+  }
+
+  @Get('listings/compare')
+  @ApiOperation({ summary: 'Compare up to 4 published listings side by side' })
+  @ApiQuery({ name: 'ids', required: true, description: 'Comma-separated listing ids (max 4)' })
+  compare(@Query('ids') ids?: string) {
+    return this.catalogService.getPublicListingsByIds(
+      ids ? ids.split(',') : [],
+    );
+  }
+
+  @Get('filters')
+  @ApiOperation({ summary: 'Facets for marketplace filters (states with live vendors)' })
+  filters() {
+    return this.catalogService.listPublicFacets();
   }
 
   @Get('listings/:id')
@@ -74,6 +102,10 @@ export class MarketplaceController {
     required: false,
     description: 'Search company name, city, or state',
   })
+  @ApiQuery({ name: 'state', required: false })
+  @ApiQuery({ name: 'accountType', required: false, enum: AccountType })
+  @ApiQuery({ name: 'category', required: false, enum: CatalogCategory })
+  @ApiQuery({ name: 'hasListings', required: false, type: Boolean })
   @ApiOkResponse({
     description: 'Paginated verified vendors with published listing counts',
   })
@@ -81,9 +113,21 @@ export class MarketplaceController {
     @Query('q') q?: string,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
+    @Query('state') state?: string,
+    @Query('accountType') accountType?: string,
+    @Query('category') category?: string,
+    @Query('hasListings') hasListings?: string,
   ) {
     return this.catalogService.listPublicVendors({
       q,
+      state,
+      accountType: Object.values(AccountType).includes(accountType as AccountType)
+        ? (accountType as AccountType)
+        : undefined,
+      category: Object.values(CatalogCategory).includes(category as CatalogCategory)
+        ? (category as CatalogCategory)
+        : undefined,
+      hasListings: hasListings === 'true' || hasListings === '1',
       skip: skip ? parseInt(skip, 10) : undefined,
       take: take ? parseInt(take, 10) : undefined,
     });

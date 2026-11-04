@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  AccountType,
   CatalogCategory,
   ListingReviewStatus,
   ListingType,
@@ -108,6 +109,97 @@ describe('CatalogService', () => {
           take: 10,
         }),
       );
+    });
+
+    it('applies state, price type and price sort filters (Phase 4)', async () => {
+      prismaMock.partnerListing.findMany.mockResolvedValue([]);
+      prismaMock.partnerListing.count.mockResolvedValue(0);
+
+      await service.browsePublic({
+        state: 'Karnataka',
+        priceType: 'priced',
+        sort: 'price_asc',
+      });
+
+      expect(prismaMock.partnerListing.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            priceOnRequest: false,
+            organization: {
+              verificationStatus: VerificationStatus.APPROVED,
+              state: { equals: 'Karnataka', mode: 'insensitive' },
+            },
+          }),
+          orderBy: [
+            { priceInr: { sort: 'asc', nulls: 'last' } },
+            { updatedAt: 'desc' },
+          ],
+        }),
+      );
+    });
+
+    it('filters vendors by state, account type and offered category', async () => {
+      prismaMock.organization.findMany.mockResolvedValue([]);
+      prismaMock.organization.count.mockResolvedValue(0);
+
+      await service.listPublicVendors({
+        state: 'Gujarat',
+        accountType: AccountType.DISTRIBUTOR,
+        category: CatalogCategory.COMPONENT,
+      });
+
+      expect(prismaMock.organization.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            verificationStatus: VerificationStatus.APPROVED,
+            state: { equals: 'Gujarat', mode: 'insensitive' },
+            owner: { accountType: AccountType.DISTRIBUTOR },
+            listings: {
+              some: {
+                isPublished: true,
+                reviewStatus: ListingReviewStatus.APPROVED,
+                category: CatalogCategory.COMPONENT,
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('returns compare listings in requested order, capped at 4 unique ids', async () => {
+      prismaMock.partnerListing.findMany.mockResolvedValue([
+        { id: 'b' },
+        { id: 'a' },
+      ]);
+
+      const result = await service.getPublicListingsByIds([
+        'a',
+        'b',
+        'a',
+        'c',
+        'd',
+        'e',
+      ]);
+
+      expect(result.items.map((i: { id: string }) => i.id)).toEqual(['a', 'b']);
+      expect(prismaMock.partnerListing.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: { in: ['a', 'b', 'c', 'd'] },
+            isPublished: true,
+          }),
+        }),
+      );
+    });
+
+    it('returns distinct vendor states as filter facets', async () => {
+      prismaMock.organization.findMany.mockResolvedValue([
+        { state: 'Delhi' },
+        { state: ' Gujarat ' },
+      ]);
+      await expect(service.listPublicFacets()).resolves.toEqual({
+        states: ['Delhi', 'Gujarat'],
+      });
     });
 
     it('caps take at 50 and filters by multiple categories', async () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/platform/AuthProvider';
 import { CartNavLink } from '@/components/platform/CartNavLink';
@@ -59,6 +60,16 @@ export function MarketingHeader() {
   const isMarketplace = pathname.startsWith('/marketplace');
   const isBlog = pathname.startsWith('/blogging');
   const loginCta = headerLoginCtaForPath(pathname);
+
+  useEffect(() => {
+    const menu = document.getElementById('mobileMenu');
+    const backdrop = document.getElementById('mobileBackdrop');
+    if (!menu) return;
+    const open = menu.classList.contains('active');
+    menu.inert = !open;
+    menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    backdrop?.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }, [pathname, loading, user]);
 
   return (
     <>
@@ -201,21 +212,9 @@ export function MarketingHeader() {
                       </Link>
                       <Link
                         href={HEADER_REGISTER_PARTNER_CTA.href}
-                        style={{
-                          backgroundColor: '#1e3a29',
-                          color: '#ffffff',
-                          padding: '0.45rem 0.9rem',
-                          borderRadius: '6px',
-                          fontWeight: 600,
-                          fontSize: '0.8125rem',
-                          textDecoration: 'none',
-                          whiteSpace: 'nowrap',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                        }}
+                        className="platform-btn platform-btn-cta header-register-cta"
                       >
-                        <i className="bi bi-patch-check-fill" /> {HEADER_REGISTER_PARTNER_CTA.label}
+                        <i className="bi bi-patch-check-fill" aria-hidden /> {HEADER_REGISTER_PARTNER_CTA.label}
                       </Link>
                     </>
                   )}
@@ -223,7 +222,13 @@ export function MarketingHeader() {
               )}
             </div>
 
-            <button className="header-mobile-toggle" aria-label="Open menu" type="button">
+            <button
+              className="header-mobile-toggle"
+              aria-label="Open menu"
+              aria-expanded="false"
+              aria-controls="mobileMenu"
+              type="button"
+            >
               <span className="hamburger-line" />
               <span className="hamburger-line" />
               <span className="hamburger-line" />
@@ -232,10 +237,12 @@ export function MarketingHeader() {
         </div>
       </header>
 
-      <div className="mobile-backdrop backdrop-blur" id="mobileBackdrop" />
+      <div className="mobile-backdrop backdrop-blur" id="mobileBackdrop" aria-hidden="true" />
       <div
         className="mobile-menu mobile-menu-drawer drawer-right"
         id="mobileMenu"
+        aria-hidden="true"
+        inert=""
         style={{ backgroundColor: '#ffffff', width: '85%' }}
       >
         <div className="mobile-menu-header">

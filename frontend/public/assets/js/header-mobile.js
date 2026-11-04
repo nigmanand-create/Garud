@@ -74,6 +74,29 @@
                 closeMenu();
             }
         }, 150));
+
+        applyClosedState();
+    }
+
+    /**
+     * Initial / closed state — keep drawer out of tab order and screen readers
+     */
+    function applyClosedState() {
+        if (!mobileMenu) {
+            return;
+        }
+        mobileMenu.classList.remove('active');
+        mobileMenu.setAttribute('aria-hidden', 'true');
+        mobileMenu.inert = true;
+
+        if (mobileBackdrop) {
+            mobileBackdrop.classList.remove('active');
+            mobileBackdrop.setAttribute('aria-hidden', 'true');
+        }
+
+        if (mobileToggle) {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+        }
     }
 
     /**
@@ -105,8 +128,16 @@
 
         document.body.classList.add('mobile-menu-open');
 
-        // Focus trap
         mobileMenu.setAttribute('aria-hidden', 'false');
+        mobileMenu.inert = false;
+
+        if (mobileBackdrop) {
+            mobileBackdrop.setAttribute('aria-hidden', 'false');
+        }
+
+        if (mobileToggle) {
+            mobileToggle.setAttribute('aria-expanded', 'true');
+        }
         
         // Focus first focusable element
         const firstFocusable = mobileMenu.querySelector('button, a, input');
@@ -136,6 +167,15 @@
         document.body.classList.remove('mobile-menu-open');
 
         mobileMenu.setAttribute('aria-hidden', 'true');
+        mobileMenu.inert = true;
+
+        if (mobileBackdrop) {
+            mobileBackdrop.setAttribute('aria-hidden', 'true');
+        }
+
+        if (mobileToggle) {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+        }
 
         // Close all submenus
         const openSubmenus = mobileMenu.querySelectorAll('.mobile-menu-item.submenu-open');

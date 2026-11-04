@@ -57,6 +57,65 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  max-width: 100%;
+}
+
+/* Desktop header: allow center nav to shrink so CTAs stay in viewport (~8px overflow at 1280px) */
+@media (min-width: 992px) {
+  .header-desktop .header-nav {
+    min-width: 0;
+    gap: 1rem;
+  }
+
+  .header-desktop .header-menu {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .header-desktop .header-menu-list {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.125rem;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1400px) {
+  .header-desktop .menu-link {
+    padding: 10px 10px;
+    font-size: 14px;
+  }
+
+  .header-actions-cluster {
+    gap: 0.5rem;
+  }
+
+  .header-auth-links {
+    gap: 0.45rem;
+    font-size: 0.75rem;
+  }
+}
+
+.header-register-cta {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  gap: 0.35rem;
+}
+
+@media (max-width: 575px) {
+  .header-topbar {
+    font-size: 12px;
+  }
+
+  .header-topbar-right {
+    gap: 0.65rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .header-topbar-right .topbar-item:first-child {
+    display: none;
+  }
 }
 
 .header-auth-links {
@@ -185,7 +244,11 @@
 }
 
 .platform-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
   background: var(--platform-accent);
   color: #fff !important;
   border: none;
@@ -232,7 +295,7 @@
 .platform-form select,
 .platform-form textarea {
   width: 100%;
-  max-width: 32rem;
+  max-width: min(32rem, 100%);
   padding: 0.5rem 0.625rem;
   border: 1px solid var(--platform-border);
   border-radius: var(--platform-radius);
@@ -461,6 +524,31 @@
   outline: 2px solid var(--platform-accent-secondary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.platform-auth-role-hint {
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--platform-accent);
+  background: #f3f7f4;
+  border: 1px solid #c7d9c9;
+  border-radius: var(--platform-radius);
+}
+
+.platform-auth-role-picker,
+.platform-auth-intent-switch {
+  margin: 0 0 0.75rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 640px) {
+  .platform-auth-intent-switch,
+  .platform-auth-role-picker {
+    text-align: left;
+  }
 }
 
 .platform-auth-loading {
@@ -880,6 +968,8 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  mask-image: linear-gradient(to right, #000 92%, transparent 100%);
 }
 
 @media (min-width: 1024px) {
@@ -909,6 +999,7 @@ a.platform-section-tab {
   padding: 0.5rem 1rem;
   border-radius: 999px;
   cursor: pointer;
+  scroll-snap-align: start;
   transition:
     background 0.15s ease,
     color 0.15s ease,
@@ -2791,11 +2882,38 @@ a.platform-section-tab {
   justify-content: center;
 }
 
+@media (max-width: 640px) {
+  .platform-b2b-hero {
+    padding: 2.75rem 1.25rem;
+  }
+
+  .platform-b2b-hero__actions,
+  .platform-marketing-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .platform-b2b-hero__actions .platform-btn,
+  .platform-b2b-hero__actions .platform-btn-hero-secondary,
+  .platform-marketing-hero__actions .platform-btn {
+    width: 100%;
+  }
+}
+
 .platform-btn-hero-secondary {
-  padding: 0.85rem 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
   border: 1px solid rgb(255 255 255 / 30%);
   border-radius: var(--platform-radius);
-  font-size: 1rem;
+  font-size: inherit;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
@@ -6202,6 +6320,32 @@ button.mod-kpi-card {
   margin-bottom: 1.25rem;
 }
 
+@media (max-width: 640px) {
+  .platform-marketplace-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .platform-marketplace-filter {
+    width: 100%;
+  }
+
+  .platform-marketplace-filter select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .platform-marketplace-filters__vendors {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .platform-marketplace-search.mod-search-box {
+    width: 100%;
+  }
+}
+
 .platform-marketplace-filter {
   display: flex;
   flex-direction: column;
@@ -6686,4 +6830,20 @@ button.mod-kpi-card {
   font-size: 0.75rem;
   font-weight: 400;
   color: #64748b;
+}
+
+/* Site footer (MarketingFooter) */
+.platform-marketing-footer a {
+  transition: color 0.15s ease;
+}
+
+.platform-marketing-footer a:hover,
+.platform-marketing-footer a:focus-visible {
+  color: #e2e8f0 !important;
+  text-decoration: underline;
+  outline: none;
+}
+
+.platform-marketing-footer h4 {
+  color: #fff;
 }

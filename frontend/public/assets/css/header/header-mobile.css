@@ -87,6 +87,17 @@
     transform: translateX(0);
 }
 
+.mobile-menu-drawer[aria-hidden="true"] {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.mobile-menu-drawer[aria-hidden="false"],
+.mobile-menu-drawer.active {
+    visibility: visible;
+    pointer-events: auto;
+}
+
 /* =====================================================
    MOBILE HEADER
    ===================================================== */

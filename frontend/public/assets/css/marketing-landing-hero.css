@@ -337,6 +337,18 @@
   }
 
   .platform-marketing-root .pg-hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .platform-marketing-root .pg-btn-solid,
+  .platform-marketing-root .pg-btn-ghost {
+    width: 100%;
     justify-content: center;
   }
 

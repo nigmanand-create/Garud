@@ -10,6 +10,7 @@ export function MarketingFooter() {
 
   return (
     <footer
+      className="platform-marketing-footer"
       style={{
         backgroundColor: '#0f172a',
         color: '#94a3b8',

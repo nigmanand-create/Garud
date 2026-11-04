@@ -65,7 +65,7 @@ export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
       footer={
         <>
           {!intent && (
-            <p className="platform-muted" style={{ marginBottom: '0.75rem' }}>
+            <p className="platform-muted platform-auth-role-picker">
               Sign in for a specific role:{' '}
               {LOGIN_INTENTS.map((key, i) => (
                 <span key={key}>
@@ -77,6 +77,23 @@ export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
               ))}
             </p>
           )}
+          {intent && (
+            <p className="platform-muted platform-auth-intent-switch">
+              Wrong portal?{' '}
+              {LOGIN_INTENTS.filter((key) => key !== intent).map((key, i) => (
+                <span key={key}>
+                  {i > 0 && ' · '}
+                  <Link href={loginPathForIntent(key)} className="platform-auth-link-accent">
+                    {ROLE_LOGIN_LINKS[key].label}
+                  </Link>
+                </span>
+              ))}
+              {' · '}
+              <Link href="/auth/login" className="platform-auth-link-accent">
+                All sign-in options
+              </Link>
+            </p>
+          )}
           <p className="platform-muted">
             No account?{' '}
             <Link href="/auth/register" className="platform-auth-link-accent">
@@ -86,6 +103,12 @@ export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
         </>
       }
     >
+      {intent ? (
+        <p className="platform-auth-role-hint" role="status">
+          Signing in for a <strong>{ROLE_LOGIN_LINKS[intent].label.replace(/ sign in$/i, '')}</strong>{' '}
+          account — use the email registered for that role.
+        </p>
+      ) : null}
       <AuthErrorBanner message={error} />
       <form
         className="platform-card platform-form platform-auth-card"

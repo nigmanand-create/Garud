@@ -24,7 +24,50 @@ import {
   getDashboardLink,
   headerLoginCtaForPath,
   HEADER_REGISTER_PARTNER_CTA,
+  type AccountNavLink,
 } from '@/lib/platform/header-nav';
+
+function HeaderAccountMenu({
+  email,
+  accountLinks,
+  onSignOut,
+}: {
+  email: string;
+  accountLinks: AccountNavLink[];
+  onSignOut: () => void;
+}) {
+  return (
+    <div className="menu-item has-dropdown header-account-dropdown">
+      <button type="button" className="header-account-trigger" aria-haspopup="true" title={email}>
+        Account <i className="bi bi-chevron-down dropdown-arrow" aria-hidden />
+      </button>
+      <ul
+        className="dropdown-menu"
+        style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+      >
+        <li className="header-account-email-item" title={email}>
+          {email}
+        </li>
+        {accountLinks.map((item) => (
+          <li key={item.href} className="dropdown-item">
+            {item.cart ? (
+              <CartNavLink className="platform-cart-nav" />
+            ) : (
+              <Link href={item.href} style={{ color: '#334155' }}>
+                <i className={`bi ${item.icon}`} aria-hidden /> {item.label}
+              </Link>
+            )}
+          </li>
+        ))}
+        <li className="dropdown-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: 4, paddingTop: 2 }}>
+          <button type="button" className="header-auth-btn" onClick={onSignOut}>
+            <i className="bi bi-box-arrow-right" aria-hidden /> Sign out
+          </button>
+        </li>
+      </ul>
+    </div>
+  );
+}
 
 function MegaColumn({
   items,
@@ -54,7 +97,6 @@ export function MarketingHeader() {
   const { user, logout, loading } = useAuth();
   const dash = getDashboardLink(user?.role);
   const accountLinks = getAccountNavLinks(user?.role);
-  const isBuyer = user?.role === 'BUYER' || user?.role === 'GOVERNMENT';
   const isHome = pathname === '/';
   const isAbout = pathname === '/about-us' || pathname.startsWith('/about');
   const isMarketplace = pathname.startsWith('/marketplace');
@@ -184,26 +226,22 @@ export function MarketingHeader() {
                   {user ? (
                     <>
                       <NotificationBell />
-                      {accountLinks.map((item) =>
-                        item.cart ? (
-                          <CartNavLink key={item.href} />
-                        ) : (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="header-auth-link"
-                            style={item.href === dash?.href && !isBuyer ? { fontWeight: 600, color: '#1e3a29' } : undefined}
-                          >
-                            {item.href === dash?.href && !isBuyer && <i className={`bi ${item.icon}`} />}
-                            {item.href === dash?.href && !isBuyer ? ' ' : ''}
-                            {item.label}
-                          </Link>
-                        ),
+                      {accountLinks.length > 0 ? (
+                        <HeaderAccountMenu
+                          email={user.email}
+                          accountLinks={accountLinks}
+                          onSignOut={() => logout()}
+                        />
+                      ) : (
+                        <>
+                          <span className="header-auth-email" title={user.email}>
+                            {user.email}
+                          </span>
+                          <button type="button" className="header-auth-link header-auth-btn" onClick={() => logout()}>
+                            Sign out
+                          </button>
+                        </>
                       )}
-                      <span className="header-auth-email" title={user.email}>{user.email}</span>
-                      <button type="button" className="header-auth-link header-auth-btn" onClick={() => logout()}>
-                        Sign out
-                      </button>
                     </>
                   ) : (
                     <>

@@ -73,9 +73,8 @@
   }
 
   .header-desktop .header-menu-list {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
-    row-gap: 0.125rem;
   }
 }
 
@@ -154,6 +153,77 @@
   white-space: nowrap;
   font-size: 0.75rem;
   color: #64748b;
+}
+
+/* Logged-in account menu — keeps buyer tools out of the main nav row */
+.header-account-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-account-dropdown .dropdown-menu {
+  left: auto;
+  right: 0;
+  min-width: 11.5rem;
+}
+
+.header-account-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2f5233;
+  background: rgba(47, 82, 51, 0.06);
+  border: 1px solid rgba(47, 82, 51, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.header-account-trigger:hover {
+  background: rgba(47, 82, 51, 0.1);
+  border-color: rgba(47, 82, 51, 0.2);
+}
+
+.header-account-email-item {
+  padding: 8px 16px 10px;
+  font-size: 0.6875rem;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-account-dropdown .dropdown-item a,
+.header-account-dropdown .dropdown-item button.header-auth-btn {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.8125rem;
+}
+
+.header-account-dropdown .dropdown-item button.header-auth-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  text-align: left;
+  color: #334155;
+}
+
+.header-account-dropdown .dropdown-item button.header-auth-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.header-account-dropdown .platform-cart-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
 }
 
 .header-auth-btn {

@@ -219,4 +219,57 @@ export class NotificationService {
       );
     });
   }
+  /** C8: new service request offered to matched providers (bell + email). */
+  notifyServiceRequestMatched(args: {
+    requestId: string;
+    title: string;
+    categoryLabel: string;
+    location?: string | null;
+    recipients: {
+      email: string;
+      companyName: string;
+      userId?: string | null;
+    }[];
+  }) {
+    return this.safe('service-request-match', async () => {
+      await Promise.all(
+        args.recipients.map(async (r) => {
+          await this.bell({
+            userId: r.userId,
+            type: 'SERVICE_REQUEST_MATCHED',
+            title: `New ${args.categoryLabel} request: ${args.title}`,
+            body: args.location ?? undefined,
+            href: '/partner/service-requests',
+          });
+          return this.mail.send({
+            to: r.email,
+            subject: `[GarudHub] New service request: ${args.title}`,
+            text: `Hello ${r.companyName},\n\nA customer posted a ${args.categoryLabel} requirement that matches your coverage${
+              args.location ? ` (${args.location})` : ''
+            }: "${args.title}".\n\nAccept or decline it in your inbox: ${this.appUrl}/partner/service-requests`,
+          });
+        }),
+      );
+    });
+  }
+
+  /** C8: status change on a service request, emailed to the requester with the tracking link. */
+  notifyServiceRequestStatus(args: {
+    to: string;
+    name: string;
+    title: string;
+    status: string;
+    trackingToken: string;
+    note?: string | null;
+  }) {
+    return this.safe('service-request-status', async () => {
+      await this.mail.send({
+        to: args.to,
+        subject: `[GarudHub] Your service request is ${args.status.toLowerCase().replace('_', ' ')}`,
+        text: `Hi ${args.name},\n\nUpdate on "${args.title}": ${args.status.replace('_', ' ')}.${
+          args.note ? `\n\nNote: ${args.note}` : ''
+        }\n\nTrack progress: ${this.appUrl}/services/track/${args.trackingToken}\n\n— GarudHub`,
+      });
+    });
+  }
 }

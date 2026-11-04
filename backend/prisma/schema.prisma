@@ -85,11 +85,13 @@ model User {
 
   organization         Organization?
   refreshTokens        RefreshToken[]
-  rfqsCreated          Rfq[]               @relation("RfqBuyer")
+  rfqsCreated          Rfq[]                 @relation("RfqBuyer")
   cart                 Cart?
-  ordersAsBuyer        Order[]             @relation("OrderBuyer")
-  conversationsAsBuyer Conversation[]      @relation("ConversationBuyer")
+  ordersAsBuyer        Order[]               @relation("OrderBuyer")
+  conversationsAsBuyer Conversation[]        @relation("ConversationBuyer")
   notifications        InAppNotification[]
+  serviceRequests      ServiceRequest[]
+  studentTrainingLeads StudentTrainingLead[]
 
   @@map("users")
 }
@@ -133,24 +135,33 @@ model Organization {
   createdAt                   DateTime           @default(now()) @map("created_at")
   updatedAt                   DateTime           @updatedAt @map("updated_at")
 
-  owner                       User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner                       User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   verificationLogs            VerificationAuditLog[]
   documents                   OrganizationDocument[]
   listings                    PartnerListing[]
   rfqsAsBuyer                 Rfq[]
   rfqInvites                  RfqInvite[]
   quotations                  Quotation[]
-  cartsAsVendor               Cart[]                 @relation("CartVendor")
-  ordersAsBuyer               Order[]                @relation("OrderBuyerOrg")
-  ordersAsVendor              Order[]                @relation("OrderVendor")
+  cartsAsVendor               Cart[]                   @relation("CartVendor")
+  ordersAsBuyer               Order[]                  @relation("OrderBuyerOrg")
+  ordersAsVendor              Order[]                  @relation("OrderVendor")
   enquiries                   Enquiry[]
   leads                       Lead[]
-  partnershipRequests         PartnershipRequest[]   @relation("PartnershipRequester")
-  partnershipRequestsReceived PartnershipRequest[]   @relation("PartnershipTarget")
-  conversationsAsPartner      Conversation[]         @relation("ConversationPartner")
-  conversationsAsBuyerOrg     Conversation[]         @relation("ConversationBuyerOrg")
+  partnershipRequests         PartnershipRequest[]     @relation("PartnershipRequester")
+  partnershipRequestsReceived PartnershipRequest[]     @relation("PartnershipTarget")
+  conversationsAsPartner      Conversation[]           @relation("ConversationPartner")
+  conversationsAsBuyerOrg     Conversation[]           @relation("ConversationBuyerOrg")
   listingViews                ListingView[]
   subscription                PartnerSubscription?
+  /// Service verticals this provider takes matched requests for (Phase 8 matching).
+  serviceCategories           ServiceRequestCategory[] @default([]) @map("service_categories")
+  /// States served; empty = nationwide (Phase 8 matching).
+  serviceStates               String[]                 @default([]) @map("service_states")
+  instituteProfile            InstituteProfile?
+  trainingCourses             TrainingCourse[]
+  studentTrainingLeads        StudentTrainingLead[]
+  serviceRequestMatches       ServiceRequestMatch[]
+  serviceRequestsAssigned     ServiceRequest[]         @relation("ServiceRequestAssignee")
 
   @@map("organizations")
 }
@@ -471,6 +482,11 @@ enum EnquiryIntent {
   DISTRIBUTOR
   PARTNER
   SERVICE
+  TRAINING
+  FINANCE
+  REPAIR
+  SCRAP
+  TENDER
 }
 
 enum LeadStatus {
@@ -499,9 +515,10 @@ model Enquiry {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  listing      PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
-  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  lead         Lead?
+  listing        PartnerListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  lead           Lead?
+  serviceRequest ServiceRequest?
 
   @@index([status, createdAt])
   @@index([intent, createdAt])
@@ -803,4 +820,254 @@ model InAppNotification {
 
   @@index([userId, readAt, createdAt])
   @@map("in_app_notifications")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8 — vertical journeys (training, service matching C8, gov / tenders)
+// ---------------------------------------------------------------------------
+
+enum TrainingCourseType {
+  REMOTE_PILOT
+  TECHNICIAN
+  SPECIALIZED
+  CORPORATE
+  OTHER
+}
+
+enum TrainingMode {
+  ONSITE
+  ONLINE
+  HYBRID
+}
+
+enum TrainingBatchStatus {
+  OPEN
+  FULL
+  CLOSED
+  COMPLETED
+}
+
+/// Institute profile extension (accreditation, locations, schedule notes).
+model InstituteProfile {
+  id             String   @id @default(uuid())
+  organizationId String   @unique @map("organization_id")
+  accreditation  String?
+  rptoApprovalNo String?  @map("rpto_approval_no")
+  about          String?
+  locations      String[] @default([])
+  scheduleNotes  String?  @map("schedule_notes")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("institute_profiles")
+}
+
+model TrainingCourse {
+  id             String             @id @default(uuid())
+  organizationId String             @map("organization_id")
+  title          String
+  courseType     TrainingCourseType @default(REMOTE_PILOT) @map("course_type")
+  mode           TrainingMode       @default(ONSITE)
+  description    String?
+  durationDays   Int?               @map("duration_days")
+  feeInr         Decimal?           @map("fee_inr") @db.Decimal(12, 2)
+  eligibility    String?
+  isPublished    Boolean            @default(false) @map("is_published")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  batches      TrainingBatch[]
+  studentLeads StudentTrainingLead[]
+
+  @@index([organizationId])
+  @@index([isPublished, courseType])
+  @@map("training_courses")
+}
+
+model TrainingBatch {
+  id          String              @id @default(uuid())
+  courseId    String              @map("course_id")
+  startDate   DateTime            @map("start_date")
+  endDate     DateTime?           @map("end_date")
+  seats       Int
+  seatsFilled Int                 @default(0) @map("seats_filled")
+  city        String?
+  state       String?
+  status      TrainingBatchStatus @default(OPEN)
+  notes       String?
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  course       TrainingCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentLeads StudentTrainingLead[]
+
+  @@index([courseId, startDate])
+  @@map("training_batches")
+}
+
+enum StudentLeadStatus {
+  NEW
+  CONTACTED
+  ENROLLED
+  CLOSED
+}
+
+/// Student interest in a published course (public form -> institute inbox).
+model StudentTrainingLead {
+  id             String            @id @default(uuid())
+  courseId       String            @map("course_id")
+  batchId        String?           @map("batch_id")
+  organizationId String            @map("organization_id")
+  userId         String?           @map("user_id")
+  name           String
+  email          String
+  phone          String?
+  city           String?
+  message        String?
+  status         StudentLeadStatus @default(NEW)
+  partnerNote    String?           @map("partner_note")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  course       TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  batch        TrainingBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([courseId])
+  @@map("student_training_leads")
+}
+
+enum ServiceRequestCategory {
+  REPAIR_AMC
+  COMPLIANCE
+  PROFESSIONAL
+  FINANCE_INSURANCE
+  SCRAP_RECYCLING
+  OTHER
+}
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  MATCHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceMatchStatus {
+  OFFERED
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+/// C8 — requirement submitted from a service vertical; matched to verified providers.
+model ServiceRequest {
+  id                     String                 @id @default(uuid())
+  trackingToken          String                 @unique @map("tracking_token")
+  buyerUserId            String?                @map("buyer_user_id")
+  enquiryId              String?                @unique @map("enquiry_id")
+  requesterName          String                 @map("requester_name")
+  requesterEmail         String                 @map("requester_email")
+  requesterPhone         String?                @map("requester_phone")
+  category               ServiceRequestCategory
+  title                  String
+  description            String
+  state                  String?
+  city                   String?
+  /// Vertical-specific intake fields (drone model, scrap quantity, loan amount, ...).
+  details                Json?
+  status                 ServiceRequestStatus   @default(SUBMITTED)
+  assignedOrganizationId String?                @map("assigned_organization_id")
+  /// How candidates were chosen: STATE | NATIONAL | ADMIN | NONE
+  matchScope             String?                @map("match_scope")
+  adminNote              String?                @map("admin_note")
+  completedAt            DateTime?              @map("completed_at")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+
+  buyer                User?                  @relation(fields: [buyerUserId], references: [id], onDelete: SetNull)
+  enquiry              Enquiry?               @relation(fields: [enquiryId], references: [id], onDelete: SetNull)
+  assignedOrganization Organization?          @relation("ServiceRequestAssignee", fields: [assignedOrganizationId], references: [id], onDelete: SetNull)
+  matches              ServiceRequestMatch[]
+  updates              ServiceRequestUpdate[]
+
+  @@index([status, createdAt])
+  @@index([buyerUserId, createdAt])
+  @@index([assignedOrganizationId, status])
+  @@map("service_requests")
+}
+
+model ServiceRequestMatch {
+  id             String             @id @default(uuid())
+  requestId      String             @map("request_id")
+  organizationId String             @map("organization_id")
+  status         ServiceMatchStatus @default(OFFERED)
+  respondedAt    DateTime?          @map("responded_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  request      ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, organizationId])
+  @@index([organizationId, status])
+  @@map("service_request_matches")
+}
+
+/// Timeline entry shown to requester (tracking page), partner and admin.
+model ServiceRequestUpdate {
+  id        String                @id @default(uuid())
+  requestId String                @map("request_id")
+  /// SYSTEM | REQUESTER | PARTNER | ADMIN
+  actor     String
+  status    ServiceRequestStatus?
+  note      String?
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+  @@map("service_request_updates")
+}
+
+enum GovOpportunityType {
+  TENDER
+  SCHEME
+  SUBSIDY
+}
+
+enum GovOpportunityStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+/// C6 — admin-managed tenders, schemes and subsidies for government / PSU vertical.
+model GovOpportunity {
+  id                String               @id @default(uuid())
+  type              GovOpportunityType
+  title             String
+  summary           String
+  description       String?
+  issuingBody       String               @map("issuing_body")
+  referenceNo       String?              @map("reference_no")
+  state             String?
+  sourceUrl         String?              @map("source_url")
+  estimatedValueInr Decimal?             @map("estimated_value_inr") @db.Decimal(16, 2)
+  openDate          DateTime?            @map("open_date")
+  closingDate       DateTime?            @map("closing_date")
+  eligibility       String?
+  status            GovOpportunityStatus @default(DRAFT)
+  publishedAt       DateTime?            @map("published_at")
+  createdByUserId   String?              @map("created_by_user_id")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  @@index([status, type, closingDate])
+  @@map("gov_opportunities")
 }

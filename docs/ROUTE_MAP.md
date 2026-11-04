@@ -23,6 +23,9 @@ Spec main nav: `HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | 
 | Home | `/` | React | Spec blocks: hero, who we are, ecosystem, 8 services, who can join, why, how it works, industries, register CTA (`lib/platform/home-content.ts`). Old snapshot home no longer served. |
 | About us | `/about-us` | React | |
 | Drone services (8) | `/services` (`#marketplace`, `#training`, `#compliance`, `#repair`, `#professional`, `#finance`, `#government`, `#recycling`) | React | Legacy per-service snapshot URLs redirect here (see bridge). |
+| Service vertical intake | `/services/request?category=REPAIR_AMC\|COMPLIANCE\|PROFESSIONAL\|FINANCE_INSURANCE\|SCRAP_RECYCLING`, `/services/track/[token]` | React | Phase 8 |
+| Training courses | `/training`, `/training/[id]` | React | Phase 8 |
+| Government tenders & schemes | `/government`, `/government/[id]` | React | Phase 8 |
 | Marketplace | `/marketplace` (`?section=drones\|accessories\|components\|courses\|services`) | React | |
 | Marketplace → Vendors | `/marketplace/vendors`, `/marketplace/partners/[orgId]` | React | |
 | Marketplace → Listing | `/marketplace/listings/[id]` | React | |
@@ -60,14 +63,18 @@ Header: Partner (dashboard) · B2B RFPs · Orders · Messages. Dashboard subnav 
 | `/partner/rfqs`, `/partner/rfqs/[id]` | RFQ invites + quotes |
 | `/partner/orders`, `/partner/orders/[id]` | Fulfilment |
 | `/partner/analytics`, `/partner/subscription`, `/partner/services`, `/partner/partnerships` | Dashboard modules |
+| `/partner/service-requests` | Matched service-request inbox (accept / decline / complete) + coverage settings |
+| `/partner/training` | Institute profile, courses, batches, student leads (training-institute accounts) |
 
 ## Admin (`PLATFORM_ADMIN`)
 
-Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Applications · Enquiry Queue · Partner Leads · Partnerships · Listing Moderation · Order Oversight · Commerce Analytics · Partner Billing · Users & Roles · Audit Log.
+Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Applications · Enquiry Queue · Partner Leads · Service Requests · Gov & Tenders · Partnerships · Listing Moderation · Order Oversight · Commerce Analytics · Partner Billing · Users & Roles · Audit Log.
 
 | Route | Purpose |
 |-------|---------|
 | `/admin` | Operations home (queue counts, quick links, recent audit activity) |
+| `/admin/service-requests` | Service-request oversight (rematch, assign, cancel/complete) |
+| `/admin/gov-opportunities` | Tenders / schemes / subsidies CRUD |
 | `/admin/applications` | KYC applications queue |
 | `/admin/leads` | Partner leads oversight (read-only) |
 | `/admin/users` | Admin users & roles (create admin, promote/demote, reset password, disable) |

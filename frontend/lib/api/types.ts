@@ -481,7 +481,12 @@ export type EnquiryIntent =
   | 'DEMO'
   | 'DISTRIBUTOR'
   | 'PARTNER'
-  | 'SERVICE';
+  | 'SERVICE'
+  | 'TRAINING'
+  | 'FINANCE'
+  | 'REPAIR'
+  | 'SCRAP'
+  | 'TENDER';
 
 export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'WON' | 'LOST';
 

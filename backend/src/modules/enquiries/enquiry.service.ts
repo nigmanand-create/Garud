@@ -16,6 +16,16 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CrmWebhookService } from '../integrations/crm-webhook.service';
 import { NotificationService } from '../notifications/notification.service';
 import {
+  CATEGORY_INTENT,
+  CATEGORY_SERVICE_KEY,
+  categoryForServiceKey,
+  formatDetailsForMessage,
+  intentForServiceKey,
+  sanitizeDetails,
+} from '../service-requests/service-request.rules';
+import { ServiceRequestsService } from '../service-requests/service-requests.service';
+import { CreateServiceRequestDto } from '../service-requests/dto/service-request.dto';
+import {
   AssignEnquiryDto,
   BulkEnquiryStatusDto,
   CreateEnquiryDto,
@@ -57,6 +67,7 @@ export class EnquiryService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationService,
     @Optional() private readonly crmWebhook?: CrmWebhookService,
+    @Optional() private readonly serviceRequests?: ServiceRequestsService,
   ) {}
 
   private crmPayload(
@@ -164,6 +175,10 @@ export class EnquiryService {
     target: RoutingTarget | null,
   ): EnquiryIntent {
     if (dto.intent) return dto.intent;
+    // Vertical lead types (REPAIR / FINANCE / SCRAP / TRAINING / TENDER) win over the
+    // generic partner / product inference so the pipeline can be filtered by vertical.
+    const vertical = intentForServiceKey(dto.serviceKey);
+    if (vertical && !target?.listingId) return vertical;
     if (dto.serviceKey && !target) return EnquiryIntent.SERVICE;
     if (target?.listingId) return EnquiryIntent.PRODUCT;
     if (target) return EnquiryIntent.PARTNER;
@@ -171,6 +186,70 @@ export class EnquiryService {
   }
 
   async create(dto: CreateEnquiryDto) {
+    return this.createInternal(dto);
+  }
+
+  /**
+   * Public service-vertical intake (`POST /service-requests`): creates the enquiry (admin queue,
+   * CRM, ack email, vertical lead type) plus the linked, matched `ServiceRequest`.
+   */
+  async submitServiceRequest(
+    dto: CreateServiceRequestDto,
+    buyerUserId?: string | null,
+  ) {
+    if (!this.serviceRequests) {
+      throw new BadRequestException('Service matching is not available');
+    }
+    const details = sanitizeDetails(dto.details);
+    const detailLines = formatDetailsForMessage(details);
+    const message = [
+      dto.description.trim(),
+      detailLines ? `\n---\n${detailLines}` : '',
+      dto.state || dto.city
+        ? `\nLocation: ${[dto.city, dto.state].filter(Boolean).join(', ')}`
+        : '',
+    ].join('');
+    const serviceKey = CATEGORY_SERVICE_KEY[dto.category];
+    const enquiry = await this.createInternal(
+      {
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        subject: dto.title,
+        message: message.slice(0, 5000),
+        sourcePage: `/services/request?category=${dto.category}`,
+        intent: CATEGORY_INTENT[dto.category],
+        serviceKey,
+      },
+      { skipAutoServiceRequest: true },
+    );
+    const request = await this.serviceRequests.create({
+      name: dto.name,
+      email: dto.email,
+      phone: dto.phone,
+      category: dto.category,
+      title: dto.title,
+      description: dto.description,
+      state: dto.state,
+      city: dto.city,
+      details,
+      buyerUserId: buyerUserId ?? null,
+      enquiryId: enquiry.id,
+    });
+    return {
+      enquiryId: enquiry.id,
+      request: {
+        id: request.id,
+        status: request.status,
+        trackingToken: request.trackingToken,
+      },
+    };
+  }
+
+  private async createInternal(
+    dto: CreateEnquiryDto,
+    opts: { skipAutoServiceRequest?: boolean } = {},
+  ) {
     const target = await this.resolveRouting(dto);
     const intent = this.inferIntent(dto, target);
 
@@ -220,6 +299,33 @@ export class EnquiryService {
       'enquiry.created',
       this.crmPayload(enquiry, target?.partnerCompanyName),
     );
+
+    // Phase 1 service-vertical enquiries (no explicit partner/listing) also enter matching.
+    const category = categoryForServiceKey(enquiry.serviceKey);
+    if (
+      !target &&
+      category &&
+      this.serviceRequests &&
+      !opts.skipAutoServiceRequest
+    ) {
+      try {
+        await this.serviceRequests.create({
+          name: enquiry.name,
+          email: enquiry.email,
+          phone: enquiry.phone,
+          category,
+          title: enquiry.subject,
+          description: enquiry.message,
+          enquiryId: enquiry.id,
+        });
+      } catch (error) {
+        this.logger.error(
+          `Auto service request for enquiry ${enquiry.id} failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
 
     return enquiry;
   }

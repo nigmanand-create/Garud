@@ -16,6 +16,8 @@ export const ADMIN_NAV_LINKS: AdminNavLink[] = [
   { href: '/admin/applications', label: 'Partner Applications' },
   { href: '/admin/enquiries', label: 'Enquiry Queue' },
   { href: '/admin/leads', label: 'Partner Leads' },
+  { href: '/admin/service-requests', label: 'Service Requests' },
+  { href: '/admin/gov-opportunities', label: 'Gov & Tenders' },
   { href: '/admin/partnerships', label: 'Partnerships' },
   { href: '/admin/listings', label: 'Listing Moderation' },
   { href: '/admin/orders', label: 'Order Oversight' },

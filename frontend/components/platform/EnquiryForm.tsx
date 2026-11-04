@@ -15,6 +15,7 @@ const SERVICE_SUBJECTS: Record<string, string> = {
 
 type EnquiryFormProps = {
   defaultSubject?: string;
+  defaultMessage?: string;
   serviceKey?: string;
   sourcePage?: string;
   /** Marketplace listing context — routes the enquiry to that vendor. */
@@ -26,6 +27,7 @@ type EnquiryFormProps = {
 
 export function EnquiryForm({
   defaultSubject = '',
+  defaultMessage = '',
   serviceKey,
   sourcePage,
   listingId,
@@ -45,7 +47,7 @@ export function EnquiryForm({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [subject, setSubject] = useState(initialSubject);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(defaultMessage);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);

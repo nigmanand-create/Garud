@@ -94,6 +94,11 @@ export const ENQUIRY_INTENT_LABELS: Record<EnquiryIntent, string> = {
   DISTRIBUTOR: 'Distributor',
   PARTNER: 'Partner contact',
   SERVICE: 'Service vertical',
+  TRAINING: 'Training (student)',
+  FINANCE: 'Finance & insurance',
+  REPAIR: 'Repair & AMC',
+  SCRAP: 'Scrap & recycling',
+  TENDER: 'Tender / scheme',
 };
 
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {

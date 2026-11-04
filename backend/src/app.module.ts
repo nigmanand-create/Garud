@@ -23,6 +23,9 @@ import { PartnerHubModule } from './modules/partner-hub/partner-hub.module';
 import { PartnershipsModule } from './modules/partnerships/partnerships.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { PartnerBillingModule } from './modules/partner-billing/partner-billing.module';
+import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
+import { TrainingModule } from './modules/training/training.module';
+import { GovModule } from './modules/gov/gov.module';
 
 @Module({
   imports: [
@@ -55,6 +58,9 @@ import { PartnerBillingModule } from './modules/partner-billing/partner-billing.
     PartnershipsModule,
     MessagesModule,
     PartnerBillingModule,
+    ServiceRequestsModule,
+    TrainingModule,
+    GovModule,
   ],
   controllers: [AppController],
   providers: [

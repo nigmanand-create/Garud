@@ -14,6 +14,11 @@ const INTENTS: EnquiryIntent[] = [
   'DISTRIBUTOR',
   'PARTNER',
   'SERVICE',
+  'TRAINING',
+  'FINANCE',
+  'REPAIR',
+  'SCRAP',
+  'TENDER',
 ];
 
 function uuidParam(value: string | null): string | undefined {

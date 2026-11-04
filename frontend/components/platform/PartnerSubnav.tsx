@@ -9,6 +9,8 @@ const links = [
   { href: '/partner/documents', label: 'Documents' },
   { href: '/partner/catalog', label: 'Catalog' },
   { href: '/partner/services', label: 'Services' },
+  { href: '/partner/service-requests', label: 'Service jobs' },
+  { href: '/partner/training', label: 'Training' },
   { href: '/partner/leads', label: 'Leads' },
   { href: '/partner/enquiries', label: 'Enquiries' },
   { href: '/partner/rfqs', label: 'RFQs' },

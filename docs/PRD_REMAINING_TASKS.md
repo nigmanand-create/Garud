@@ -90,7 +90,7 @@ Close spec **business-generation** loop: Submit → Match → Connect beyond RFQ
 - [x] **Lead entity (C1)** — Non-RFQ intents (distributor, demo, service pillar) with partner inbox (gap §4 Leads ~0%). *v1 done: `Lead` model (status NEW→CONTACTED→QUALIFIED→WON/LOST) created whenever an enquiry is routed to a partner; `EnquiryIntent` GENERAL/PRODUCT/DEMO/DISTRIBUTOR/PARTNER/SERVICE. Partial: no dedicated distributor-request UI, RFQ→lead sync, or standalone leads module (Phase 2).*
 - [x] **Admin enquiry queue enhancements** — Filters by source (listing, service vertical, demo), bulk status (P-UI-09 partial). *Done: filters for status/source/routing, bulk mark-read/close, per-row partner routing, new `CLOSED` status.*
 - [ ] **POR RFQ accept → order** — Product rule + UI when quotation is price-on-request (gap §2 RFQ buyer ~90%, roadmap Sprint 2).
-- [ ] **Services per-vertical app routes (optional v1)** — Beyond `/services` anchors; trackable “Request service” per vertical (P-UI-02, gap §2 Drone Services ~55%).
+- [x] **Services per-vertical app routes (optional v1)** — Beyond `/services` anchors; trackable “Request service” per vertical (P-UI-02, gap §2 Drone Services ~55%). *Done in Phase 8: `/services/request?category=…` + `/services/track/[token]`, `/training`, `/government`.*
 
 ---
 
@@ -189,31 +189,33 @@ Non-functional and third-party expectations (gap §4 Integrations ~38%).
 
 ## Phase 8 — Vertical journeys (training, service matching, gov/tenders)
 
-Spec eight service verticals + persona journeys ([`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) §1.3, §1.6); pick **one vertical end-to-end** before spreading (roadmap Phase F).
+Spec eight service verticals + persona journeys ([`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) §1.3, §1.6). **Design (one coherent flow):** every vertical intake is an `Enquiry` (admin queue, CRM webhook, ack email, vertical lead type `REPAIR/FINANCE/SCRAP/TRAINING/TENDER/SERVICE`) and, for provider-served verticals, a linked `ServiceRequest` that is matched by category + state. Dependency is one-way: `EnquiriesModule → ServiceRequestsModule` (`POST /service-requests` lives in `EnquiriesModule`), `TrainingModule → EnquiriesModule`; `ServiceRequestsModule` never imports enquiries (no circular DI).
 
 ### Training institute
 
-- [ ] **Courses + batches schema** — Beyond training category listings (P-BE-05, C5, gap §3 Training ~25%).
-- [ ] **Student leads UI** — Institute inbox for course interest (spec Training institute journey).
-- [ ] **Institute profile extensions** — Accreditation, batch schedule, locations (wireframe training pillar).
+- [x] **Courses + batches schema** — Beyond training category listings (P-BE-05, C5, gap §3 Training ~25%). *Done: `TrainingCourse` + `TrainingBatch` (seats, status auto OPEN/FULL), partner CRUD `/partner/training/*` (training-institute accounts), public `GET /training/courses[/:id]` limited to published courses of approved institutes, public `/training` + `/training/[id]` (upcoming batches).*
+- [x] **Student leads UI** — Institute inbox for course interest (spec Training institute journey). *Done: “I’m interested” on `/training/[id]` → `POST /training/courses/:id/interest` → routed enquiry + `Lead` (intent `TRAINING`) in the institute’s inbox; each interest also writes a `StudentTrainingLead` row (course/batch/city, status NEW→CONTACTED→ENROLLED→CLOSED, partner note) listed and staged on `/partner/training` via `GET/PATCH /partner/training/leads`; the generic Lead also appears in `/partner/leads?intent=TRAINING`. Partial: two parallel records per interest (student lead + Lead) — consolidate later.*
+- [x] **Institute profile extensions** — Accreditation, batch schedule, locations (wireframe training pillar). *Done: `InstituteProfile` (accreditation, DGCA RPTO approval no., about, locations, schedule notes) via `GET/PUT /partner/training/profile`; shown on the public course page.*
 
 ### Service provider matching
 
-- [ ] **Service request entity (C8)** — Submit requirement → match providers → connect (gap §4 Service matching ~0%).
-- [ ] **Location + category matching rules** — Spec service provider journey (§1.6).
-- [ ] **Job status tracking** — Post-connect lifecycle for service verticals (§1.3 flow Submit→Match→Connect→Service).
+- [x] **Service request entity (C8)** — Submit requirement → match providers → connect (gap §4 Service matching ~0%). *Done: `ServiceRequest` / `ServiceRequestMatch` / `ServiceRequestUpdate`; public `/services/request` (+ `POST /service-requests`, optional auth links the buyer), email tracking link + `/services/track/[token]` (cancel); partner inbox `/partner/service-requests` (offered → accept/decline); requester contact is revealed only after accept; admin `/admin/service-requests` (rematch, assign to a verified partner, cancel/complete).*
+- [x] **Location + category matching rules** — Spec service provider journey (§1.6). *Done: verified partners matched by declared coverage (categories + states, editable on `/partner/service-requests`) or inferred from approved SERVICE listing categories; same-state first, otherwise nationwide (no state restriction) providers, max 5, explicit coverage ranks first. Pure rules unit-tested.*
+- [x] **Job status tracking** — Post-connect lifecycle for service verticals (§1.3 flow Submit→Match→Connect→Service). *Done: SUBMITTED → MATCHED → IN_PROGRESS (accept) → COMPLETED (partner) / CANCELLED, optimistic-lock transitions, timeline of updates visible to requester, status emails.*
 
 ### Government / PSU & tenders
 
-- [ ] **Tenders / schemes module (C6)** — Not marketing-only `/services#government` (P-UX-05, gap §3 Gov ~35%).
-- [ ] **Procurement-oriented buyer UX** — Tender posting, scheme links, subsidy info structure (spec vertical 07).
-- [ ] **DGCA & compliance vertical depth** — Optional workflow beyond listing/RFQ (vertical 03).
+- [x] **Tenders / schemes module (C6)** — Not marketing-only `/services#government` (P-UX-05, gap §3 Gov ~35%). *Done: `GovOpportunity` (TENDER / SCHEME / SUBSIDY, DRAFT → PUBLISHED → CLOSED), public `/government` (type/state/search, expiry) + `/government/[id]`, admin CRUD `/admin/gov-opportunities`. Opportunities are curated by admins (no automated scraping of tender portals).*
+- [x] **Procurement-oriented buyer UX** — Tender posting, scheme links, subsidy info structure (spec vertical 07). *Done: structured issuing body / reference / estimated value / closing countdown / eligibility / official source link; “Express interest” creates a `TENDER` enquiry prefilled from the opportunity; “Post tender / RFP” links to the RFQ flow. Partial: no bid-submission or document vault for tenders.*
+- [x] **DGCA & compliance vertical depth** — Optional workflow beyond listing/RFQ (vertical 03). *Done as a service-request vertical (`COMPLIANCE` intake: need, drone model) with matching + tracking. Partial: no document checklist or DGCA portal integration.*
 
 ### Other verticals (finance, scrap, repair)
 
-- [ ] **Finance & insurance partner listings workflow** — EMI/insurance lead capture (vertical 06).
-- [ ] **Repair & AMC service requests** — Tie to service matching or enquiries with type (vertical 04).
-- [ ] **Scrap & recycling intake** — Evaluation/buyback lead form with routing (vertical 08).
+- [x] **Finance & insurance partner listings workflow** — EMI/insurance lead capture (vertical 06). *Done: `FINANCE_INSURANCE` intake (type, amount, applicant) → `FINANCE` enquiry/lead type + matched finance partners. Partial: no eligibility calculator or lender integrations.*
+- [x] **Repair & AMC service requests** — Tie to service matching or enquiries with type (vertical 04). *Done: `REPAIR_AMC` intake (model, issue, fleet, service mode) → `REPAIR` lead type + matching + tracking.*
+- [x] **Scrap & recycling intake** — Evaluation/buyback lead form with routing (vertical 08). *Done: `SCRAP_RECYCLING` intake (model, condition, qty, batteries, year) → `SCRAP` lead type + matching. Partial: no valuation engine / pickup scheduling.*
+
+> **Deploy note (Phase 8):** run `npx prisma migrate deploy` (migration `20261105120000_vertical_journeys`: new enums incl. `EnquiryIntent` TRAINING/FINANCE/REPAIR/SCRAP/TENDER, `training_*`, `student_training_leads`, `service_requests*`, `gov_opportunities`, `institute_profiles`, organization `service_categories` / `service_states`). Additive; migration SQL was generated offline with `prisma migrate diff` and **not yet applied to a live DB** (verify on staging). No seed data for courses/tenders. Partners set service coverage on `/partner/service-requests`; training institutes manage courses on `/partner/training`; admins publish tenders at `/admin/gov-opportunities`.
 
 ---
 

@@ -53,8 +53,8 @@ const SERVICES: ServiceItem[] = [
     ],
     applications: ['Youth Skill Development', 'Government Kamyabi Schemes', 'Commercial Flying', 'Enterprise Teams'],
     primaryCta: {
-      label: 'Browse DGCA Training Listings →',
-      href: '/marketplace?section=courses',
+      label: 'Browse courses & batches →',
+      href: '/training',
     },
     secondaryCta: {
       label: 'Talk to training advisors →',
@@ -76,7 +76,7 @@ const SERVICES: ServiceItem[] = [
       'Aviation regulatory consultancy for defense & civil operations',
     ],
     applications: ['Drone Manufacturers', 'Importers', 'Commercial Operators', 'Govt Vendors'],
-    primaryCta: { label: 'Get Compliance Assistance →', href: '/enquiry?service=compliance' },
+    primaryCta: { label: 'Get Compliance Assistance →', href: '/services/request?category=COMPLIANCE' },
     secondaryCta: { label: 'Post compliance RFQ →', href: '/buyer/rfqs/new' },
   },
   {
@@ -94,7 +94,7 @@ const SERVICES: ServiceItem[] = [
       'Doorstep pickup, inspection, and return dispatch across India',
     ],
     applications: ['Fleet Operators', 'Agri-Entrepreneurs', 'Survey Firms', 'Security Agencies'],
-    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/enquiry?service=repair' },
+    primaryCta: { label: 'Book Drone Repair / AMC →', href: '/services/request?category=REPAIR_AMC' },
     secondaryCta: {
       label: 'Find repair partners →',
       href: '/marketplace?section=services',
@@ -117,8 +117,8 @@ const SERVICES: ServiceItem[] = [
     applications: ['State Revenue Depts', 'Mining Companies', 'Renewable Energy', 'Agri Corporates'],
     primaryCta: { label: 'Request Enterprise Project →', href: '/buyer/rfqs/new' },
     secondaryCta: {
-      label: 'Discuss scope with Garud →',
-      href: '/enquiry?subject=Enterprise%20drone%20services',
+      label: 'Match me with service operators →',
+      href: '/services/request?category=PROFESSIONAL',
     },
   },
   {
@@ -136,7 +136,7 @@ const SERVICES: ServiceItem[] = [
       'Fast loan eligibility check and minimal documentation',
     ],
     applications: ['Farmers & FPOs', 'CHCs (Custom Hiring Centers)', 'Drone Pilots', 'Commercial Startups'],
-    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/enquiry?service=finance' },
+    primaryCta: { label: 'Apply for Drone Loan / Insurance →', href: '/services/request?category=FINANCE_INSURANCE' },
     secondaryCta: { label: 'Post financing RFQ →', href: '/buyer/rfqs/new' },
   },
   {
@@ -154,10 +154,10 @@ const SERVICES: ServiceItem[] = [
       'Defense & Homeland Security procurement advisory',
     ],
     applications: ['Govt Departments', 'PSUs', 'State Agencies', 'Drone Didi SHGs'],
-    primaryCta: { label: 'Post Tender / RFP →', href: '/buyer/rfqs/new' },
+    primaryCta: { label: 'Tenders, schemes & subsidies →', href: '/government' },
     secondaryCta: {
-      label: 'Government programme enquiry →',
-      href: '/enquiry?subject=Government%20drone%20project',
+      label: 'Post Tender / RFP →',
+      href: '/buyer/rfqs/new',
     },
   },
   {
@@ -175,7 +175,7 @@ const SERVICES: ServiceItem[] = [
       'Certified green disposal certificates for enterprise ESG compliance',
     ],
     applications: ['Fleet Modernization', 'Corporate ESG', 'Research Labs', 'Drone Operators'],
-    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/enquiry?service=recycling' },
+    primaryCta: { label: 'Get Drone Scrap Valuation →', href: '/services/request?category=SCRAP_RECYCLING' },
     secondaryCta: {
       label: 'Browse recycling partners →',
       href: '/marketplace/vendors',

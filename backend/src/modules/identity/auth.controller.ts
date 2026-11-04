@@ -84,7 +84,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = readRefreshTokenFromRequest(req, dto.refreshToken);
-    const tokens = await this.authService.refresh({ refreshToken: refreshToken ?? '' });
+    const tokens = await this.authService.refresh({
+      refreshToken: refreshToken ?? '',
+    });
     return applyAuthSession(req, res, this.config, tokens);
   }
 

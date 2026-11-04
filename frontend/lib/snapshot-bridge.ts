@@ -21,7 +21,6 @@ export const SNAPSHOT_REACT_BRIDGE: Record<string, SnapshotBridgeTarget> = {
   '/edp-professional-services': { pathname: '/services', hash: '#professional' },
   '/india-market-entry': { pathname: '/b2b-partners' },
   // NEXT-U1 batch 3 — industry / partner snapshots → React surfaces
-  '/about-us': { pathname: '/about-us' },
   '/drone-jobs-career': { pathname: '/services', hash: '#training' },
   '/drone-operations-setup': { pathname: '/services', hash: '#compliance' },
   '/business-setup-in-india': { pathname: '/b2b-partners' },

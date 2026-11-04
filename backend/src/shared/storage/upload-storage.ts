@@ -161,9 +161,7 @@ export class S3UploadStorage implements UploadStoragePort {
 
 export const UPLOAD_STORAGE = 'UPLOAD_STORAGE';
 
-export function uploadStorageFactory(
-  config: ConfigService,
-): UploadStoragePort {
+export function uploadStorageFactory(config: ConfigService): UploadStoragePort {
   const mode = (config.get<string>(UPLOAD_STORAGE) ?? 'local').toLowerCase();
   if (mode === 's3' || mode === 'r2') {
     return new S3UploadStorage(config);

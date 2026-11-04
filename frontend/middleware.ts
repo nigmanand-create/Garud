@@ -73,8 +73,6 @@ export const config = {
     '/edp-professional-services/',
     '/india-market-entry',
     '/india-market-entry/',
-    '/about-us',
-    '/about-us/',
     '/drone-jobs-career',
     '/drone-jobs-career/',
     '/drone-operations-setup',

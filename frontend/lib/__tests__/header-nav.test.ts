@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   getAccountNavLinks,
   getDashboardLink,
+  headerLoginCtaForPath,
   HEADER_LOGIN_CTA,
   HEADER_REGISTER_PARTNER_CTA,
+  ROLE_LOGIN_LINKS,
 } from '../platform/header-nav';
 
 describe('header-nav', () => {
@@ -41,5 +43,11 @@ describe('header-nav', () => {
   it('exposes the unified LOGIN / REGISTER AS B2B PARTNER CTAs', () => {
     expect(HEADER_LOGIN_CTA.href).toBe('/auth/login');
     expect(HEADER_REGISTER_PARTNER_CTA.href).toBe('/auth/register?type=partner');
+  });
+
+  it('headerLoginCtaForPath uses role bookmark URLs on key surfaces', () => {
+    expect(headerLoginCtaForPath('/b2b-partners').href).toBe(ROLE_LOGIN_LINKS.partner.href);
+    expect(headerLoginCtaForPath('/marketplace').href).toBe(ROLE_LOGIN_LINKS.buyer.href);
+    expect(headerLoginCtaForPath('/').href).toBe('/auth/login');
   });
 });

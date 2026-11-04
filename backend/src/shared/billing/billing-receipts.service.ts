@@ -14,7 +14,10 @@ import {
 export class BillingReceiptsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async orderReceiptHtml(buyerUserId: string, orderId: string): Promise<string> {
+  async orderReceiptHtml(
+    buyerUserId: string,
+    orderId: string,
+  ): Promise<string> {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, buyerUserId },
       include: {
@@ -44,7 +47,9 @@ export class BillingReceiptsService {
     }
     return renderOrderReceiptHtml({
       receiptNo: order.id.slice(0, 8).toUpperCase(),
-      issuedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      issuedAt: new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+      }),
       buyerCompany: order.companyName,
       buyerGstin: order.gstin,
       vendorCompany: order.vendorOrganization.companyName,
@@ -80,7 +85,9 @@ export class BillingReceiptsService {
 
     return renderSubscriptionReceiptHtml({
       receiptNo: sub.id.slice(0, 8).toUpperCase(),
-      issuedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      issuedAt: new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+      }),
       partnerCompany: org.companyName,
       partnerGstin: org.gst,
       planName: sub.plan.name,

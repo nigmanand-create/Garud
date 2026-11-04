@@ -49,7 +49,9 @@ export class UpdateOrderFulfillmentDto {
   @IsString({ each: true })
   hardwareSerialNumbers?: string[];
 
-  @ApiPropertyOptional({ example: 'Fragile avionics payload, handle with care' })
+  @ApiPropertyOptional({
+    example: 'Fragile avionics payload, handle with care',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(1000)

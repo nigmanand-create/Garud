@@ -1,9 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  UPLOAD_STORAGE,
-  uploadStorageFactory,
-} from './upload-storage';
+import { UPLOAD_STORAGE, uploadStorageFactory } from './upload-storage';
 
 @Global()
 @Module({

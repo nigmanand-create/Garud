@@ -11,7 +11,9 @@ The app still runs on **your Mac (or VPS)** with **Cloudflare Tunnel** to Next.j
 | Branch | Role | Public URL |
 |--------|------|------------|
 | `dev` | Staging | `dev.garudhub.me` |
-| `main` | Production (future) | `app.garudhub.me` |
+| `main` | Production (future) | `garudhub.me` |
+
+Production deploy and Razorpay webhooks use apex **`garudhub.me`** ([`DEPLOY_RUNBOOK_STEP_BY_STEP.md`](./DEPLOY_RUNBOOK_STEP_BY_STEP.md)); the Cloudflare template may use **`app.garudhub.me`** as an alternate prod ingress hostname.
 
 ---
 

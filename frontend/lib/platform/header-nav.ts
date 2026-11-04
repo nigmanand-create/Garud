@@ -9,6 +9,31 @@ export const HEADER_LOGIN_CTA = {
   label: 'Login',
 } as const;
 
+/** Bookmarkable sign-in URLs per role (same form/API as generic login). */
+export const ROLE_LOGIN_LINKS = {
+  partner: { href: '/auth/login/partner', label: 'Partner sign in' },
+  buyer: { href: '/auth/login/buyer', label: 'Buyer sign in' },
+  admin: { href: '/auth/login/admin', label: 'Admin sign in' },
+  government: { href: '/auth/login/government', label: 'Government sign in' },
+} as const;
+
+/** Header LOGIN CTA: role-specific bookmark on partner/marketplace surfaces. */
+export function headerLoginCtaForPath(pathname: string): { href: string; label: string } {
+  if (pathname === '/b2b-partners' || pathname.startsWith('/b2b-partners/')) {
+    return { href: ROLE_LOGIN_LINKS.partner.href, label: 'Partner Portal Login' };
+  }
+  if (pathname.startsWith('/marketplace') || pathname.startsWith('/buyer')) {
+    return ROLE_LOGIN_LINKS.buyer;
+  }
+  if (pathname.startsWith('/government')) {
+    return ROLE_LOGIN_LINKS.government;
+  }
+  if (pathname.startsWith('/admin')) {
+    return ROLE_LOGIN_LINKS.admin;
+  }
+  return HEADER_LOGIN_CTA;
+}
+
 export const HEADER_REGISTER_PARTNER_CTA = {
   href: '/auth/register?type=partner',
   label: 'Register as B2B Partner',

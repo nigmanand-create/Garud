@@ -21,7 +21,7 @@ import {
 import {
   getAccountNavLinks,
   getDashboardLink,
-  HEADER_LOGIN_CTA,
+  headerLoginCtaForPath,
   HEADER_REGISTER_PARTNER_CTA,
 } from '@/lib/platform/header-nav';
 
@@ -58,6 +58,7 @@ export function MarketingHeader() {
   const isAbout = pathname === '/about-us' || pathname.startsWith('/about');
   const isMarketplace = pathname.startsWith('/marketplace');
   const isBlog = pathname.startsWith('/blogging');
+  const loginCta = headerLoginCtaForPath(pathname);
 
   return (
     <>
@@ -195,8 +196,8 @@ export function MarketingHeader() {
                     </>
                   ) : (
                     <>
-                      <Link href={HEADER_LOGIN_CTA.href} className="header-auth-link" style={{ fontWeight: 600 }}>
-                        {HEADER_LOGIN_CTA.label}
+                      <Link href={loginCta.href} className="header-auth-link" style={{ fontWeight: 600 }}>
+                        {loginCta.label}
                       </Link>
                       <Link
                         href={HEADER_REGISTER_PARTNER_CTA.href}
@@ -339,11 +340,11 @@ export function MarketingHeader() {
                 {HEADER_REGISTER_PARTNER_CTA.label}
               </Link>
               <Link
-                href={HEADER_LOGIN_CTA.href}
+                href={loginCta.href}
                 className="platform-btn platform-btn-secondary platform-btn-full"
                 style={{ textAlign: 'center', textDecoration: 'none' }}
               >
-                {HEADER_LOGIN_CTA.label}
+                {loginCta.label}
               </Link>
             </div>
           )}

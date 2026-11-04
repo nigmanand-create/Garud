@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentStatus } from '@prisma/client';
-import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class RejectApplicationDto {
   @ApiProperty({ example: 'Incomplete GST documentation' })
@@ -37,7 +43,9 @@ export class RejectListingDto {
 }
 
 export class SetListingFeaturedDto {
-  @ApiProperty({ description: 'Show in marketplace featured row when approved & published' })
+  @ApiProperty({
+    description: 'Show in marketplace featured row when approved & published',
+  })
   @IsBoolean()
   featured: boolean;
 }

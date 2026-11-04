@@ -293,12 +293,28 @@ export class PartnerHubService {
     type Row = { section: string; key: string; value: string | number };
     const rows: Row[] = [
       { section: 'summary', key: 'period_days', value: data.periodDays },
-      { section: 'summary', key: 'listing_views_total', value: data.views.total },
-      { section: 'summary', key: 'enquiries_total', value: data.enquiries.total },
-      { section: 'summary', key: 'leads_new_in_period', value: data.leads.newInPeriod },
+      {
+        section: 'summary',
+        key: 'listing_views_total',
+        value: data.views.total,
+      },
+      {
+        section: 'summary',
+        key: 'enquiries_total',
+        value: data.enquiries.total,
+      },
+      {
+        section: 'summary',
+        key: 'leads_new_in_period',
+        value: data.leads.newInPeriod,
+      },
       { section: 'summary', key: 'orders_count', value: data.orders.count },
       { section: 'summary', key: 'orders_gmv_inr', value: data.orders.gmvInr },
-      { section: 'summary', key: 'rfq_invites_total', value: data.rfq.invitesTotal },
+      {
+        section: 'summary',
+        key: 'rfq_invites_total',
+        value: data.rfq.invitesTotal,
+      },
       ...data.views.byDay.map((d) => ({
         section: 'daily_views',
         key: d.date,

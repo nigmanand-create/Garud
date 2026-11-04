@@ -41,7 +41,9 @@ export class BuyerGovController {
   ) {}
 
   @Post(':id/bid-document')
-  @ApiOperation({ summary: 'Upload a sealed bid proposal (PDF / image, max 5 MB)' })
+  @ApiOperation({
+    summary: 'Upload a sealed bid proposal (PDF / image, max 5 MB)',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -63,7 +65,9 @@ export class BuyerGovController {
   }
 
   @Post(':id/bids')
-  @ApiOperation({ summary: 'Submit or update a sealed tender bid before deadline' })
+  @ApiOperation({
+    summary: 'Submit or update a sealed tender bid before deadline',
+  })
   submitBid(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
@@ -73,7 +77,9 @@ export class BuyerGovController {
   }
 
   @Get(':id/bids/mine')
-  @ApiOperation({ summary: 'Your bid on this tender (amount visible only to you)' })
+  @ApiOperation({
+    summary: 'Your bid on this tender (amount visible only to you)',
+  })
   myBid(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.gov.getMyBid(user.userId, user.role, id);
   }

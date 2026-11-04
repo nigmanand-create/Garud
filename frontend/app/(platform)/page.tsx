@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { HOME_CONTENT } from '@/lib/platform/home-content';
+import { ROLE_LOGIN_LINKS } from '@/lib/platform/header-nav';
 
 export const metadata: Metadata = {
   title: "GarudHub — India's B2B Drone Ecosystem Platform",
@@ -160,7 +161,12 @@ export default function HomePage() {
             <Link href={c.hero.primaryCta.href} className="platform-btn platform-btn-cta">
               Register with GarudHub →
             </Link>
-            <Link href="/auth/login" className="platform-btn-hero-secondary">Login</Link>
+            <Link href={ROLE_LOGIN_LINKS.partner.href} className="platform-btn-hero-secondary">
+              Partner Portal Login
+            </Link>
+            <Link href={ROLE_LOGIN_LINKS.buyer.href} className="platform-btn-hero-secondary">
+              {ROLE_LOGIN_LINKS.buyer.label}
+            </Link>
           </div>
         </div>
       </section>

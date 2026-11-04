@@ -120,7 +120,7 @@ export default function B2bPartnersPage() {
             <Link href="/auth/register?type=partner" className="platform-btn platform-btn-cta">
               Register as B2B Partner →
             </Link>
-            <Link href="/auth/login" className="platform-btn-hero-secondary">
+            <Link href="/auth/login/partner" className="platform-btn-hero-secondary">
               Partner Portal Login
             </Link>
           </div>

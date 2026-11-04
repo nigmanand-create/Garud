@@ -25,9 +25,7 @@ const EDITABLE_DOCUMENT_STATUSES: VerificationStatus[] = [
   VerificationStatus.REJECTED,
 ];
 
-export type DocumentDownloadResult =
-  | StreamableFile
-  | { redirectUrl: string };
+export type DocumentDownloadResult = StreamableFile | { redirectUrl: string };
 
 @Injectable()
 export class DocumentsService {

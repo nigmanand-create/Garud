@@ -176,8 +176,7 @@ export class PartnerBillingService {
     });
     for (const orgId of unique) {
       const sub = subs.find((s) => s.organizationId === orgId);
-      const plan =
-        sub && subscriptionGrantsPlan(sub) ? sub.plan : defaultPlan;
+      const plan = sub && subscriptionGrantsPlan(sub) ? sub.plan : defaultPlan;
       map.set(orgId, {
         featuredPlacement: plan.featuredPlacement,
         rfqPriority: plan.rfqPriority,

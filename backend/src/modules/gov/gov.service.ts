@@ -18,10 +18,7 @@ import {
   UpdateGovOpportunityDto,
 } from './dto/gov.dto';
 import { GovBidDocumentService } from './gov-bid-document.service';
-import {
-  areTenderBidsUnsealed,
-  isOpportunityExpired,
-} from './gov.rules';
+import { areTenderBidsUnsealed, isOpportunityExpired } from './gov.rules';
 
 function withFlags<T extends { closingDate: Date | null }>(row: T) {
   return { ...row, isExpired: isOpportunityExpired(row.closingDate) };
@@ -250,11 +247,18 @@ export class GovService {
 
   assertBidderRole(role: UserRole) {
     if (role !== UserRole.BUYER && role !== UserRole.GOVERNMENT) {
-      throw new ForbiddenException('Only buyer accounts can submit tender bids');
+      throw new ForbiddenException(
+        'Only buyer accounts can submit tender bids',
+      );
     }
   }
 
-  async submitBid(userId: string, role: UserRole, opportunityId: string, dto: SubmitGovBidDto) {
+  async submitBid(
+    userId: string,
+    role: UserRole,
+    opportunityId: string,
+    dto: SubmitGovBidDto,
+  ) {
     this.assertBidderRole(role);
     await this.requireOpenTender(opportunityId);
     const path = dto.storedRelativePath?.trim();

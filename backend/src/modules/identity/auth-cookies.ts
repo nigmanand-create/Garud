@@ -8,7 +8,10 @@ export const REFRESH_COOKIE = 'garud_refresh';
 export type AuthSessionMode = 'cookies' | 'bearer' | 'dual';
 
 export function resolveAuthSessionMode(config: ConfigService): AuthSessionMode {
-  const explicit = config.get<string>('AUTH_SESSION_MODE')?.trim().toLowerCase();
+  const explicit = config
+    .get<string>('AUTH_SESSION_MODE')
+    ?.trim()
+    .toLowerCase();
   if (explicit === 'cookies' || explicit === 'bearer' || explicit === 'dual') {
     return explicit;
   }

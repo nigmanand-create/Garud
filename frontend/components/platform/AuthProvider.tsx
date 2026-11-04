@@ -16,6 +16,7 @@ import {
   usesCookieSession,
 } from '@/lib/api/auth-storage';
 import type { AuthTokensResponse, AuthUser } from '@/lib/api/types';
+import { redirectPathAfterLogin } from '@/lib/platform/auth-login';
 import Link from 'next/link';
 
 type AuthState = {
@@ -30,10 +31,7 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null);
 
 function homeForUser(user: AuthUser): string {
-  if (user.mustChangePassword) return '/auth/change-password';
-  if (user.role === 'PLATFORM_ADMIN') return '/admin';
-  if (user.role === 'PARTNER') return '/partner';
-  return '/buyer/rfqs';
+  return redirectPathAfterLogin(user);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

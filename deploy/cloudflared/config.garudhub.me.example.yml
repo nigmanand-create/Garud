@@ -1,7 +1,7 @@
 # GarudHub — Cloudflare Tunnel for garudhub.me (no secrets)
 #
 # Staging:  dev.garudhub.me  (git branch dev)
-# Production: app.garudhub.me (git branch main)
+# Production: app.garudhub.me in this template (git branch main); deploy runbook / webhooks use garudhub.me apex — use either hostname in ingress if DNS matches
 #
 # Copy per environment, e.g.:
 #   cp deploy/cloudflared/config.garudhub.me.example.yml ~/.cloudflared/config.dev.yml

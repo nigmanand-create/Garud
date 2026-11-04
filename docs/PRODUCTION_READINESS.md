@@ -24,7 +24,7 @@
 | P0-H2 | **pm2** or **systemd** for `garudhub-api` + `garudhub-web`; `pm2 save` + boot startup | Ops | Scripts: [`deploy/scripts/remote-deploy-dev.sh`](../deploy/scripts/remote-deploy-dev.sh), [`remote-deploy-prod.sh`](../deploy/scripts/remote-deploy-prod.sh) |
 | P0-H3 | **cloudflared** as system service (not a Terminal window) | Ops | Examples: [`deploy/cloudflared/`](../deploy/cloudflared/); runbook [`DEPLOY_CLOUDFLARE_TUNNEL.md`](./DEPLOY_CLOUDFLARE_TUNNEL.md) |
 | P0-H4 | Staging tunnel → **dev.garudhub.me** → `http://127.0.0.1:3001` | Ops | CI validates **`dev`** branch only ([`CICD_DEV.md`](./CICD_DEV.md)) |
-| P0-H5 | Production tunnel → **garudhub.me** (or **app.garudhub.me**) → Next :3001 | Ops | Optional second ingress for API webhooks → :3000 |
+| P0-H5 | Production tunnel → **garudhub.me** → Next :3001 | Ops | Razorpay webhooks on apex per runbook; optional **`app.garudhub.me`** ingress in Cloudflare template only if that is your prod hostname |
 
 ### Secrets & configuration
 
@@ -78,7 +78,7 @@
 
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
-| P0-M1 | Hit **`GET /api/v1/health`** (or `/platform-api/v1/health` via Next) after deploy | QA/Ops | Returns `{ status: 'ok', service: 'garudhub-api' }`; script: [`deploy/scripts/post-deploy-health-check.sh`](../deploy/scripts/post-deploy-health-check.sh) |
+| P0-M1 | After deploy: **`GET /platform-api/v1/health`** on public URL (e.g. `https://dev.garudhub.me/...`) or **`GET /api/v1/health`** on API port (`http://127.0.0.1:3000/...`) | QA/Ops | Returns `{ status: 'ok', service: 'garudhub-api' }`; script: [`deploy/scripts/post-deploy-health-check.sh`](../deploy/scripts/post-deploy-health-check.sh) |
 | P0-M2 | pm2/systemd logs retained; Cloudflare analytics for 5xx | Ops | **Structured JSON logs + `x-request-id` shipped** ([Phase 7 notes](#integrations--nfr-notes-phase-7)); P1: Sentry |
 
 ### Branching & release
@@ -248,7 +248,7 @@ Review checklist:
 ## Smoke test scripts (manual)
 
 Run after every deploy. Record date + operator.  
-**Checklist (NEXT-L2):** [`STAGING_SMOKE_CHECKLIST.md`](./STAGING_SMOKE_CHECKLIST.md)
+**Checklist (NEXT-L2):** [`STAGING_SMOKE_CHECKLIST.md`](./STAGING_SMOKE_CHECKLIST.md) · **Step-by-step:** [`STAGING_SMOKE_GUIDE.md`](./STAGING_SMOKE_GUIDE.md). The checklist uses **`/marketplace`**; **`/marketplace?section=drones`** below is an equivalent spot-check.
 
 ### Staging — https://dev.garudhub.me
 
@@ -264,7 +264,7 @@ Run after every deploy. Record date + operator.
 [ ] Rate limit sanity: rapid enquiry spam returns 429 (optional)
 ```
 
-### Production — https://garudhub.me (or app.garudhub.me)
+### Production — https://garudhub.me
 
 ```text
 [ ] Marketplace public browse — no auth required

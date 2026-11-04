@@ -139,7 +139,14 @@ export class PartnershipsService {
     const organizationId = await this.requireOrgId(userId);
     const term = q.trim();
     if (term.length < 2) {
-      return { items: [] as { id: string; companyName: string; state: string | null; city: string | null }[] };
+      return {
+        items: [] as {
+          id: string;
+          companyName: string;
+          state: string | null;
+          city: string | null;
+        }[],
+      };
     }
     const limit = Math.min(Math.max(take, 1), 20);
     const items = await this.prisma.organization.findMany({

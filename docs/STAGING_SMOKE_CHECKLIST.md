@@ -1,5 +1,7 @@
 # Staging smoke checklist (NEXT-L2)
 
+**Step-by-step instructions:** [`STAGING_SMOKE_GUIDE.md`](./STAGING_SMOKE_GUIDE.md) · **Full URL catalog (local + staging):** [`MANUAL_URL_TEST_LIST.md`](./MANUAL_URL_TEST_LIST.md)
+
 Run on **`https://dev.garudhub.me`** after deploy from **`dev`**, before merging to **`main`**.  
 Detailed procedures and rate-limit notes: [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).
 
@@ -52,7 +54,7 @@ Detailed procedures and rate-limit notes: [`PRODUCTION_READINESS.md`](./PRODUCTI
 ## Payments (staging gate — P0-PAY3)
 
 - [ ] Complete one **test-key** checkout end-to-end
-- [ ] Webhook registered for staging URL (optional on dev host; verify in Razorpay dashboard if used)
+- [ ] Webhook: Razorpay **dashboard** registration for the staging URL is optional on dev; the API still requires **`RAZORPAY_WEBHOOK_SECRET`** when test checkout/webhooks are enabled (register the dashboard URL if you exercise delivery/replay).
 
 ---
 

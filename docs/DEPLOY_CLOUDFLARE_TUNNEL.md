@@ -205,6 +205,8 @@ Select the zone that contains your domain (e.g. `garudhub.com` or **`garudhub.me
 | Staging | `dev` | `dev.garudhub.me` |
 | Production | `main` | `app.garudhub.me` |
 
+**Runbook prod host:** [`DEPLOY_RUNBOOK_STEP_BY_STEP.md`](./DEPLOY_RUNBOOK_STEP_BY_STEP.md) and Razorpay webhooks use apex **`garudhub.me`**; use `app.garudhub.me` here only if that is the hostname you route to Next `:3001` (register webhooks on whichever public URL serves `/platform-api/`).
+
 **Prerequisite:** Add **`garudhub.me`** to your Cloudflare account and complete login (creates `~/.cloudflared/cert.pem`).
 
 ```bash

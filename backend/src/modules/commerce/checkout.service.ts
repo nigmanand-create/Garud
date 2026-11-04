@@ -210,7 +210,9 @@ export class CheckoutService {
       carrierName: order.carrierName ?? null,
       trackingNumber: order.trackingNumber ?? null,
       trackingUrl: order.trackingUrl ?? null,
-      dispatchedAt: order.dispatchedAt ? order.dispatchedAt.toISOString() : null,
+      dispatchedAt: order.dispatchedAt
+        ? order.dispatchedAt.toISOString()
+        : null,
       deliveredAt: order.deliveredAt ? order.deliveredAt.toISOString() : null,
       estimatedDeliveryAt: order.estimatedDeliveryAt
         ? order.estimatedDeliveryAt.toISOString()

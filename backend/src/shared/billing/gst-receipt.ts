@@ -64,7 +64,9 @@ function escapeHtml(value: string): string {
 }
 
 export function renderOrderReceiptHtml(data: OrderReceiptData): string {
-  const lines = data.billingLines.map((l) => `<li>${escapeHtml(l)}</li>`).join('');
+  const lines = data.billingLines
+    .map((l) => `<li>${escapeHtml(l)}</li>`)
+    .join('');
   const body = `
   <h1>Order payment receipt (stub)</h1>
   <p class="muted">Receipt ${escapeHtml(data.receiptNo)} · ${escapeHtml(data.issuedAt)}</p>
@@ -87,7 +89,9 @@ export function renderOrderReceiptHtml(data: OrderReceiptData): string {
   return receiptShell(`Order receipt ${data.receiptNo}`, body);
 }
 
-export function renderSubscriptionReceiptHtml(data: SubscriptionReceiptData): string {
+export function renderSubscriptionReceiptHtml(
+  data: SubscriptionReceiptData,
+): string {
   const body = `
   <h1>Partner subscription payment record (stub)</h1>
   <p class="muted">Receipt ${escapeHtml(data.receiptNo)} · ${escapeHtml(data.issuedAt)}</p>

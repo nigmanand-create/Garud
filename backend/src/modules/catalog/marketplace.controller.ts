@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { isLikelyBotUserAgent } from '../../shared/http/bot-user-agent';
 import { visitorKeyForListingView } from '../../shared/http/visitor-key';
@@ -28,10 +36,23 @@ export class MarketplaceController {
     description: 'Comma-separated catalog categories (OR filter)',
   })
   @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 50' })
-  @ApiQuery({ name: 'state', required: false, description: 'Vendor state (exact, case-insensitive)' })
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    type: Number,
+    description: 'Max 50',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Vendor state (exact, case-insensitive)',
+  })
   @ApiQuery({ name: 'priceType', required: false, enum: ['priced', 'rfq'] })
-  @ApiQuery({ name: 'sort', required: false, enum: ['newest', 'price_asc', 'price_desc'] })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    enum: ['newest', 'price_asc', 'price_desc'],
+  })
   @ApiQuery({
     name: 'q',
     required: false,
@@ -77,7 +98,12 @@ export class MarketplaceController {
 
   @Get('listings/featured')
   @ApiOperation({ summary: 'Admin-curated featured marketplace listings' })
-  @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 12' })
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    type: Number,
+    description: 'Max 12',
+  })
   featured(@Query('take') take?: string) {
     return this.catalogService.listFeaturedPublic(
       take ? parseInt(take, 10) : undefined,
@@ -86,7 +112,11 @@ export class MarketplaceController {
 
   @Get('listings/compare')
   @ApiOperation({ summary: 'Compare up to 4 published listings side by side' })
-  @ApiQuery({ name: 'ids', required: true, description: 'Comma-separated listing ids (max 4)' })
+  @ApiQuery({
+    name: 'ids',
+    required: true,
+    description: 'Comma-separated listing ids (max 4)',
+  })
   compare(@Query('ids') ids?: string) {
     return this.catalogService.getPublicListingsByIds(
       ids ? ids.split(',') : [],
@@ -94,7 +124,9 @@ export class MarketplaceController {
   }
 
   @Get('filters')
-  @ApiOperation({ summary: 'Facets for marketplace filters (states with live vendors)' })
+  @ApiOperation({
+    summary: 'Facets for marketplace filters (states with live vendors)',
+  })
   filters() {
     return this.catalogService.listPublicFacets();
   }
@@ -122,9 +154,16 @@ export class MarketplaceController {
   }
 
   @Get('vendors')
-  @ApiOperation({ summary: 'Browse verified partner organizations with listing counts' })
+  @ApiOperation({
+    summary: 'Browse verified partner organizations with listing counts',
+  })
   @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 50' })
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    type: Number,
+    description: 'Max 50',
+  })
   @ApiQuery({
     name: 'q',
     required: false,
@@ -149,10 +188,14 @@ export class MarketplaceController {
     return this.catalogService.listPublicVendors({
       q,
       state,
-      accountType: Object.values(AccountType).includes(accountType as AccountType)
+      accountType: Object.values(AccountType).includes(
+        accountType as AccountType,
+      )
         ? (accountType as AccountType)
         : undefined,
-      category: Object.values(CatalogCategory).includes(category as CatalogCategory)
+      category: Object.values(CatalogCategory).includes(
+        category as CatalogCategory,
+      )
         ? (category as CatalogCategory)
         : undefined,
       hasListings: hasListings === 'true' || hasListings === '1',

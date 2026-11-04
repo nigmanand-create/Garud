@@ -40,7 +40,7 @@ describe('snapshot → React bridge (P-UI-12)', () => {
   });
 
   it('maps batch-3 legacy slugs (NEXT-U1)', () => {
-    expect(resolveSnapshotBridge('/about-us')).toEqual({ pathname: '/about-us' });
+    expect(resolveSnapshotBridge('/about-us')).toBeNull();
     expect(resolveSnapshotBridge('/drone-jobs-career')).toEqual({
       pathname: '/services',
       hash: '#training',

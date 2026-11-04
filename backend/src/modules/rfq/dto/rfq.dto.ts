@@ -64,19 +64,28 @@ export class CreateRfqDto {
   @IsDateString()
   deadlineAt?: string;
 
-  @ApiPropertyOptional({ example: 10.5, description: 'Minimum payload capacity in kg' })
+  @ApiPropertyOptional({
+    example: 10.5,
+    description: 'Minimum payload capacity in kg',
+  })
   @IsOptional()
   @Type(() => Number)
   payloadCapacityKg?: number;
 
-  @ApiPropertyOptional({ example: 45, description: 'Minimum flight endurance in minutes' })
+  @ApiPropertyOptional({
+    example: 45,
+    description: 'Minimum flight endurance in minutes',
+  })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   enduranceMinutes?: number;
 
-  @ApiPropertyOptional({ example: true, description: 'Whether DGCA Type Certification is mandatory' })
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Whether DGCA Type Certification is mandatory',
+  })
   @IsOptional()
   @IsBoolean()
   isDgcaRequired?: boolean;
@@ -136,12 +145,18 @@ export class SubmitQuotationDto {
   @IsDateString()
   validUntil?: string;
 
-  @ApiPropertyOptional({ example: 12.0, description: 'Quoted drone payload capacity in kg' })
+  @ApiPropertyOptional({
+    example: 12.0,
+    description: 'Quoted drone payload capacity in kg',
+  })
   @IsOptional()
   @Type(() => Number)
   quotedPayloadKg?: number;
 
-  @ApiPropertyOptional({ example: 50, description: 'Quoted flight time in minutes' })
+  @ApiPropertyOptional({
+    example: 50,
+    description: 'Quoted flight time in minutes',
+  })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -154,7 +169,10 @@ export class SubmitQuotationDto {
   @MaxLength(100)
   dgcaModelNumber?: string;
 
-  @ApiPropertyOptional({ example: 24, description: 'Warranty period in months' })
+  @ApiPropertyOptional({
+    example: 24,
+    description: 'Warranty period in months',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)

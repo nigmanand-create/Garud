@@ -32,10 +32,7 @@ export function readRefreshTokenFromRequest(
   return cookies?.[REFRESH_COOKIE]?.trim() || undefined;
 }
 
-export function clearAuthSession(
-  res: Response,
-  config: ConfigService,
-): void {
+export function clearAuthSession(res: Response, config: ConfigService): void {
   const mode = resolveAuthSessionMode(config);
   if (mode === 'cookies' || mode === 'dual') {
     clearAuthCookies(res, config);

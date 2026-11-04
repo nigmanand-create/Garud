@@ -49,4 +49,4 @@ if [[ -x "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" ]]; then
   BASE_URL="${GARUD_PUBLIC_URL:-https://garudhub.me}" "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" || true
 fi
 echo "==> Post-deploy smoke: docs/STAGING_SMOKE_CHECKLIST.md + PRODUCTION_READINESS.md"
-echo "    https://garudhub.me (or app.garudhub.me) + Razorpay webhook URL on prod domain"
+echo "    https://garudhub.me — Razorpay webhook: https://garudhub.me/platform-api/v1/payments/webhook"

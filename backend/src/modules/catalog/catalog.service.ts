@@ -232,7 +232,10 @@ export class CatalogService {
       filters.sort === 'price_asc'
         ? [{ priceInr: { sort: 'asc', nulls: 'last' } }, { updatedAt: 'desc' }]
         : filters.sort === 'price_desc'
-          ? [{ priceInr: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }]
+          ? [
+              { priceInr: { sort: 'desc', nulls: 'last' } },
+              { updatedAt: 'desc' },
+            ]
           : [{ updatedAt: 'desc' }];
 
     const [rawItems, total] = await Promise.all([
@@ -476,10 +479,9 @@ export class CatalogService {
 
   /** Compare v1: up to 4 published listings by id (no analytics view recorded). */
   async getPublicListingsByIds(ids: string[]) {
-    const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))].slice(
-      0,
-      4,
-    );
+    const unique = [
+      ...new Set(ids.map((id) => id.trim()).filter(Boolean)),
+    ].slice(0, 4);
     if (unique.length === 0) return { items: [] };
     const items = await this.prisma.partnerListing.findMany({
       where: {

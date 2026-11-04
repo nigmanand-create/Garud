@@ -34,14 +34,20 @@ export class GovBidDocumentService {
         file.mimetype as (typeof ALLOWED_UPLOAD_MIME_TYPES)[number],
       )
     ) {
-      throw new BadRequestException('Only PDF, JPEG, and PNG uploads are allowed');
+      throw new BadRequestException(
+        'Only PDF, JPEG, and PNG uploads are allowed',
+      );
     }
   }
 
   async storeForBidder(userId: string, file: Express.Multer.File) {
     this.validateFile(file);
     const ext = extname(file.originalname) || '.pdf';
-    const storedRelativePath = join('gov-bids', userId, `${randomUUID()}${ext}`);
+    const storedRelativePath = join(
+      'gov-bids',
+      userId,
+      `${randomUUID()}${ext}`,
+    );
     await this.storage.write(storedRelativePath, file.buffer);
     return {
       storedRelativePath,
@@ -59,7 +65,11 @@ export class GovBidDocumentService {
     }
   }
 
-  openForAdmin(storedRelativePath: string, originalFilename: string, mimeType: string) {
+  openForAdmin(
+    storedRelativePath: string,
+    originalFilename: string,
+    mimeType: string,
+  ) {
     const normalized = normalize(storedRelativePath);
     if (!normalized.startsWith('gov-bids')) {
       throw new BadRequestException('Invalid bid document path');

@@ -15,7 +15,8 @@ Override for those accounts: set `DEMO_PASSWORD` in `backend/.env`.
 | `checkout-test@garudhub.local` | `ChangeMeDemo123!` | `BUYER` (dedicated checkout QA) | Same as buyer — use this account for checkout flows |
 | `government@garudhub.local` | `ChangeMeDemo123!` | `GOVERNMENT` | Same as buyer (cart + RFQs) |
 
-Login: http://localhost:3001/auth/login
+Login (any role): http://localhost:3001/auth/login  
+Role-specific: `/auth/login/partner`, `/auth/login/buyer`, `/auth/login/admin`, `/auth/login/government`
 
 ## Checkout test (manual QA)
 

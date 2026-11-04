@@ -53,7 +53,10 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
         { provide: PartnerBillingService, useValue: {} },
         {
           provide: NotificationService,
-          useValue: { notifyKycDecision: jest.fn() },
+          useValue: {
+            notifyKycDecision: jest.fn(),
+            notifyBuyerOrderStatus: jest.fn(),
+          },
         },
         {
           provide: ConfigService,
@@ -557,16 +560,26 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
     });
   });
 
-  describe('5. Audit and Notification System Assessment', () => {
-    it('verifies that no external notification provider is bound (documents missing provider)', () => {
-      // In accordance with TASK-004 constraints: confirm no notification service was injected
-      const ordersRecord = ordersService as unknown as Record<string, unknown>;
-      const paymentsRecord = paymentsService as unknown as Record<
-        string,
-        unknown
-      >;
-      expect(ordersRecord.notificationService).toBeUndefined();
-      expect(paymentsRecord.notificationService).toBeUndefined();
+  describe('5. Buyer fulfillment notifications', () => {
+    it('calls notifyBuyerOrderStatus when partner updates fulfillment', async () => {
+      const notifications = (ordersService as unknown as {
+        notifications: { notifyBuyerOrderStatus: jest.Mock };
+      }).notifications;
+      const order = await createTestOrder();
+
+      await ordersService.updatePartnerOrderFulfillment(
+        partnerUserId,
+        order.id,
+        FulfillmentStatus.PROCESSING,
+      );
+
+      expect(notifications.notifyBuyerOrderStatus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          buyerUserId,
+          orderId: order.id,
+          status: FulfillmentStatus.PROCESSING,
+        }),
+      );
     });
   });
 });

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { FulfillmentStatus, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { NotificationService } from '../notifications/notification.service';
 import { CheckoutService } from './checkout.service';
 import { UpdateOrderFulfillmentDto } from './dto/update-fulfillment.dto';
 
@@ -32,6 +33,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly checkoutService: CheckoutService,
+    private readonly notifications: NotificationService,
   ) {}
 
   listBuyerOrders(buyerUserId: string) {
@@ -169,6 +171,14 @@ export class OrdersService {
       data: updateData,
       include: orderDetailInclude,
     });
+
+    void this.notifications.notifyBuyerOrderStatus({
+      buyerUserId: order.buyerUserId,
+      orderId,
+      status: dto.fulfillmentStatus,
+      vendorCompanyName: updated.vendorOrganization?.companyName,
+    });
+
     return this.checkoutService.serializeOrder(updated);
   }
 

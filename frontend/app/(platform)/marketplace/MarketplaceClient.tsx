@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { browseMarketplaceListings, fetchMarketplaceFacets } from '@/lib/api/marketplace';
+import {
+  browseMarketplaceListings,
+  fetchFeaturedMarketplaceListings,
+  fetchMarketplaceFacets,
+} from '@/lib/api/marketplace';
 import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import {
   MARKETPLACE_SECTIONS,
@@ -244,6 +248,7 @@ export function MarketplaceClient() {
   }, [searchQuery]);
 
   const [listings, setListings] = useState<ListingRow[]>([]);
+  const [featuredListings, setFeaturedListings] = useState<ListingRow[]>([]);
   const [totalResults, setTotalResults] = useState(0);
   const [initialLoading, setInitialLoading] = useState(true);
   const [fetching, setFetching] = useState(true);
@@ -260,6 +265,20 @@ export function MarketplaceClient() {
   const hasActiveFilters = Boolean(
     searchQuery || filters.state || filters.price || filters.sort !== 'newest',
   );
+
+  const showFeaturedRow =
+    activeSection === 'all' && currentPage === 1 && !hasActiveFilters;
+
+  useEffect(() => {
+    if (!showFeaturedRow) {
+      setFeaturedListings([]);
+      return;
+    }
+    fetchFeaturedMarketplaceListings(8)
+      .then((r) => setFeaturedListings(r.items as ListingRow[]))
+      .catch(() => setFeaturedListings([]));
+  }, [showFeaturedRow]);
+
   const noResultsForFilters =
     !initialLoading &&
     !error &&
@@ -476,6 +495,19 @@ export function MarketplaceClient() {
           labelledBy="marketplace-categories"
         />
       </div>
+
+      {showFeaturedRow && featuredListings.length > 0 && !error && (
+        <section className="platform-marketplace-featured" aria-labelledby="marketplace-featured-heading">
+          <h2 id="marketplace-featured-heading" className="platform-section-heading">
+            Featured products
+          </h2>
+          <div className="platform-grid">
+            {featuredListings.map((item) => (
+              <ListingCard key={item.id} item={item} compare />
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="platform-marketplace-filters" role="group" aria-label="Refine results">
         <label className="platform-marketplace-filter">

@@ -42,6 +42,12 @@ export function fetchMarketplaceFacets() {
   return apiRequest<MarketplaceFacets>('/marketplace/filters');
 }
 
+export function fetchFeaturedMarketplaceListings(take = 8) {
+  return apiRequest<{ items: MarketplaceListingsResponse['items'] }>(
+    `/marketplace/listings/featured?take=${take}`,
+  );
+}
+
 export type CompareListingDetail = {
   id: string;
   name: string;

@@ -15,6 +15,11 @@ export const SNAPSHOT_REACT_BRIDGE: Record<string, SnapshotBridgeTarget> = {
   '/dgca-compliance': { pathname: '/services', hash: '#compliance' },
   '/repairs-maintenance': { pathname: '/services', hash: '#repair' },
   '/finance-insurance': { pathname: '/services', hash: '#finance' },
+  '/government-projects-schemes': { pathname: '/services', hash: '#government' },
+  '/scrap-recycling': { pathname: '/services', hash: '#recycling' },
+  '/industries-we-serve': { pathname: '/', hash: '#home-industries' },
+  '/edp-professional-services': { pathname: '/services', hash: '#professional' },
+  '/india-market-entry': { pathname: '/b2b-partners' },
 };
 
 export const SNAPSHOT_BRIDGE_PATHS = Object.keys(SNAPSHOT_REACT_BRIDGE).flatMap((p) => [

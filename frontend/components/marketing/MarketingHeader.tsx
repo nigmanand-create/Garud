@@ -352,6 +352,19 @@ export function MarketingHeader() {
               Go to {dash.label} Dashboard
             </Link>
           )}
+          {user && (
+            <div
+              className="mobile-auth-row"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '0.75rem',
+              }}
+            >
+              <NotificationBell />
+            </div>
+          )}
           {user && accountLinks.length > 0 && (
             <div className="mobile-auth-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
               {accountLinks.map((item) => (

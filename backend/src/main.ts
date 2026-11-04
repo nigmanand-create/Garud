@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AppLogger } from './shared/logging/app-logger';
 import { setupSwagger } from './shared/swagger/swagger.setup';
@@ -12,6 +13,12 @@ async function bootstrap() {
   });
   app.useLogger(new AppLogger());
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   const isProduction = process.env.NODE_ENV === 'production';
   const swaggerEnabled =
     !isProduction || process.env.SWAGGER_ENABLED === 'true';

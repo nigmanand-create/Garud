@@ -42,7 +42,10 @@ describe('RfqService - RFQ & Vendor Bidding Lifecycle (TASK-005)', () => {
         PrismaService,
         {
           provide: NotificationService,
-          useValue: { notifyRfqInvites: jest.fn() },
+          useValue: {
+            notifyRfqInvites: jest.fn(),
+            notifyBuyerQuoteReceived: jest.fn(),
+          },
         },
       ],
     }).compile();

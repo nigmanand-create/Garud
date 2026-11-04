@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { VerifiedPartnerGuard } from '../partner/guards/verified-partner.guard';
 import { BuyerCartController } from './buyer-cart.controller';
 import { BuyerCheckoutController } from './buyer-checkout.controller';
@@ -10,7 +11,7 @@ import { CheckoutService } from './checkout.service';
 import { OrdersService } from './orders.service';
 
 @Module({
-  imports: [IdentityModule],
+  imports: [IdentityModule, NotificationsModule],
   controllers: [
     BuyerCartController,
     BuyerCheckoutController,

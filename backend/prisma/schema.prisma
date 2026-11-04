@@ -219,6 +219,7 @@ model PartnerListing {
   priceOnRequest       Boolean             @default(true) @map("price_on_request")
   warranty             String?
   isPublished          Boolean             @default(false) @map("is_published")
+  featuredOnMarketplace Boolean            @default(false) @map("featured_on_marketplace")
   reviewStatus         ListingReviewStatus @default(DRAFT) @map("review_status")
   rejectionReason      String?             @map("rejection_reason")
   submittedForReviewAt DateTime?           @map("submitted_for_review_at")
@@ -240,6 +241,7 @@ model PartnerListing {
   @@index([organizationId])
   @@index([listingType, category, isPublished])
   @@index([reviewStatus, updatedAt])
+  @@index([featuredOnMarketplace, updatedAt])
   @@map("partner_listings")
 }
 

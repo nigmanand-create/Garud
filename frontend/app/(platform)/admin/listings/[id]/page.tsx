@@ -118,6 +118,31 @@ function ListingDetailInner() {
     }
   }
 
+  async function handleToggleFeatured() {
+    if (!listing) return;
+    setError(null);
+    setMessage(null);
+    setBusy(true);
+    const next = !listing.featuredOnMarketplace;
+    try {
+      await apiRequest(`/admin/listings/${id}/featured`, {
+        method: 'PATCH',
+        auth: true,
+        body: { featured: next },
+      });
+      setMessage(
+        next
+          ? 'Listing added to the marketplace featured row.'
+          : 'Listing removed from the featured row.',
+      );
+      load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Featured toggle failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleUnpublish(e: FormEvent) {
     e.preventDefault();
     if (!unpublishReason.trim()) {
@@ -391,6 +416,22 @@ function ListingDetailInner() {
                   <span>⚖</span>
                   <span>Moderation Actions</span>
                 </div>
+
+                {listing.reviewStatus === 'APPROVED' && listing.isPublished && (
+                  <div className="mod-decision-section">
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="secondary"
+                      onClick={handleToggleFeatured}
+                      disabled={busy}
+                    >
+                      {listing.featuredOnMarketplace
+                        ? 'Remove from featured row'
+                        : '★ Feature on marketplace home row'}
+                    </Button>
+                  </div>
+                )}
 
                 {listing.reviewStatus !== 'APPROVED' && (
                   <div className="mod-decision-section">

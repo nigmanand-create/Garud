@@ -70,6 +70,15 @@ export class MarketplaceController {
     });
   }
 
+  @Get('listings/featured')
+  @ApiOperation({ summary: 'Admin-curated featured marketplace listings' })
+  @ApiQuery({ name: 'take', required: false, type: Number, description: 'Max 12' })
+  featured(@Query('take') take?: string) {
+    return this.catalogService.listFeaturedPublic(
+      take ? parseInt(take, 10) : undefined,
+    );
+  }
+
   @Get('listings/compare')
   @ApiOperation({ summary: 'Compare up to 4 published listings side by side' })
   @ApiQuery({ name: 'ids', required: true, description: 'Comma-separated listing ids (max 4)' })

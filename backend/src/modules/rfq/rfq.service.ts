@@ -561,7 +561,10 @@ export class RfqService {
     const org = await this.requirePartnerOrg(partnerUserId);
     const invite = await this.prisma.rfqInvite.findFirst({
       where: { rfqId, vendorOrganizationId: org.id },
-      include: { rfq: true },
+      include: {
+        rfq: true,
+        vendorOrganization: { select: { companyName: true } },
+      },
     });
     if (!invite) {
       throw new NotFoundException('RFQ not found or not assigned to you');
@@ -629,6 +632,13 @@ export class RfqService {
       });
 
       return created;
+    });
+
+    void this.notifications.notifyBuyerQuoteReceived({
+      buyerUserId: invite.rfq.buyerUserId,
+      rfqId,
+      rfqTitle: invite.rfq.title,
+      vendorCompanyName: invite.vendorOrganization.companyName,
     });
 
     return quotation;

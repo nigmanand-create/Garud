@@ -17,6 +17,28 @@ describe('snapshot → React bridge (P-UI-12)', () => {
     expect(resolveSnapshotBridge('/about-us')).toBeNull();
   });
 
+  it('maps batch-2 legacy slugs (NEXT-U1)', () => {
+    expect(resolveSnapshotBridge('/government-projects-schemes')).toEqual({
+      pathname: '/services',
+      hash: '#government',
+    });
+    expect(resolveSnapshotBridge('/scrap-recycling/')).toEqual({
+      pathname: '/services',
+      hash: '#recycling',
+    });
+    expect(resolveSnapshotBridge('/industries-we-serve')).toEqual({
+      pathname: '/',
+      hash: '#home-industries',
+    });
+    expect(resolveSnapshotBridge('/edp-professional-services')).toEqual({
+      pathname: '/services',
+      hash: '#professional',
+    });
+    expect(resolveSnapshotBridge('/india-market-entry')).toEqual({
+      pathname: '/b2b-partners',
+    });
+  });
+
   it('keeps middleware matcher in sync with the bridge map', () => {
     const source = readFileSync(join(process.cwd(), 'middleware.ts'), 'utf8');
     for (const path of Object.keys(SNAPSHOT_REACT_BRIDGE)) {

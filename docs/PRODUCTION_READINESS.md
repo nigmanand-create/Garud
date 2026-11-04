@@ -33,7 +33,7 @@
 | P0-S1 | **JWT_ACCESS_SECRET** / **JWT_REFRESH_SECRET**: ≥32 chars, cryptographically random, not `.env.example` values | Eng/Ops | **Enforced at API boot** when `NODE_ENV=production` |
 | P0-S2 | **No demo seed on prod** — do not run `prisma:seed` with `DEMO_PASSWORD` / `ADMIN_PASSWORD` | Ops | Seed **refuses** `NODE_ENV=production` unless `ALLOW_DEMO_SEED=true` |
 | P0-S3 | Production `.env` on host only — never commit; rotate if leaked | Ops | Backend: [`backend/.env.example`](../backend/.env.example) |
-| P0-S4 | Frontend prod env: [`frontend/.env.example`](../frontend/.env.example) checklist (`NEXT_PUBLIC_*`, `BACKEND_URL`) | Eng | No secrets in `NEXT_PUBLIC_*` |
+| P0-S4 | Frontend prod env: [`frontend/.env.example`](../frontend/.env.example) checklist (`NEXT_PUBLIC_*`, `BACKEND_URL`) | Eng | No secrets in `NEXT_PUBLIC_*`; cross-links to smoke + backup scripts in that file |
 | P0-S5 | Set `GARUD_DEPLOY_ENV=production` on prod host for **live Razorpay** validation | Ops | Staging: `GARUD_DEPLOY_ENV=staging` + test keys OK |
 
 ### Database
@@ -42,7 +42,7 @@
 |---|------|-------|-------|
 | P0-D1 | Postgres running with persistent volume | Ops | [`deploy/docker-compose.prod.example.yml`](../deploy/docker-compose.prod.example.yml) |
 | P0-D2 | **`npx prisma migrate deploy`** in every deploy (both envs) | Eng/Ops | Already in remote deploy scripts |
-| P0-D3 | **Backup**: daily `pg_dump` or managed Postgres snapshots | Ops | P1 to automate; P0 = one verified restore drill |
+| P0-D3 | **Backup**: daily `pg_dump` or managed Postgres snapshots | Ops | Template: [`deploy/scripts/pg-backup.example.sh`](../deploy/scripts/pg-backup.example.sh); P0 = one verified restore drill |
 | P0-D4 | `DATABASE_URL` matches host/port (5434 local docker vs managed URL) | Ops | |
 
 ### Security (MVP)
@@ -78,7 +78,7 @@
 
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
-| P0-M1 | Hit **`GET /api/v1/health`** (or `/platform-api/v1/health` via Next) after deploy | QA/Ops | Returns `{ status: 'ok', service: 'garudhub-api' }` |
+| P0-M1 | Hit **`GET /api/v1/health`** (or `/platform-api/v1/health` via Next) after deploy | QA/Ops | Returns `{ status: 'ok', service: 'garudhub-api' }`; script: [`deploy/scripts/post-deploy-health-check.sh`](../deploy/scripts/post-deploy-health-check.sh) |
 | P0-M2 | pm2/systemd logs retained; Cloudflare analytics for 5xx | Ops | **Structured JSON logs + `x-request-id` shipped** ([Phase 7 notes](#integrations--nfr-notes-phase-7)); P1: Sentry |
 
 ### Branching & release
@@ -86,9 +86,9 @@
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
 | P0-G1 | **`dev`** = staging → **dev.garudhub.me**; **`main`** = production | Eng | Merge **dev → main** after smoke on staging |
-| P0-G2 | PRs target `dev`; CI green before merge | Eng | [`.github/workflows/dev-ci.yml`](../.github/workflows/dev-ci.yml) |
+| P0-G2 | PRs target `dev`; CI green before merge | Eng | [`.github/workflows/dev-ci.yml`](../.github/workflows/dev-ci.yml); **`main`**: [`.github/workflows/main-ci.yml`](../.github/workflows/main-ci.yml) |
 | P0-G3 | Production deploy from **`main`** only | Ops | [`remote-deploy-prod.sh`](../deploy/scripts/remote-deploy-prod.sh) |
-| P0-G4 | Tag releases / changelog for rollback | Eng | P1 automation optional |
+| P0-G4 | Tag releases / changelog for rollback | Eng | [`deploy/RELEASE.md`](../deploy/RELEASE.md) template |
 
 ### Spec gaps acceptable for prod MVP
 
@@ -109,11 +109,11 @@ Full partial inventory: [`PARTIAL_COMPLETION_BACKLOG.md`](./PARTIAL_COMPLETION_B
 | # | Area | Task | Owner |
 |---|------|------|-------|
 | P1-1 | Auth | httpOnly cookies for refresh/access (**P-BE-06**) | Eng |
-| P1-2 | Security | `helmet`, tighten headers; WAF rules in Cloudflare | Eng/Ops |
+| P1-2 | Security | `helmet`, tighten headers; WAF rules in Cloudflare | Eng/Ops — **Helmet on API** shipped in `backend/src/main.ts`; Cloudflare WAF remains Ops |
 | P1-3 | API | Dedicated **api.garudhub.me** + CORS allowlist if mobile/third-party clients | Eng |
 | P1-4 | Files | S3-compatible storage (Cloudflare R2 / AWS) for uploads | Eng/Ops |
 | P1-5 | DB | Managed Postgres (Neon, RDS, DO) + automated backups | Ops |
-| P1-6 | CI | **`main`** branch CI + deploy workflow (mirror dev-ci) | Eng |
+| P1-6 | CI | **`main`** branch CI + deploy workflow (mirror dev-ci) | Eng — **Done:** [`.github/workflows/main-ci.yml`](../.github/workflows/main-ci.yml) |
 | P1-7 | Observability | Error tracking, uptime check on `/health` | Eng/Ops |
 | P1-8 | Payments | Partner subscription billing (**P-BE-02**, **C4**) — **built (v1)**; go-live = runbook §4–5 (sync plans to live Razorpay, enable Subscriptions) | Eng/Biz |
 
@@ -171,8 +171,8 @@ Tuning guidance after launch:
 ### Notifications (email + in-app)
 
 - `NotificationService` (domain events) → **ports**: `MAIL_PROVIDER` (default SMTP/log `MailService`; swap in SES/SendGrid by providing another `MailProvider`) and `InAppNotificationService` (`in_app_notifications` table).
-- In-app (bell) is created for: partner owner on new/assigned lead, partner owner on KYC decision, invited vendors on new RFQ. API: `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:id/read`, `POST /notifications/read-all`. The header bell polls every 60 s.
-- No buyer-facing events yet (order/quote updates) and no push/SMS.
+- In-app (bell) is created for: partner owner on new/assigned lead, partner owner on KYC decision, invited vendors on new RFQ; **buyers** on RFQ quote received and order fulfillment updates. API: `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:id/read`, `POST /notifications/read-all`. The header bell polls every 60 s (desktop + mobile drawer).
+- No per-user preferences, push/SMS, or retention job yet.
 
 ### Data retention & privacy (stub — P2-3)
 
@@ -247,7 +247,8 @@ Review checklist:
 
 ## Smoke test scripts (manual)
 
-Run after every deploy. Record date + operator.
+Run after every deploy. Record date + operator.  
+**Checklist (NEXT-L2):** [`STAGING_SMOKE_CHECKLIST.md`](./STAGING_SMOKE_CHECKLIST.md)
 
 ### Staging — https://dev.garudhub.me
 

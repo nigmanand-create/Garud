@@ -4,6 +4,7 @@ import {
   Get,
   Header,
   Param,
+  Patch,
   Post,
   Query,
   StreamableFile,
@@ -36,6 +37,7 @@ import {
   CancelOrderDto,
   RejectApplicationDto,
   RejectListingDto,
+  SetListingFeaturedDto,
   UnpublishListingDto,
   UpdateOrderPaymentDto,
 } from './dto/admin.dto';
@@ -136,6 +138,17 @@ export class AdminController {
     @Body() dto: RejectListingDto,
   ) {
     return this.adminService.rejectListing(id, admin.userId, dto);
+  }
+
+  @Patch('listings/:id/featured')
+  @Post('listings/:id/featured')
+  @ApiOperation({ summary: 'Toggle marketplace featured row placement' })
+  setListingFeatured(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: SetListingFeaturedDto,
+  ) {
+    return this.adminService.setListingFeatured(id, admin.userId, dto.featured);
   }
 
   @Post('listings/:id/unpublish')

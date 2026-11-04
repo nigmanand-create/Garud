@@ -255,6 +255,31 @@ export class CatalogService {
     return { items, total, skip, take };
   }
 
+  /** Admin-featured listings for the marketplace hero row (newest featured first). */
+  async listFeaturedPublic(take = 8) {
+    const limit = Math.min(Math.max(take, 1), 12);
+    const items = await this.prisma.partnerListing.findMany({
+      where: {
+        ...this.buildBrowsePublicWhere({}),
+        featuredOnMarketplace: true,
+      },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            companyName: true,
+            country: true,
+            state: true,
+            city: true,
+          },
+        },
+      },
+      orderBy: [{ updatedAt: 'desc' }],
+      take: limit,
+    });
+    return { items };
+  }
+
   async getPublicListing(listingId: string) {
     const listing = await this.prisma.partnerListing.findFirst({
       where: {

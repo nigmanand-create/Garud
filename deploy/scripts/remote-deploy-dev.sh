@@ -37,7 +37,11 @@ else
   echo "pm2 not found — restart Nest (port 3000) and Next (port 3001) via systemd/launchd, then cloudflared."
 fi
 
+echo "==> Post-deploy health"
+if [[ -x "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" ]]; then
+  BASE_URL="${GARUD_PUBLIC_URL:-https://dev.garudhub.me}" "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" || true
+fi
 echo "==> Smoke: ensure cloudflared tunnel points to http://127.0.0.1:3001"
 echo "    https://dev.garudhub.me/marketplace?section=drones"
-echo "    Full checklist: docs/PRODUCTION_READINESS.md (staging smoke tests)"
+echo "    Full checklist: docs/STAGING_SMOKE_CHECKLIST.md"
 echo "    Production host script: deploy/scripts/remote-deploy-prod.sh"

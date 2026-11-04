@@ -47,6 +47,7 @@ export type AdminListingSummary = {
   priceOnRequest: boolean;
   priceInr?: string | null;
   isPublished: boolean;
+  featuredOnMarketplace?: boolean;
   reviewStatus: ListingReviewStatus;
   rejectionReason?: string | null;
   submittedForReviewAt?: string | null;

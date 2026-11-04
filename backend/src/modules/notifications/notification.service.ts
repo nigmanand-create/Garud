@@ -253,6 +253,43 @@ export class NotificationService {
     });
   }
 
+  /** Buyer bell: a vendor submitted a quotation on the buyer's RFQ. */
+  notifyBuyerQuoteReceived(args: {
+    buyerUserId: string;
+    rfqId: string;
+    rfqTitle: string;
+    vendorCompanyName: string;
+  }) {
+    return this.safe('buyer-quote', async () => {
+      await this.bell({
+        userId: args.buyerUserId,
+        type: 'RFQ_QUOTE_RECEIVED',
+        title: `New quote: ${args.rfqTitle}`,
+        body: args.vendorCompanyName,
+        href: `/buyer/rfqs/${args.rfqId}`,
+      });
+    });
+  }
+
+  /** Buyer bell: partner updated order fulfillment status. */
+  notifyBuyerOrderStatus(args: {
+    buyerUserId: string;
+    orderId: string;
+    status: string;
+    vendorCompanyName?: string;
+  }) {
+    return this.safe('buyer-order-status', async () => {
+      const label = args.status.replace(/_/g, ' ').toLowerCase();
+      await this.bell({
+        userId: args.buyerUserId,
+        type: 'ORDER_STATUS',
+        title: `Order update: ${label}`,
+        body: args.vendorCompanyName,
+        href: `/buyer/orders/${args.orderId}`,
+      });
+    });
+  }
+
   /** C8: status change on a service request, emailed to the requester with the tracking link. */
   notifyServiceRequestStatus(args: {
     to: string;

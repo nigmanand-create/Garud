@@ -44,5 +44,9 @@ else
   echo "pm2 not found — restart Nest :3000 and Next :3001 with NODE_ENV=production (systemd)."
 fi
 
-echo "==> Post-deploy smoke: docs/PRODUCTION_READINESS.md § Smoke tests"
+echo "==> Post-deploy health"
+if [[ -x "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" ]]; then
+  BASE_URL="${GARUD_PUBLIC_URL:-https://garudhub.me}" "$APP_DIR/deploy/scripts/post-deploy-health-check.sh" || true
+fi
+echo "==> Post-deploy smoke: docs/STAGING_SMOKE_CHECKLIST.md + PRODUCTION_READINESS.md"
 echo "    https://garudhub.me (or app.garudhub.me) + Razorpay webhook URL on prod domain"

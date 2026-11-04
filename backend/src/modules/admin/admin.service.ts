@@ -318,6 +318,47 @@ export class AdminService {
     });
   }
 
+  async setListingFeatured(
+    listingId: string,
+    adminUserId: string,
+    featured: boolean,
+  ) {
+    const listing = await this.prisma.partnerListing.findUnique({
+      where: { id: listingId },
+    });
+    if (!listing) {
+      throw new NotFoundException('Listing not found');
+    }
+    if (
+      featured &&
+      (listing.reviewStatus !== ListingReviewStatus.APPROVED ||
+        !listing.isPublished)
+    ) {
+      throw new BadRequestException(
+        'Only approved, published listings can be featured',
+      );
+    }
+
+    const updated = await this.prisma.partnerListing.update({
+      where: { id: listingId },
+      data: { featuredOnMarketplace: featured },
+    });
+
+    await this.prisma.listingModerationAuditLog.create({
+      data: {
+        listingId,
+        actorUserId: adminUserId,
+        fromStatus: listing.reviewStatus,
+        toStatus: listing.reviewStatus,
+        note: featured
+          ? 'Featured on marketplace'
+          : 'Removed from marketplace featured row',
+      },
+    });
+
+    return updated;
+  }
+
   async rejectListing(
     listingId: string,
     adminUserId: string,
@@ -374,6 +415,7 @@ export class AdminService {
         data: {
           reviewStatus: ListingReviewStatus.UNPUBLISHED,
           isPublished: false,
+          featuredOnMarketplace: false,
           rejectionReason: dto.reason,
           reviewedAt: new Date(),
           reviewedByUserId: adminUserId,

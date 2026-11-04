@@ -25,6 +25,7 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null);
 
 function homeForUser(user: AuthUser): string {
+  if (user.mustChangePassword) return '/auth/change-password';
   if (user.role === 'PLATFORM_ADMIN') return '/admin';
   if (user.role === 'PARTNER') return '/partner';
   return '/buyer/rfqs';
@@ -136,6 +137,19 @@ export function RequireAuth({
         <p>Please sign in to continue.</p>
         <Link href="/auth/login" className="platform-btn">
           Sign in
+        </Link>
+      </div>
+    );
+  }
+  if (user.mustChangePassword) {
+    return (
+      <div className="platform-card">
+        <p>
+          Your account uses a temporary password. Set a new password to
+          continue.
+        </p>
+        <Link href="/auth/change-password" className="platform-btn">
+          Change password
         </Link>
       </div>
     );

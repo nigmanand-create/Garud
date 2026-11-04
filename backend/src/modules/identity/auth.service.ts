@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -16,6 +17,7 @@ import {
 import {
   AuthTokensResponse,
   AuthUserResponse,
+  ChangePasswordDto,
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
@@ -92,6 +94,9 @@ export class AuthService {
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (user.disabledAt) {
+      throw new UnauthorizedException('Account is disabled');
+    }
     return this.issueTokens(user);
   }
 
@@ -128,7 +133,7 @@ export class AuthService {
       where: { id: payload.sub },
       include: { organization: true },
     });
-    if (!user) {
+    if (!user || user.disabledAt) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -153,6 +158,40 @@ export class AuthService {
       include: { organization: true },
     });
     return this.toUserResponse(user);
+  }
+
+  /** Self-service password change; clears the admin-issued temporary-password flag. */
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<AuthUserResponse> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { organization: true },
+    });
+    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException(
+        'New password must differ from the current password',
+      );
+    }
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12);
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash, mustChangePassword: false },
+        include: { organization: true },
+      }),
+      // Sign out other sessions after a credential change.
+      this.prisma.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    return this.toUserResponse(updated);
   }
 
   private async issueTokens(
@@ -219,6 +258,7 @@ export class AuthService {
       accountType: user.accountType,
       orgId: user.organization?.id,
       verificationStatus: user.organization?.verificationStatus,
+      mustChangePassword: user.mustChangePassword || undefined,
     };
   }
 

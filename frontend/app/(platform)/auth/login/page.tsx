@@ -12,6 +12,11 @@ import {
 import { ApiError } from '@/lib/api/types';
 import { useAuth } from '@/components/platform/AuthProvider';
 
+function redirectPathFor(user: { role: string; mustChangePassword?: boolean }) {
+  if (user.mustChangePassword) return '/auth/change-password';
+  return redirectPathForRole(user.role);
+}
+
 function redirectPathForRole(role: string) {
   if (role === 'PLATFORM_ADMIN') return '/admin';
   if (role === 'PARTNER') return '/partner';
@@ -28,7 +33,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace(redirectPathForRole(user.role));
+      router.replace(redirectPathFor(user));
     }
   }, [loading, user, router]);
 
@@ -38,7 +43,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const u = await login(email.trim(), password);
-      router.push(redirectPathForRole(u.role));
+      router.push(redirectPathFor(u));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed');
     } finally {

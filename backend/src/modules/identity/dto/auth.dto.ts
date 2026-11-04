@@ -88,6 +88,19 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
+export class ChangePasswordDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(128)
+  currentPassword: string;
+
+  @ApiProperty({ minLength: 8 })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  newPassword: string;
+}
+
 export class AuthUserResponse {
   @ApiProperty()
   id: string;
@@ -109,6 +122,11 @@ export class AuthUserResponse {
 
   @ApiPropertyOptional()
   orgId?: string;
+
+  @ApiPropertyOptional({
+    description: 'True when an admin issued a temporary password',
+  })
+  mustChangePassword?: boolean;
 }
 
 export class AuthTokensResponse {

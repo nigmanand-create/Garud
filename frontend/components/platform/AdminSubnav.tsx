@@ -3,23 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const links = [
-  { href: '/admin', label: 'Partner Applications', exact: true },
-  { href: '/admin/enquiries', label: 'Enquiry Queue' },
-  { href: '/admin/partnerships', label: 'Partnerships' },
-  { href: '/admin/listings', label: 'Listing Moderation' },
-  { href: '/admin/orders', label: 'Order Oversight' },
-];
+import { ADMIN_NAV_LINKS, isAdminNavActive } from '@/lib/platform/admin-ops';
 
 export function AdminSubnav() {
   const pathname = usePathname();
   return (
     <nav className="platform-partner-subnav" aria-label="Admin sections" style={{ marginBottom: '1.5rem' }}>
       <div className="platform-section-tabs platform-partner-subnav-tabs">
-        {links.map((l) => {
-          const active = l.exact
-            ? pathname === l.href
-            : pathname.startsWith(l.href);
+        {ADMIN_NAV_LINKS.map((l) => {
+          const active = isAdminNavActive(l, pathname);
           return (
             <Link
               key={l.href}

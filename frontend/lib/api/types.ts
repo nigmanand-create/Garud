@@ -469,6 +469,8 @@ export interface AuthUser {
   accountType: AccountType;
   verificationStatus?: VerificationStatus;
   orgId?: string;
+  /** True while the user is on an admin-issued temporary password. */
+  mustChangePassword?: boolean;
 }
 
 export type EnquiryStatus = 'NEW' | 'READ' | 'CLOSED';

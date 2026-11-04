@@ -71,13 +71,17 @@ enum CatalogCategory {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  email        String      @unique
-  passwordHash String      @map("password_hash")
-  role         UserRole
-  accountType  AccountType @map("account_type")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
+  id                 String      @id @default(uuid())
+  email              String      @unique
+  passwordHash       String      @map("password_hash")
+  role               UserRole
+  accountType        AccountType @map("account_type")
+  /// Set when an admin created the account / reset the password with a temporary one.
+  mustChangePassword Boolean     @default(false) @map("must_change_password")
+  /// Soft-disable: blocks login, refresh and API access without deleting history.
+  disabledAt         DateTime?   @map("disabled_at")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
 
   organization         Organization?
   refreshTokens        RefreshToken[]
@@ -239,6 +243,29 @@ model ListingModerationAuditLog {
 
   @@index([listingId])
   @@map("listing_moderation_audit_logs")
+}
+
+enum AdminUserAuditAction {
+  USER_CREATED
+  ROLE_CHANGED
+  PASSWORD_RESET
+  USER_DISABLED
+  USER_ENABLED
+}
+
+/// Audit trail for admin user / role management (shown in the global admin audit log).
+model AdminUserAuditLog {
+  id           String               @id @default(uuid())
+  actorUserId  String               @map("actor_user_id")
+  targetUserId String               @map("target_user_id")
+  targetEmail  String               @map("target_email")
+  action       AdminUserAuditAction
+  detail       String?
+  createdAt    DateTime             @default(now()) @map("created_at")
+
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@map("admin_user_audit_logs")
 }
 
 enum OrderStatus {

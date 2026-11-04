@@ -110,7 +110,7 @@ function DetailInner() {
             'Application review'
           )
         }
-        backHref="/admin"
+        backHref="/admin/applications"
         backLabel="Applications"
       />
       <AdminSubnav />

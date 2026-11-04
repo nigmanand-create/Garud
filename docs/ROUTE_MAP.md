@@ -31,7 +31,7 @@ Spec main nav: `HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | 
 | Marketplace → RFQ | `/buyer/rfqs/new` | React (buyer/gov) | Nav CTA “Post B2B Drone RFQ”. |
 | B2B partners | `/b2b-partners` (`#manufacturers`, `#international`, `#dealers`, `#services`, `#training`, `#technology`) | React | |
 | Join → Registration | `/auth/register` (`?type=partner` or an account type, e.g. `?type=OEM`) | React | International hints (P-UX-05). |
-| Join → Partner login | `/auth/login` | React | |
+| Join → Partner login | `/auth/login` | React | Users on an admin-issued temporary password are sent to `/auth/change-password`. |
 | Contact / enquiry | `/enquiry` (`intent`, `service`, `listing`, `partner`, `subject`) | React | `/enquiry.php` → 308 `/enquiry`. |
 | Insights & blogs | `/blogging`, `/blogging/post/*`, `/blogging/category/*` | Snapshot | |
 | Legal | `/legal.php?page=tos\|privacy\|refund` | Snapshot | |
@@ -63,11 +63,15 @@ Header: Partner (dashboard) · B2B RFPs · Orders · Messages. Dashboard subnav 
 
 ## Admin (`PLATFORM_ADMIN`)
 
-Header: Admin · Orders.
+Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Applications · Enquiry Queue · Partner Leads · Partnerships · Listing Moderation · Order Oversight · Users & Roles · Audit Log.
 
 | Route | Purpose |
 |-------|---------|
-| `/admin` | KYC applications queue |
+| `/admin` | Operations home (queue counts, quick links, recent audit activity) |
+| `/admin/applications` | KYC applications queue |
+| `/admin/leads` | Partner leads oversight (read-only) |
+| `/admin/users` | Admin users & roles (create admin, promote/demote, reset password, disable) |
+| `/admin/audit-log` | Global audit log (KYC, listings, partnerships, enquiry routing, user changes) |
 | `/admin/applications/[id]` | KYC detail |
 | `/admin/listings`, `/admin/listings/[id]` | Listing moderation |
 | `/admin/orders`, `/admin/orders/[id]` | Orders; `/admin/orders/[id]/cancel` and `/payment` redirect to detail |

@@ -2,117 +2,161 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { apiRequest } from '@/lib/api/client';
+import { getAdminOverview, type AdminOverview } from '@/lib/api/admin';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { AdminSubnav } from '@/components/platform/AdminSubnav';
+import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
+import {
+  AUDIT_KIND_LABELS,
+  auditActorLabel,
+  auditSubjectHref,
+  buildOpsCards,
+} from '@/lib/platform/admin-ops';
 import { formatEnumLabel } from '@/lib/platform/labels';
-import type { VerificationStatus } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
-type ApplicationRow = {
-  id: string;
-  companyName: string;
-  verificationStatus: VerificationStatus;
-  submittedAt?: string | null;
-  owner: { email: string; accountType: string };
-  _count: { documents: number };
-};
-
-export default function AdminApplicationsPage() {
+export default function AdminOpsHomePage() {
   return (
     <RequireAuth roles={['PLATFORM_ADMIN']}>
-      <AdminInner />
+      <OpsHomeInner />
     </RequireAuth>
   );
 }
 
-function AdminInner() {
-  const [status, setStatus] = useState<VerificationStatus | ''>('SUBMITTED');
-  const [rows, setRows] = useState<ApplicationRow[]>([]);
+const QUICK_LINKS = [
+  { href: '/admin/applications', label: 'Review KYC queue' },
+  { href: '/admin/enquiries', label: 'Triage new enquiries' },
+  { href: '/admin/partnerships', label: 'Partnership requests' },
+  { href: '/admin/listings', label: 'Moderate listings' },
+  { href: '/admin/users', label: 'Manage admins & roles' },
+  { href: '/admin/audit-log', label: 'Open audit log' },
+];
+
+function OpsHomeInner() {
+  const [data, setData] = useState<AdminOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = status ? `?status=${status}` : '';
-    apiRequest<ApplicationRow[]>(`/admin/applications${q}`, { auth: true })
-      .then(setRows)
+    getAdminOverview()
+      .then(setData)
       .catch((e) =>
-        setError(e instanceof ApiError ? e.message : 'Failed to load'),
+        setError(e instanceof ApiError ? e.message : 'Failed to load overview'),
       );
-  }, [status]);
+  }, []);
+
+  const cards = data ? buildOpsCards(data.queues) : [];
 
   return (
     <>
       <PlatformPageHeader
-        title="Partner applications"
-        subtitle="Review and approve verification requests from the admin queue."
+        title="Operations home"
+        subtitle="Everything that needs an admin: partner KYC, enquiries and leads, partnerships, listings and orders — with a live activity feed."
+        badge={
+          data && data.attentionTotal > 0 ? (
+            <span className="platform-status-badge platform-status-badge--pending">
+              {data.attentionTotal} need attention
+            </span>
+          ) : undefined
+        }
       />
       <AdminSubnav />
-      <div className="platform-card platform-form platform-filter-bar">
-        <div>
-        <label>Filter by status</label>
-        <select
-          value={status}
-          onChange={(e) =>
-            setStatus((e.target.value || '') as VerificationStatus | '')
-          }
-        >
-          <option value="">All</option>
-          {(
-            [
-              'DRAFT',
-              'SUBMITTED',
-              'UNDER_REVIEW',
-              'APPROVED',
-              'REJECTED',
-            ] as VerificationStatus[]
-          ).map((s) => (
-            <option key={s} value={s}>
-              {formatEnumLabel(s)}
-            </option>
-          ))}
-        </select>
-        </div>
-      </div>
+
       {error && <div className="platform-card platform-error">{error}</div>}
-      <div className="platform-card">
-        <div className="platform-table-wrap">
-        <table className="platform-table">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Owner</th>
-              <th>Status</th>
-              <th>Docs</th>
-              <th>Submitted</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.companyName}</td>
-                <td>{r.owner.email}</td>
-                <td><StatusBadge status={r.verificationStatus} /></td>
-                <td>{r._count.documents}</td>
-                <td>
-                  {r.submittedAt
-                    ? new Date(r.submittedAt).toLocaleDateString()
-                    : '—'}
-                </td>
-                <td className="platform-link-row">
-                  <Link href={`/admin/applications/${r.id}`}>Review</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
-        {rows.length === 0 && !error && (
-          <p className="platform-muted">No applications in this filter.</p>
-        )}
-      </div>
+      {!data && !error && <PlatformLoading />}
+
+      {data && (
+        <>
+          <section className="platform-card platform-partner-ops-summary" aria-labelledby="ops-queues">
+            <div className="platform-partner-ops-summary-head">
+              <h2 id="ops-queues" className="platform-partner-ops-summary-title">
+                Queues
+              </h2>
+              <p className="platform-muted platform-text-sm">
+                Enquiry → lead → partnership → listing: work through the highlighted tiles first.
+              </p>
+            </div>
+            <ul className="platform-partner-ops-grid">
+              {cards.map((c) => (
+                <li key={c.key}>
+                  <Link
+                    href={c.href}
+                    className={`platform-partner-ops-stat${c.alert ? ' platform-partner-ops-stat--alert' : ''}`}
+                  >
+                    <strong>{c.value}</strong>
+                    <span>{c.label}</span>
+                    {c.hint && <span className="platform-text-sm platform-muted">{c.hint}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="platform-card" aria-labelledby="ops-quick">
+            <h2 id="ops-quick" className="platform-partner-ops-summary-title">
+              Quick links
+            </h2>
+            <p className="platform-link-row">
+              {QUICK_LINKS.map((l, i) => (
+                <span key={l.href}>
+                  {i > 0 && ' · '}
+                  <Link href={l.href}>{l.label}</Link>
+                </span>
+              ))}
+            </p>
+            <p className="platform-text-sm platform-muted">
+              {data.queues.admins.active} active platform admin
+              {data.queues.admins.active === 1 ? '' : 's'}.
+            </p>
+          </section>
+
+          <section className="platform-card" aria-labelledby="ops-recent">
+            <div className="platform-page-header-row">
+              <h2 id="ops-recent" className="platform-partner-ops-summary-title">
+                Recent activity
+              </h2>
+              <Link href="/admin/audit-log">View full audit log →</Link>
+            </div>
+            {data.recentActivity.length === 0 ? (
+              <p className="platform-muted">No audit events yet.</p>
+            ) : (
+              <div className="platform-table-wrap">
+                <table className="platform-table">
+                  <thead>
+                    <tr>
+                      <th>When</th>
+                      <th>Type</th>
+                      <th>Subject</th>
+                      <th>Outcome</th>
+                      <th>By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.recentActivity.map((e) => (
+                      <tr key={e.id}>
+                        <td>{new Date(e.createdAt).toLocaleString('en-IN')}</td>
+                        <td>{AUDIT_KIND_LABELS[e.kind]}</td>
+                        <td>
+                          <Link href={auditSubjectHref(e)}>{e.subject.label}</Link>
+                        </td>
+                        <td>
+                          {e.toStatus ? (
+                            <StatusBadge status={e.toStatus} label={formatEnumLabel(e.toStatus)} />
+                          ) : (
+                            formatEnumLabel(e.action)
+                          )}
+                        </td>
+                        <td>{auditActorLabel(e.actor)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }

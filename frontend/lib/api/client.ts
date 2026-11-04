@@ -159,4 +159,10 @@ export const authApi = {
       body: { refreshToken: getRefreshToken() },
     }),
   me: () => apiRequest<AuthUser>('/auth/me', { auth: true }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiRequest<AuthUser>('/auth/change-password', {
+      method: 'POST',
+      auth: true,
+      body: { currentPassword, newPassword },
+    }),
 };

@@ -18,6 +18,7 @@ import { AuthService } from './auth.service';
 import {
   AuthTokensResponse,
   AuthUserResponse,
+  ChangePasswordDto,
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
@@ -71,6 +72,22 @@ export class AuthController {
     @Body() dto: RefreshTokenDto,
   ) {
     await this.authService.logout(user.userId, dto);
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth(BEARER_AUTH_NAME)
+  @ApiOperation({
+    summary: 'Change own password (revokes other sessions)',
+  })
+  @ApiOkResponse({ type: AuthUserResponse })
+  changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.userId, dto);
   }
 
   @Get('me')

@@ -1,7 +1,7 @@
 # GarudHub — NEXT task list
 
 **Date:** 4 November 2026  
-**Code baseline:** `dev` @ **`755f908`** (post NEXT-U1 batch 4 / analytics / S3 download)  
+**Code baseline:** `dev` @ **`6c5da08`** (platform API wiring 100%, UX/nav fixes)  
 **Purpose:** Ordered “what to do next” for launch and the following sprints — not a full PRD ledger.
 
 **Source of truth (detail):**
@@ -9,7 +9,25 @@
 - [FINAL_PRD_AUDIT_DETAILED.md](./FINAL_PRD_AUDIT_DETAILED.md) — completion scores, journeys, Section F roadmap  
 - [PRD_REMAINING_TASKS.md](./PRD_REMAINING_TASKS.md) — Phase 0 / P1 checkboxes and phase history  
 - [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) — P0/P1 ops tables and smoke procedures  
-- [DEPLOY_RUNBOOK_STEP_BY_STEP.md](./DEPLOY_RUNBOOK_STEP_BY_STEP.md) — copy-paste host procedures (Phase 0)
+- [DEPLOY_RUNBOOK_STEP_BY_STEP.md](./DEPLOY_RUNBOOK_STEP_BY_STEP.md) — copy-paste host procedures (Phase 0)  
+- [ARCHITECTURE_CONNECTIVITY_AUDIT.md](./ARCHITECTURE_CONNECTIVITY_AUDIT.md) — code wiring (100%); ops proof separate  
+- [UX_AUDIT_REPORT_2026-11-05.md](./UX_AUDIT_REPORT_2026-11-05.md) — **primary dev coding backlog** (P0/P1 UX)
+
+---
+
+## Current dev coding focus (not QA/Ops)
+
+**Already shipped on `dev`:** API proxy (incl. PUT/HEAD), `/api/v1` → platform rewrites, GOVERNMENT → `/government`, signed-out `/buyer/rfqs` → role login + auth timeout, buyer desktop **Account** menu (`2d02c64`, `6c5da08`).
+
+**Code next (suggested order):**
+
+1. UX audit **P1 quick wins** — login label unify, marketplace mobile CSS/skeleton, mobile menu `aria-expanded`, trust/Beta copy (`UX_AUDIT_REPORT_2026-11-05.md` § Quick wins).  
+2. **Home / snapshot → React** design parity (structural; largest visual gap).  
+3. **Blog/legal** snapshot migration or bridges (`NEXT-U1` note).  
+4. Fix only what **staging smoke** fails (checkout/webhook) — see open checkboxes below.  
+5. **COD** — blocked on biz (**NEXT-B1/B2**).
+
+**Parallel (not coding):** **NEXT-L2**, **P0-PAY3/4**, host Phase 0 — [`STAGING_SMOKE_GUIDE.md`](./STAGING_SMOKE_GUIDE.md).
 
 ---
 

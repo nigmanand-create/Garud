@@ -87,6 +87,39 @@ function bridgeMarketingToPlatform(html: string): string {
   out = out.replaceAll('href="/legal.php?page=tos"', 'href="/legal/terms"');
   out = out.replaceAll('href="/legal.php?page=refund"', 'href="/legal/refund"');
 
+  out = out.replace(
+    /href=(["'])\/blogging\?slug=([^"'&]+)\1/gi,
+    (_m, q: string, slug: string) => `href=${q}/blogging/post/${slug}${q}`,
+  );
+  out = out.replace(
+    /href=(["'])\/blogging\?category=([^"'&]+)\1/gi,
+    (_m, q: string, category: string) => `href=${q}/blogging/category/${category}${q}`,
+  );
+
+  return out;
+}
+
+function patchSnapshotDocumentMeta(html: string, pathname: string): string {
+  let out = html;
+
+  if (pathname === '/blogging') {
+    out = out.replace(/<title>DroneHub<\/title>/, '<title>Insights &amp; Blog | GarudHub</title>');
+  }
+
+  if (pathname.startsWith('/legal.php/')) {
+    const page = pathname.replace('/legal.php/', '');
+    const alias =
+      page === 'privacy' ? '/legal/privacy' : page === 'tos' ? '/legal/terms' : page === 'refund' ? '/legal/refund' : pathname;
+    out = out.replaceAll(`content="/legal.php?page=${page}"`, `content="${alias}"`);
+    out = out.replaceAll(`href="/legal.php?page=${page}"`, `href="${alias}"`);
+  }
+
+  // Clone bug: feature image URL was the site root after origin stripping.
+  out = out.replace(
+    /(<img class="tblog-feature-img"[^>]*\ssrc=")\/(")/g,
+    '$1/data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"$2',
+  );
+
   return out;
 }
 
@@ -165,7 +198,8 @@ export function resolveSnapshotFile(pathname: string): string | null {
 export function loadSnapshotHtml(pathname: string): string | null {
   const file = resolveSnapshotFile(pathname);
   if (!file || !existsSync(file)) return null;
-  return localizeSnapshotHtml(readFileSync(file, 'utf8'));
+  const localized = localizeSnapshotHtml(readFileSync(file, 'utf8'));
+  return patchSnapshotDocumentMeta(localized, pathname.replace(/\/$/, '') || '/');
 }
 
 export function htmlResponse(html: string, status = 200): Response {

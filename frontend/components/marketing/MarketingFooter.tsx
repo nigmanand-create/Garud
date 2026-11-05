@@ -141,9 +141,9 @@ export function MarketingFooter() {
             &copy; {year} GarudHub — India&apos;s B2B Drone Ecosystem. All rights reserved.
           </p>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8125rem' }}>
-            <Link href="/legal.php?page=tos" style={{ color: '#64748b', textDecoration: 'none' }}>Terms of Service</Link>
-            <Link href="/legal.php?page=privacy" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy Policy</Link>
-            <Link href="/legal.php?page=refund" style={{ color: '#64748b', textDecoration: 'none' }}>Disclaimer</Link>
+            <Link href="/legal/terms" style={{ color: '#64748b', textDecoration: 'none' }}>Terms of Service</Link>
+            <Link href="/legal/privacy" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy Policy</Link>
+            <Link href="/legal/refund" style={{ color: '#64748b', textDecoration: 'none' }}>Disclaimer</Link>
           </div>
         </div>
       </div>

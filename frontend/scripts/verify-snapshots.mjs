@@ -1,14 +1,23 @@
 /**
- * Smoke-test every snapshot route (dev server must be running on PORT).
- * Exits 1 if any route is non-200 or still contains absolute garudhub URLs.
+ * Smoke-test snapshot routes (dev server must be running on PORT).
+ * Bridged legacy slugs expect 307; blog/legal/platform-wrapped routes expect 200 HTML
+ * without absolute garudhub.com URLs in href/src/content attributes.
  */
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const root = join(import.meta.dirname, '..');
 const rawDir = join(root, 'content', 'raw');
 const port = process.env.PORT || '3001';
 const base = `http://localhost:${port}`;
+
+/** Keep in sync with SNAPSHOT_REACT_BRIDGE keys in lib/snapshot-bridge.ts */
+function bridgePathsFromSource() {
+  const src = readFileSync(join(root, 'lib', 'snapshot-bridge.ts'), 'utf8');
+  return new Set([...src.matchAll(/^\s+'(\/[^']+)':/gm)].map((m) => m[1]));
+}
+
+const bridgedPaths = bridgePathsFromSource();
 
 function routesFromRaw() {
   const routes = new Set(['/']);
@@ -30,10 +39,41 @@ const extra = [
   '/blogging?slug=10-things-to-know-before-buying-a-drone-in-india',
   '/blogging?category=drone-guides',
   '/legal.php?page=tos',
+  '/legal.php?page=privacy',
+  '/legal.php?page=refund',
   '/about.php',
+  '/blog',
+  '/legal/privacy',
+  '/legal/terms',
+  '/legal/refund',
 ];
 
-const absRe = /https?:\/\/(?:www\.)?garudhub\.com/i;
+/** Absolute garudhub URLs in linkable attributes (ignore plain-text mentions in legal copy). */
+const absAttrRe =
+  /(?:href|src|content)=(["'])(?:https?:)?\/\/(?:www\.)?garudhub\.com[^"']*\1/gi;
+
+function countAbsoluteGarudhubUrls(html) {
+  return (html.match(absAttrRe) || []).length;
+}
+
+function routePathname(route) {
+  return route.split('?')[0].replace(/\/+$/, '') || '/';
+}
+
+function expectsBridgeRedirect(route) {
+  return bridgedPaths.has(routePathname(route));
+}
+
+function expectsPlatformShell(route) {
+  const p = routePathname(route);
+  return (
+    p === '/blogging' ||
+    p.startsWith('/blogging/post/') ||
+    p.startsWith('/blogging/category/') ||
+    p.startsWith('/legal.php/')
+  );
+}
+
 let failed = 0;
 
 for (const r of [...routesFromRaw(), ...extra]) {
@@ -45,12 +85,27 @@ for (const r of [...routesFromRaw(), ...extra]) {
     failed++;
     continue;
   }
+
+  const bridged = expectsBridgeRedirect(r);
+  if (bridged) {
+    if (res.status !== 307) {
+      console.error('FAIL', r, 'expected 307 bridge redirect, got', res.status);
+      failed++;
+    }
+    continue;
+  }
+
   const text = await res.text();
-  const abs = (text.match(absRe) || []).length;
-  const redirect307 = new Set(['/about.php', '/drone-accessories', '/drone-marketplace']);
-  const ok = res.status === 200 || (redirect307.has(r) && res.status === 307);
+  const abs = countAbsoluteGarudhubUrls(text);
+  const ok = res.status === 200;
   if (!ok || abs > 0) {
-    console.error('FAIL', r, 'status', res.status, 'garudhub refs', abs);
+    console.error('FAIL', r, 'status', res.status, 'garudhub attr refs', abs);
+    failed++;
+    continue;
+  }
+
+  if (expectsPlatformShell(r) && !text.includes('platform-marketing-root')) {
+    console.error('FAIL', r, 'missing MarketingShell wrapper');
     failed++;
   }
 }

@@ -59,7 +59,7 @@ Generated from `frontend/app` routes, `frontend/middleware.ts`, `frontend/script
 
 ## Snapshots (legacy HTML + bridges)
 
-All `frontend/content/raw` routes (48) plus middleware-only URLs. Bridged paths return **307** to the React target in [`SNAPSHOT_REACT_BRIDGE`](../frontend/lib/snapshot-bridge.ts).
+All `frontend/content/raw` routes (48) plus middleware-only URLs. Bridged paths return **307** to the React target in [`SNAPSHOT_REACT_BRIDGE`](../frontend/lib/snapshot-bridge.ts). Blog (`/blogging`, posts, categories) and legal (`/legal.php/*`) snapshot **bodies** render inside platform **`MarketingShell`** — see `app/(platform)/blogging` and `app/(platform)/legal.php/[page]`.
 
 | Path | Local | Staging | Notes |
 |------|-------|---------|-------|

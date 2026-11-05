@@ -1084,12 +1084,26 @@
   mask-image: linear-gradient(to right, #000 92%, transparent 100%);
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .platform-marketplace-browse .platform-section-tabs {
     position: sticky;
     top: 5.5rem;
     z-index: 15;
     scroll-margin-top: 6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .platform-marketplace-browse .platform-section-tabs {
+    position: sticky;
+    top: 4.25rem;
+    z-index: 15;
+    scroll-margin-top: 5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .platform-marketplace-browse-label {
+    margin-bottom: 0.35rem;
   }
 }
 
@@ -6444,6 +6458,70 @@ button.mod-kpi-card {
 }
 
 /* ── Phase 4: marketplace filters, RFQ / opportunities blocks, compare ───────── */
+.platform-marketplace-filters-mobile-bar {
+  display: none;
+}
+
+.platform-marketplace-filters-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+}
+
+.platform-marketplace-filters-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--platform-accent);
+  color: #fff;
+}
+
+.platform-marketplace-filters-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgb(15 23 42 / 55%);
+}
+
+.platform-marketplace-filters-sheet {
+  width: 100%;
+  max-height: min(88vh, 640px);
+  overflow: auto;
+  padding: 1rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--platform-radius-lg) var(--platform-radius-lg) 0 0;
+  background: var(--platform-bg);
+  box-shadow: 0 -12px 40px -16px rgb(20 21 15 / 35%);
+  -webkit-overflow-scrolling: touch;
+}
+
+.platform-marketplace-filters-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--platform-border);
+}
+
+.platform-marketplace-filters-sheet__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
 .platform-marketplace-filters {
   display: flex;
   flex-wrap: wrap;
@@ -6452,27 +6530,54 @@ button.mod-kpi-card {
   margin-bottom: 1.25rem;
 }
 
+.platform-marketplace-filters--sheet {
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 0;
+}
+
+.platform-marketplace-filters--sheet .platform-marketplace-filter {
+  width: 100%;
+}
+
+.platform-marketplace-filters--sheet .platform-marketplace-filter select {
+  min-width: 0;
+  width: 100%;
+}
+
+.platform-marketplace-filters--sheet .platform-marketplace-filters__vendors {
+  margin-left: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.platform-marketplace-filters--sheet .platform-marketplace-search.mod-search-box {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .platform-marketplace-search--desktop {
+    display: none;
+  }
+
+  .platform-marketplace-filters-mobile-bar {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+
+  .platform-marketplace-filters--desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .platform-marketplace-filters-sheet-overlay {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
-  .platform-marketplace-filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .platform-marketplace-filter {
-    width: 100%;
-  }
-
-  .platform-marketplace-filter select {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .platform-marketplace-filters__vendors {
-    margin-left: 0;
-    width: 100%;
-    text-align: center;
-  }
-
   .platform-marketplace-search.mod-search-box {
     width: 100%;
   }

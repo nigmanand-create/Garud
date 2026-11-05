@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import {
   browseMarketplaceListings,
   fetchFeaturedMarketplaceListings,
@@ -156,6 +156,143 @@ type MarketplacePaginationProps = {
   onPage: (page: number) => void;
 };
 
+function countSecondaryFilters(
+  filters: ListingFilters,
+  searchQuery: string,
+): number {
+  let count = 0;
+  if (searchQuery.trim()) count += 1;
+  if (filters.state) count += 1;
+  if (filters.price) count += 1;
+  if (filters.sort !== 'newest') count += 1;
+  return count;
+}
+
+type MarketplaceSearchFieldProps = {
+  searchDraft: string;
+  setSearchDraft: (value: string) => void;
+  applySearch: (raw: string) => void;
+  className?: string;
+};
+
+function MarketplaceSearchField({
+  searchDraft,
+  setSearchDraft,
+  applySearch,
+  className = '',
+}: MarketplaceSearchFieldProps) {
+  return (
+    <form
+      className={`platform-marketplace-search mod-search-box${className ? ` ${className}` : ''}`}
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        applySearch(searchDraft);
+      }}
+    >
+      <span className="mod-search-icon" aria-hidden>
+        <i className="bi bi-search" />
+      </span>
+      <input
+        type="search"
+        className="mod-search-input"
+        placeholder="Search drones, parts, training, services…"
+        value={searchDraft}
+        onChange={(e) => setSearchDraft(e.target.value)}
+        aria-label="Search marketplace listings"
+      />
+      {searchDraft && (
+        <button
+          type="button"
+          className="platform-btn platform-btn-secondary platform-marketplace-search-clear"
+          onClick={() => {
+            setSearchDraft('');
+            applySearch('');
+          }}
+        >
+          Clear
+        </button>
+      )}
+    </form>
+  );
+}
+
+type MarketplaceFilterFieldsProps = {
+  filters: ListingFilters;
+  states: string[];
+  setFilter: (key: 'state' | 'price' | 'sort', value: string) => void;
+  hasActiveFilters: boolean;
+  clearAllFilters: () => void;
+  showVendorsLink?: boolean;
+};
+
+function MarketplaceFilterFields({
+  filters,
+  states,
+  setFilter,
+  hasActiveFilters,
+  clearAllFilters,
+  showVendorsLink = true,
+}: MarketplaceFilterFieldsProps) {
+  return (
+    <>
+      <label className="platform-marketplace-filter">
+        <span>Location</span>
+        <select
+          value={filters.state}
+          onChange={(e) => setFilter('state', e.target.value)}
+        >
+          <option value="">All India</option>
+          {filters.state && !states.includes(filters.state) && (
+            <option value={filters.state}>{filters.state}</option>
+          )}
+          {states.map((st) => (
+            <option key={st} value={st}>
+              {st}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="platform-marketplace-filter">
+        <span>Pricing</span>
+        <select
+          value={filters.price}
+          onChange={(e) => setFilter('price', e.target.value)}
+        >
+          <option value="">Any pricing</option>
+          <option value="priced">Listed price (buy now)</option>
+          <option value="rfq">Price on request</option>
+        </select>
+      </label>
+      <label className="platform-marketplace-filter">
+        <span>Sort by</span>
+        <select
+          value={filters.sort}
+          onChange={(e) => setFilter('sort', e.target.value)}
+        >
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price: low to high</option>
+          <option value="price_desc">Price: high to low</option>
+        </select>
+      </label>
+      {hasActiveFilters && (
+        <button
+          type="button"
+          className="platform-btn platform-btn-secondary platform-btn-sm"
+          onClick={clearAllFilters}
+        >
+          Reset filters
+        </button>
+      )}
+      {showVendorsLink && (
+        <Link href="/marketplace/vendors" className="platform-marketplace-filters__vendors">
+          Browse verified vendors →
+        </Link>
+      )}
+    </>
+  );
+}
+
 function MarketplacePagination({
   page,
   totalPages,
@@ -236,6 +373,14 @@ export function MarketplaceClient() {
   const filters = useMemo(() => parseFiltersFromSearch(searchParams), [searchParams]);
   const [states, setStates] = useState<string[]>([]);
   const [searchDraft, setSearchDraft] = useState(searchQuery);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const mobileFiltersSheetId = useId();
+  const mobileFiltersTitleId = useId();
+
+  const secondaryFilterCount = useMemo(
+    () => countSecondaryFilters(filters, searchQuery),
+    [filters, searchQuery],
+  );
 
   useEffect(() => {
     fetchMarketplaceFacets()
@@ -246,6 +391,24 @@ export function MarketplaceClient() {
   useEffect(() => {
     setSearchDraft(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileFiltersOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileFiltersOpen]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 769px)');
+    const onChange = () => {
+      if (mq.matches) setMobileFiltersOpen(false);
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [featuredListings, setFeaturedListings] = useState<ListingRow[]>([]);
@@ -450,38 +613,12 @@ export function MarketplaceClient() {
       />
 
       <div className="platform-marketplace-body">
-      <form
-        className="platform-marketplace-search mod-search-box"
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          applySearch(searchDraft);
-        }}
-      >
-        <span className="mod-search-icon" aria-hidden>
-          <i className="bi bi-search" />
-        </span>
-        <input
-          type="search"
-          className="mod-search-input"
-          placeholder="Search drones, parts, training, services…"
-          value={searchDraft}
-          onChange={(e) => setSearchDraft(e.target.value)}
-          aria-label="Search marketplace listings"
-        />
-        {searchDraft && (
-          <button
-            type="button"
-            className="platform-btn platform-btn-secondary platform-marketplace-search-clear"
-            onClick={() => {
-              setSearchDraft('');
-              applySearch('');
-            }}
-          >
-            Clear
-          </button>
-        )}
-      </form>
+      <MarketplaceSearchField
+        searchDraft={searchDraft}
+        setSearchDraft={setSearchDraft}
+        applySearch={applySearch}
+        className="platform-marketplace-search--desktop"
+      />
 
       <div className="platform-marketplace-browse">
         <p className="platform-marketplace-browse-label" id="marketplace-categories">
@@ -509,59 +646,89 @@ export function MarketplaceClient() {
         </section>
       )}
 
-      <div className="platform-marketplace-filters" role="group" aria-label="Refine results">
-        <label className="platform-marketplace-filter">
-          <span>Location</span>
-          <select
-            value={filters.state}
-            onChange={(e) => setFilter('state', e.target.value)}
-          >
-            <option value="">All India</option>
-            {filters.state && !states.includes(filters.state) && (
-              <option value={filters.state}>{filters.state}</option>
-            )}
-            {states.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="platform-marketplace-filter">
-          <span>Pricing</span>
-          <select
-            value={filters.price}
-            onChange={(e) => setFilter('price', e.target.value)}
-          >
-            <option value="">Any pricing</option>
-            <option value="priced">Listed price (buy now)</option>
-            <option value="rfq">Price on request</option>
-          </select>
-        </label>
-        <label className="platform-marketplace-filter">
-          <span>Sort by</span>
-          <select
-            value={filters.sort}
-            onChange={(e) => setFilter('sort', e.target.value)}
-          >
-            <option value="newest">Newest</option>
-            <option value="price_asc">Price: low to high</option>
-            <option value="price_desc">Price: high to low</option>
-          </select>
-        </label>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            className="platform-btn platform-btn-secondary platform-btn-sm"
-            onClick={clearAllFilters}
-          >
-            Reset filters
-          </button>
-        )}
-        <Link href="/marketplace/vendors" className="platform-marketplace-filters__vendors">
-          Browse verified vendors →
-        </Link>
+      <div className="platform-marketplace-filters-mobile-bar">
+        <button
+          type="button"
+          className="platform-btn platform-btn-secondary platform-marketplace-filters-toggle"
+          aria-expanded={mobileFiltersOpen}
+          aria-controls={mobileFiltersSheetId}
+          onClick={() => setMobileFiltersOpen((open) => !open)}
+        >
+          <i className="bi bi-sliders" aria-hidden />
+          Filters
+          {secondaryFilterCount > 0 && (
+            <span
+              className="platform-marketplace-filters-count"
+              aria-label={`${secondaryFilterCount} active filter${secondaryFilterCount === 1 ? '' : 's'}`}
+            >
+              {secondaryFilterCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      <div
+        className="platform-marketplace-filters platform-marketplace-filters--desktop"
+        role="group"
+        aria-label="Refine results"
+      >
+        <MarketplaceFilterFields
+          filters={filters}
+          states={states}
+          setFilter={setFilter}
+          hasActiveFilters={hasActiveFilters}
+          clearAllFilters={clearAllFilters}
+        />
+      </div>
+
+      {mobileFiltersOpen && (
+        <div
+          className="platform-marketplace-filters-sheet-overlay"
+          role="presentation"
+          onClick={() => setMobileFiltersOpen(false)}
+        >
+          <div
+            id={mobileFiltersSheetId}
+            className="platform-marketplace-filters-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={mobileFiltersTitleId}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="platform-marketplace-filters-sheet__head">
+              <h2 id={mobileFiltersTitleId} className="platform-marketplace-filters-sheet__title">
+                Filters
+              </h2>
+              <button
+                type="button"
+                className="platform-btn platform-btn-secondary platform-btn-sm"
+                onClick={() => setMobileFiltersOpen(false)}
+              >
+                Done
+              </button>
+            </div>
+            <div
+              className="platform-marketplace-filters platform-marketplace-filters--sheet"
+              role="group"
+              aria-label="Refine results"
+            >
+              <MarketplaceSearchField
+                searchDraft={searchDraft}
+                setSearchDraft={setSearchDraft}
+                applySearch={applySearch}
+                className="platform-marketplace-search--sheet"
+              />
+              <MarketplaceFilterFields
+                filters={filters}
+                states={states}
+                setFilter={setFilter}
+                hasActiveFilters={hasActiveFilters}
+                clearAllFilters={clearAllFilters}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="platform-marketplace-error" role="alert">

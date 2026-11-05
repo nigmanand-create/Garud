@@ -1,24 +1,27 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SnapshotMainContent } from '@/components/marketing/SnapshotMainContent';
-import {
-  loadSnapshotDocumentTitle,
-  loadSnapshotMainContent,
-} from '@/lib/snapshot-main-content';
+import { BlogCategoryView } from '@/components/blog/BlogViews';
+import { getBlogCategories, getBlogPostsByCategory } from '@/lib/content/blog';
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+export async function generateStaticParams() {
+  return getBlogCategories().map((c) => ({ slug: c.slug }));
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const pathname = `/blogging/category/${slug}`;
-  const title = loadSnapshotDocumentTitle(pathname) ?? 'Blog category | GarudHub';
-  return { title: title === 'DroneHub' ? 'Insights & Blog | GarudHub' : title };
+  const cat = getBlogCategories().find((c) => c.slug === slug);
+  const label = cat?.label ?? slug;
+  return {
+    title: `${label} | GarudHub Blog`,
+    description: `Articles about ${label} from GarudHub.`,
+  };
 }
 
 export default async function BlogCategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const pathname = `/blogging/category/${slug}`;
-  const html = loadSnapshotMainContent(pathname);
-  if (!html) notFound();
-  return <SnapshotMainContent html={html} className="page-blogging-category" />;
+  const cat = getBlogCategories().find((c) => c.slug === slug);
+  if (!cat && getBlogPostsByCategory(slug).length === 0) notFound();
+  return <BlogCategoryView categorySlug={slug} />;
 }

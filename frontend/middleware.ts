@@ -91,13 +91,5 @@ export const config = {
     '/about.php/',
     '/blog',
     '/blog/',
-    '/legal/privacy',
-    '/legal/privacy/',
-    '/legal/terms',
-    '/legal/terms/',
-    '/legal/tos',
-    '/legal/tos/',
-    '/legal/refund',
-    '/legal/refund/',
   ],
 };

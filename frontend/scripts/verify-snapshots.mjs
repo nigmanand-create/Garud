@@ -70,8 +70,15 @@ function expectsPlatformShell(route) {
     p === '/blogging' ||
     p.startsWith('/blogging/post/') ||
     p.startsWith('/blogging/category/') ||
-    p.startsWith('/legal.php/')
+    p === '/legal/privacy' ||
+    p === '/legal/terms' ||
+    p === '/legal/refund'
   );
+}
+
+function expectsLegalLegacyRedirect(route) {
+  const p = routePathname(route);
+  return p.startsWith('/legal.php/') || /^\/legal\.php\?/.test(route);
 }
 
 let failed = 0;
@@ -90,6 +97,14 @@ for (const r of [...routesFromRaw(), ...extra]) {
   if (bridged) {
     if (res.status !== 307) {
       console.error('FAIL', r, 'expected 307 bridge redirect, got', res.status);
+      failed++;
+    }
+    continue;
+  }
+
+  if (expectsLegalLegacyRedirect(r)) {
+    if (res.status !== 308 && res.status !== 307) {
+      console.error('FAIL', r, 'expected legal legacy redirect, got', res.status);
       failed++;
     }
     continue;

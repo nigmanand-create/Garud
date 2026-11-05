@@ -31,10 +31,6 @@ export const SNAPSHOT_REACT_BRIDGE: Record<string, SnapshotBridgeTarget> = {
   '/loan-calculators.php': { pathname: '/services', hash: '#finance' },
   '/about.php': { pathname: '/about-us' },
   '/blog': { pathname: '/blogging' },
-  '/legal/privacy': { pathname: '/legal.php/privacy' },
-  '/legal/terms': { pathname: '/legal.php/tos' },
-  '/legal/tos': { pathname: '/legal.php/tos' },
-  '/legal/refund': { pathname: '/legal.php/refund' },
 };
 
 export const SNAPSHOT_BRIDGE_PATHS = Object.keys(SNAPSHOT_REACT_BRIDGE).flatMap((p) => [

@@ -58,12 +58,8 @@ describe('snapshot → React bridge (P-UI-12)', () => {
     });
     expect(resolveSnapshotBridge('/about.php')).toEqual({ pathname: '/about-us' });
     expect(resolveSnapshotBridge('/blog')).toEqual({ pathname: '/blogging' });
-    expect(resolveSnapshotBridge('/legal/privacy')).toEqual({
-      pathname: '/legal.php/privacy',
-    });
-    expect(resolveSnapshotBridge('/legal/terms')).toEqual({
-      pathname: '/legal.php/tos',
-    });
+    expect(resolveSnapshotBridge('/legal/privacy')).toBeNull();
+    expect(resolveSnapshotBridge('/legal/terms')).toBeNull();
   });
 
   it('keeps middleware matcher in sync with the bridge map', () => {

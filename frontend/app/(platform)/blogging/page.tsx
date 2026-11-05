@@ -1,6 +1,4 @@
-import { notFound } from 'next/navigation';
-import { SnapshotMainContent } from '@/components/marketing/SnapshotMainContent';
-import { loadSnapshotMainContent } from '@/lib/snapshot-main-content';
+import { BlogIndexView } from '@/components/blog/BlogViews';
 
 export const metadata = {
   title: 'Insights & Blog | GarudHub',
@@ -9,7 +7,5 @@ export const metadata = {
 };
 
 export default function BloggingIndexPage() {
-  const html = loadSnapshotMainContent('/blogging');
-  if (!html) notFound();
-  return <SnapshotMainContent html={html} className="page-blogging" />;
+  return <BlogIndexView />;
 }

@@ -1,4 +1,5 @@
 import '@/app/styles/platform.css';
+import '@/app/styles/blog-legal.css';
 import { AuthProvider } from '@/components/platform/AuthProvider';
 import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { MarketingStyles } from '@/components/marketing/MarketingStyles';

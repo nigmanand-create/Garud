@@ -4,7 +4,11 @@ import { join } from 'path';
 const nextConfig: NextConfig = {
   outputFileTracingRoot: join(__dirname),
   async redirects() {
-    return [{ source: '/about.php', destination: '/about-us', permanent: false }];
+    return [
+      { source: '/about.php', destination: '/about-us', permanent: false },
+      { source: '/legal/tos', destination: '/legal/terms', permanent: true },
+      { source: '/legal/tos/', destination: '/legal/terms', permanent: true },
+    ];
   },
   // CDN note (docs/PRODUCTION_READINESS.md § CDN): Cloudflare caches /assets/* at the edge
   // when the origin allows it. Filenames are not content-hashed, so keep a modest TTL.

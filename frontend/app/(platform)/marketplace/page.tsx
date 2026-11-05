@@ -1,9 +1,10 @@
 import { Suspense } from 'react';
 import { MarketplaceClient } from './MarketplaceClient';
+import { MarketplaceLoadingFallback } from './MarketplaceLoadingFallback';
 
 export default function MarketplacePage() {
   return (
-    <Suspense fallback={<p className="platform-muted">Loading marketplace…</p>}>
+    <Suspense fallback={<MarketplaceLoadingFallback />}>
       <MarketplaceClient />
     </Suspense>
   );

@@ -459,7 +459,7 @@ export function MarketplaceClient() {
         }}
       >
         <span className="mod-search-icon" aria-hidden>
-          🔍
+          <i className="bi bi-search" />
         </span>
         <input
           type="search"

@@ -106,11 +106,16 @@ export function MarketingHeader() {
   useEffect(() => {
     const menu = document.getElementById('mobileMenu');
     const backdrop = document.getElementById('mobileBackdrop');
+    const toggle = document.querySelector<HTMLButtonElement>('.header-mobile-toggle');
     if (!menu) return;
     const open = menu.classList.contains('active');
     menu.inert = !open;
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
     backdrop?.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
   }, [pathname, loading, user]);
 
   return (
@@ -263,7 +268,6 @@ export function MarketingHeader() {
             <button
               className="header-mobile-toggle"
               aria-label="Open menu"
-              aria-expanded={false}
               aria-controls="mobileMenu"
               type="button"
             >

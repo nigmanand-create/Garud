@@ -111,7 +111,10 @@ export default function B2bPartnersPage() {
     <div className="platform-marketing-page">
       <section className="platform-b2b-hero">
         <div className="platform-b2b-hero__inner">
-          <span className="platform-b2b-hero__eyebrow">PARTNER WITH GARUDHUB</span>
+          <div className="platform-b2b-hero__eyebrow-row">
+            <span className="platform-b2b-hero__eyebrow">PARTNER WITH GARUDHUB</span>
+            <span className="platform-b2b-hero__beta">Beta</span>
+          </div>
           <h1 className="platform-b2b-hero__title">Expand Your Drone Business Across India</h1>
           <p className="platform-b2b-hero__lead">
             Whether you manufacture certified UAVs, supply propulsion hardware, provide DGCA training, or offer regional repair — GarudHub connects you with active commercial demand.
@@ -121,7 +124,7 @@ export default function B2bPartnersPage() {
               Register as B2B Partner →
             </Link>
             <Link href="/auth/login/partner" className="platform-btn-hero-secondary">
-              Partner Portal Login
+              Sign in
             </Link>
           </div>
         </div>
@@ -164,7 +167,7 @@ export default function B2bPartnersPage() {
             <div className="platform-b2b-pillar-icon platform-b2b-pillar-icon--purple" aria-hidden>🛡️</div>
             <h3 className="platform-section-heading">Escrow &amp; Deal Protection</h3>
             <p className="platform-muted">
-              Secured purchase orders, milestone payments, and prompt supplier payout releases with verified proof-of-delivery.
+              Milestone-based deal protection (pilot): secured purchase orders and supplier payouts as features roll out on the platform.
             </p>
           </div>
         </div>

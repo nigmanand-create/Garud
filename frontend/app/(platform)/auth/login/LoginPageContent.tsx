@@ -18,6 +18,7 @@ import {
   redirectPathAfterLogin,
   type LoginIntent,
 } from '@/lib/platform/auth-login';
+import { hasClientAuthSessionHint } from '@/lib/api/auth-storage';
 import { ROLE_LOGIN_LINKS } from '@/lib/platform/header-nav';
 
 export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
@@ -49,13 +50,16 @@ export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
     }
   }
 
-  if (loading || user) {
+  const sessionHint = hasClientAuthSessionHint();
+
+  if (user) {
     return (
-      <AuthSessionGate
-        busy={loading}
-        message={loading ? 'Checking your session…' : 'Redirecting to your dashboard…'}
-      />
+      <AuthSessionGate busy={false} message="Redirecting to your dashboard…" />
     );
+  }
+
+  if (loading && sessionHint) {
+    return <AuthSessionGate busy message="Checking your session…" />;
   }
 
   return (

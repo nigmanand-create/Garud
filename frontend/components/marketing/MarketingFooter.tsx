@@ -103,16 +103,23 @@ export function MarketingFooter() {
               <li><Link href="/marketplace" style={{ color: '#94a3b8', textDecoration: 'none' }}>Search Drones &amp; Payloads</Link></li>
               <li><Link href="/buyer/rfqs" style={{ color: '#94a3b8', textDecoration: 'none' }}>Vendor Comparison Matrix</Link></li>
               <li><Link href="/about-us" style={{ color: '#94a3b8', textDecoration: 'none' }}>About GarudHub</Link></li>
-              <li><Link href="/auth/login/partner" style={{ color: '#94a3b8', textDecoration: 'none' }}>Partner Portal Login</Link></li>
-              <li><Link href="/auth/login/buyer" style={{ color: '#94a3b8', textDecoration: 'none' }}>Buyer sign in</Link></li>
+              <li><Link href="/auth/login" style={{ color: '#94a3b8', textDecoration: 'none' }}>Sign in</Link></li>
+              <li>
+                <Link href="/auth/register?type=partner" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+                  Register as partner
+                </Link>
+              </li>
             </ul>
             <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: '#1e293b', borderRadius: 8 }}>
               <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.8rem', marginBottom: 4 }}>Need Sourcing Assistance?</div>
-              <a href={`tel:${CONTACT_PHONE}`} style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '0.8rem', display: 'block' }}>
-                📞 +91 {CONTACT_PHONE}
+              <a href={`tel:${CONTACT_PHONE}`} style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <i className="bi bi-telephone-fill" aria-hidden /> +91 {CONTACT_PHONE}
               </a>
-              <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '0.8rem', display: 'block', wordBreak: 'break-all' }}>
-                ✉️ {CONTACT_EMAIL}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, wordBreak: 'break-all' }}
+              >
+                <i className="bi bi-envelope-fill" aria-hidden /> {CONTACT_EMAIL}
               </a>
             </div>
           </div>

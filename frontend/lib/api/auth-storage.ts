@@ -27,3 +27,12 @@ export function clearTokens(): void {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
 }
+
+/** Best-effort hint that a session may exist (bearer tokens or non-httpOnly cookie names in dev). */
+export function hasClientAuthSessionHint(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!usesCookieSession()) {
+    return !!(getAccessToken() || getRefreshToken());
+  }
+  return /\bgarud_(access|refresh)=/.test(document.cookie);
+}

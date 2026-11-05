@@ -40,14 +40,19 @@ describe('header-nav', () => {
     expect(getDashboardLink(undefined)).toBeNull();
   });
 
-  it('exposes the unified LOGIN / REGISTER AS B2B PARTNER CTAs', () => {
+  it('exposes unified Sign in / Register as partner CTAs', () => {
     expect(HEADER_LOGIN_CTA.href).toBe('/auth/login');
+    expect(HEADER_LOGIN_CTA.label).toBe('Sign in');
     expect(HEADER_REGISTER_PARTNER_CTA.href).toBe('/auth/register?type=partner');
+    expect(HEADER_REGISTER_PARTNER_CTA.label).toBe('Register as partner');
   });
 
   it('headerLoginCtaForPath uses role bookmark URLs on key surfaces', () => {
     expect(headerLoginCtaForPath('/b2b-partners').href).toBe(ROLE_LOGIN_LINKS.partner.href);
+    expect(headerLoginCtaForPath('/b2b-partners').label).toBe('Sign in');
     expect(headerLoginCtaForPath('/marketplace').href).toBe(ROLE_LOGIN_LINKS.buyer.href);
+    expect(headerLoginCtaForPath('/marketplace').label).toBe('Sign in');
     expect(headerLoginCtaForPath('/').href).toBe('/auth/login');
+    expect(headerLoginCtaForPath('/').label).toBe('Sign in');
   });
 });

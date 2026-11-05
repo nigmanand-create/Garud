@@ -4,9 +4,11 @@
  * so LOGIN | REGISTER AS B2B PARTNER stays identical on every surface (spec §1.2).
  */
 
+export const HEADER_SIGN_IN_LABEL = 'Sign in';
+
 export const HEADER_LOGIN_CTA = {
   href: '/auth/login',
-  label: 'Login',
+  label: HEADER_SIGN_IN_LABEL,
 } as const;
 
 /** Bookmarkable sign-in URLs per role (same form/API as generic login). */
@@ -20,23 +22,23 @@ export const ROLE_LOGIN_LINKS = {
 /** Header LOGIN CTA: role-specific bookmark on partner/marketplace surfaces. */
 export function headerLoginCtaForPath(pathname: string): { href: string; label: string } {
   if (pathname === '/b2b-partners' || pathname.startsWith('/b2b-partners/')) {
-    return { href: ROLE_LOGIN_LINKS.partner.href, label: 'Partner Portal Login' };
+    return { href: ROLE_LOGIN_LINKS.partner.href, label: HEADER_SIGN_IN_LABEL };
   }
   if (pathname.startsWith('/marketplace') || pathname.startsWith('/buyer')) {
-    return ROLE_LOGIN_LINKS.buyer;
+    return { href: ROLE_LOGIN_LINKS.buyer.href, label: HEADER_SIGN_IN_LABEL };
   }
   if (pathname.startsWith('/government')) {
-    return ROLE_LOGIN_LINKS.government;
+    return { href: ROLE_LOGIN_LINKS.government.href, label: HEADER_SIGN_IN_LABEL };
   }
   if (pathname.startsWith('/admin')) {
-    return ROLE_LOGIN_LINKS.admin;
+    return { href: ROLE_LOGIN_LINKS.admin.href, label: HEADER_SIGN_IN_LABEL };
   }
   return HEADER_LOGIN_CTA;
 }
 
 export const HEADER_REGISTER_PARTNER_CTA = {
   href: '/auth/register?type=partner',
-  label: 'Register as B2B Partner',
+  label: 'Register as partner',
 } as const;
 
 export type AccountNavLink = {

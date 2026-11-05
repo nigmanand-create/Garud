@@ -96,6 +96,7 @@
 
         if (mobileToggle) {
             mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.setAttribute('aria-label', 'Open menu');
         }
     }
 
@@ -137,6 +138,7 @@
 
         if (mobileToggle) {
             mobileToggle.setAttribute('aria-expanded', 'true');
+            mobileToggle.setAttribute('aria-label', 'Close menu');
         }
         
         // Focus first focusable element
@@ -175,6 +177,7 @@
 
         if (mobileToggle) {
             mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.setAttribute('aria-label', 'Open menu');
         }
 
         // Close all submenus

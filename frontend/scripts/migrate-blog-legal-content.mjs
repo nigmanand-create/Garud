@@ -112,12 +112,23 @@ function parseCategoriesFromIndex() {
   return cats;
 }
 
+function categoryNavLabel(inner, slug) {
+  const slugEsc = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const activeM = inner.match(
+    new RegExp(`blogging\\?category=${slugEsc}[^>]*class="active"[^>]*>\\s*([^<]+)`, 'i'),
+  );
+  if (activeM) return stripTags(activeM[1]);
+  const linkM = inner.match(new RegExp(`blogging\\?category=${slugEsc}[^>]*>\\s*([^<]+)`, 'i'));
+  if (linkM) return stripTags(linkM[1]);
+  return null;
+}
+
 function parseCategoryPage(file, slug) {
   const html = readFileSync(join(rawDir, file), 'utf8');
   const inner = extractMainInner(html);
-  const h1M = inner.match(/<h1 class="tblog-h1">([\s\S]*?)<\/h1>/);
-  const label = h1M ? stripTags(h1M[1]).replace(/\s*Blog\s*$/i, '').trim() : slug;
-  return { slug, label: label || slug };
+  const fromNav = categoryNavLabel(inner, slug);
+  if (fromNav) return { slug, label: fromNav };
+  return { slug, label: slug };
 }
 
 function parseLegal(page, outSlug) {
@@ -160,8 +171,14 @@ for (const f of readdirSync(rawDir)) {
   const slug = f.replace('blogging__category_', '').replace('.html', '');
   const cat = parseCategoryPage(f, slug);
   const idx = categories.findIndex((c) => c.slug === slug);
-  if (idx >= 0) categories[idx] = { ...categories[idx], label: cat.label };
-  else categories.push(cat);
+  if (idx >= 0) {
+    const prev = categories[idx].label;
+    const isPlaceholder = !prev || prev === 'DroneHub';
+    categories[idx] = {
+      ...categories[idx],
+      label: isPlaceholder ? cat.label : prev,
+    };
+  } else categories.push(cat);
 }
 
 writeFileSync(categoriesFile, JSON.stringify(categories, null, 2) + '\n', 'utf8');

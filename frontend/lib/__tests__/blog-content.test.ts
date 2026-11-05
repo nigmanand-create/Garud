@@ -8,6 +8,13 @@ describe('blog MDX content platform', () => {
     expect(getBlogCategories()).toHaveLength(11);
   });
 
+  it('uses real category labels from blog-categories.json', () => {
+    const labels = getBlogCategories().map((c) => c.label);
+    expect(labels).toContain('Drone Guides');
+    expect(labels).toContain('Drone Recycling & Sustainability');
+    expect(labels.every((l) => l !== 'DroneHub')).toBe(true);
+  });
+
   it('resolves a known post by slug with body markdown', () => {
     const post = getBlogPost('10-things-to-know-before-buying-a-drone-in-india');
     expect(post?.title).toContain('10 Things');

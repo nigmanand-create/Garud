@@ -3,6 +3,7 @@ import {
   formatBlogDate,
   getAllBlogPosts,
   getBlogCategories,
+  getBlogCategory,
   getBlogPostsByCategory,
   type BlogPost,
 } from '@/lib/content/blog';
@@ -105,7 +106,8 @@ export function BlogIndexView() {
 
 export function BlogCategoryView({ categorySlug }: { categorySlug: string }) {
   const posts = getBlogPostsByCategory(categorySlug);
-  const categoryLabel = posts[0]?.categoryLabel ?? categorySlug;
+  const categoryLabel =
+    getBlogCategory(categorySlug)?.label ?? posts[0]?.categoryLabel ?? categorySlug;
 
   return (
     <div className="blog-wrap page-blogging-category">

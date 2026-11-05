@@ -146,7 +146,7 @@ export function MarketingHeader() {
           <nav className="header-nav">
             <div className="header-logo">
               <Link href="/" className="logo-link">
-                <img src={LOGO_URL} alt="DroneHub" className="logo-image" style={{ height: 50 }} />
+                <img src={LOGO_URL} alt="GarudHub" className="logo-image" style={{ height: 50 }} />
               </Link>
             </div>
             <div className="header-menu">

@@ -20,17 +20,34 @@ export type BlogPost = BlogPostMeta & { body: string };
 
 export type BlogCategory = { slug: string; label: string };
 
+function categoryLabelBySlug(): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const cat of getBlogCategories()) {
+    if (cat.label && cat.label !== 'DroneHub') map.set(cat.slug, cat.label);
+  }
+  return map;
+}
+
+function resolveCategoryLabel(categorySlug: string, fromFrontmatter: string): string {
+  const mapped = categoryLabelBySlug().get(categorySlug);
+  if (mapped) return mapped;
+  if (fromFrontmatter && fromFrontmatter !== 'DroneHub') return fromFrontmatter;
+  return fromFrontmatter || categorySlug;
+}
+
 function parsePostFile(filename: string): BlogPost | null {
   const raw = readFileSync(join(blogDir, filename), 'utf8');
   const { data, content } = matter(raw);
   const slug = String(data.slug ?? filename.replace(/\.md$/, ''));
   if (!data.title) return null;
+  const category = String(data.category ?? '');
+  const rawLabel = String(data.categoryLabel ?? data.category ?? '');
   return {
     title: String(data.title),
     slug,
     date: String(data.date ?? ''),
-    category: String(data.category ?? ''),
-    categoryLabel: String(data.categoryLabel ?? data.category ?? ''),
+    category,
+    categoryLabel: resolveCategoryLabel(category, rawLabel),
     readTime: data.readTime ? String(data.readTime) : undefined,
     heroImage: data.heroImage ? String(data.heroImage) : undefined,
     description: data.description ? String(data.description) : undefined,

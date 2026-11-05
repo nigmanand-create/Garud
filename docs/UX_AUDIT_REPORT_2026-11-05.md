@@ -100,11 +100,13 @@ GarudHub presents **strong B2B messaging and a shared marketing shell** (header/
 
 ## Quick wins (days)
 
-1. Fix mobile menu **`aria-expanded`** + focus trap audit (build on `52acd27`).
-2. Marketplace **stat strip** mobile CSS; **Suspense skeleton** instead of text-only loading.
-3. **Unify login labels** in header/footer (2 strings max: “Register as partner”, “Sign in”).
-4. Replace **emoji** icons in footer/search with existing icon set.
-5. **`/buyer/rfqs`**: immediate signed-out empty state with CTA to `/auth/login/buyer`.
+**Status:** Implemented on `dev` @ **`eaabd22`** (2026-11-05) unless noted.
+
+1. Fix mobile menu **`aria-expanded`** + focus trap audit (build on `52acd27`). — **Done**
+2. Marketplace **stat strip** mobile CSS; **Suspense skeleton** instead of text-only loading. — **Done**
+3. **Unify login labels** in header/footer (2 strings max: “Register as partner”, “Sign in”). — **Done**
+4. Replace **emoji** icons in footer/search with existing icon set. — **Done**
+5. **`/buyer/rfqs`**: immediate signed-out empty state with CTA to `/auth/login/buyer`. — **Done earlier** (`6c5da08` RequireAuth redirect)
 
 ---
 

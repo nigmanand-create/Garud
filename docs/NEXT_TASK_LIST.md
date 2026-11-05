@@ -23,7 +23,7 @@
 
 1. ~~UX audit **P1 quick wins**~~ — done `eaabd22`; ~~marketplace mobile filters sheet~~ — done `312f0dc`; optional: trim duplicate partner CTAs in body copy.  
 2. ~~**Home / snapshot → React** design parity~~ — hero done `7c94b28`; optional: migrate remaining snapshot-only marketing pages.  
-3. **Blog/legal** snapshot migration or bridges (`NEXT-U1` note).  
+3. ~~**Blog/legal** snapshot migration or bridges~~ — shell + routes + verify `8c60277`; full React/MDX CMS still optional later.  
 4. Fix only what **staging smoke** fails (checkout/webhook) — see open checkboxes below.  
 5. **COD** — blocked on biz (**NEXT-B1/B2**).
 

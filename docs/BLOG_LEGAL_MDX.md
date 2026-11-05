@@ -38,6 +38,8 @@ Your markdown body here. Use `##` headings, lists, and links.
 { "slug": "my-category", "label": "My Category" }
 ```
 
+Use a **human-readable category name** in `label` (e.g. “Drone Guides”) — not the site title. After `migrate-blog-legal-content.mjs`, confirm `blog-categories.json` labels match the snapshot nav pills (fixed in `97a11fe`).
+
 3. Run `npm run dev` — the post appears on `/blogging` and at `/blogging/post/your-post-slug`.
 
 4. Re-run migration from snapshots only when refreshing from production HTML:

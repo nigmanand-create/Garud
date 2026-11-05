@@ -17,12 +17,12 @@
 
 ## Current dev coding focus (not QA/Ops)
 
-**Already shipped on `dev`:** API proxy (incl. PUT/HEAD), `/api/v1` → platform rewrites, GOVERNMENT → `/government`, signed-out `/buyer/rfqs` → role login + auth timeout, buyer desktop **Account** menu (`2d02c64`, `6c5da08`).
+**Already shipped on `dev`:** API proxy (incl. PUT/HEAD), `/api/v1` → platform rewrites, GOVERNMENT → `/government`, signed-out `/buyer/rfqs` → role login + auth timeout, buyer desktop **Account** menu, UX quick wins (`eaabd22`), **homepage React marketing parity** (`7c94b28`).
 
 **Code next (suggested order):**
 
-1. UX audit **P1 quick wins** — login label unify, marketplace mobile CSS/skeleton, mobile menu `aria-expanded`, trust/Beta copy (`UX_AUDIT_REPORT_2026-11-05.md` § Quick wins).  
-2. **Home / snapshot → React** design parity (structural; largest visual gap).  
+1. ~~UX audit **P1 quick wins**~~ — done `eaabd22`; remaining P1: marketplace mobile filters sheet, duplicate partner CTAs in body copy.  
+2. ~~**Home / snapshot → React** design parity~~ — hero done `7c94b28`; optional: migrate remaining snapshot-only marketing pages.  
 3. **Blog/legal** snapshot migration or bridges (`NEXT-U1` note).  
 4. Fix only what **staging smoke** fails (checkout/webhook) — see open checkboxes below.  
 5. **COD** — blocked on biz (**NEXT-B1/B2**).

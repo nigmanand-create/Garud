@@ -835,7 +835,8 @@
 }
 
 /* Marketplace — marketing-style full-bleed hero inside platform shell */
-.page-platform .platform-content-inner:has(.platform-marketplace-page) {
+.page-platform .platform-content-inner:has(.platform-marketplace-page),
+.page-platform .platform-content-inner:has(.platform-home-page) {
   max-width: none;
   padding-top: 0;
   padding-left: 0;
@@ -868,6 +869,23 @@
 
 .platform-marketplace-page {
   width: 100%;
+}
+
+.platform-home-page {
+  width: 100%;
+}
+
+.platform-home-body {
+  max-width: var(--platform-max);
+  margin: 0 auto;
+  padding: 2rem var(--platform-gutter) 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .platform-home-body {
+    padding: 1.5rem 22px 0;
+  }
 }
 
 .platform-marketplace-body {

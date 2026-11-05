@@ -1,12 +1,33 @@
+import {
+  HEADER_LOGIN_CTA,
+  HEADER_REGISTER_PARTNER_CTA,
+} from '@/lib/platform/header-nav';
+
 /** Spec home page blocks (DECODE_JWT_SPEC PAGE 1 — HOME). Hrefs must resolve to React routes. */
+
+export const HOME_HERO_IMAGE =
+  'https://i.ibb.co/tphSghzT/image-3.webp';
 
 export const HOME_CONTENT = {
   hero: {
     eyebrow: "INDIA'S B2B DRONE ECOSYSTEM",
     title: 'Connecting Global Drone Technology With India',
     lead: 'Manufacturers, OEMs, distributors, dealers, service providers and enterprise buyers — on one verified B2B platform.',
-    primaryCta: { href: '/auth/register?type=partner', label: 'Become a B2B Partner →' },
+    primaryCta: { ...HEADER_REGISTER_PARTNER_CTA },
     secondaryCta: { href: '/services', label: 'Explore Services' },
+    signInCta: { ...HEADER_LOGIN_CTA },
+    imageAlt: 'Enterprise drone solutions across industries in India',
+    trustChips: [
+      { iconClass: 'ph ph-fill ph-shield-check', label: 'Verified B2B partners' },
+      { iconClass: 'ph ph-fill ph-globe-hemisphere-west', label: 'Global ↔ India bridge' },
+      { iconClass: 'ph ph-fill ph-map-pin', label: 'Pan-India ecosystem' },
+    ],
+    statItems: [
+      { iconClass: 'ph ph-fill ph-grid-four', bold: '8', label: 'Core services' },
+      { iconClass: 'ph ph-fill ph-handshake', bold: '8', label: 'Partner types' },
+      { iconClass: 'ph ph-fill ph-buildings', bold: '9', label: 'Industries served' },
+      { iconClass: 'ph ph-fill ph-storefront', bold: 'B2B', label: 'Marketplace & RFQs' },
+    ],
   },
   whoWeAre:
     "GarudHub is India's B2B Drone Ecosystem Platform — connecting Indian and international companies with buyers, distributors, dealers, service providers, training organizations, enterprises and government opportunities.",

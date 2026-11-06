@@ -71,6 +71,18 @@ export class RegisterDto {
   contactMobile: string;
 }
 
+export class RegisterGoogleDto extends RegisterDto {
+  @ApiPropertyOptional({
+    minLength: 8,
+    description: 'Optional if you only use Google sign-in',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  declare password: string;
+}
+
 export class LoginDto {
   @ApiProperty({ example: 'partner@company.com' })
   @IsEmail()

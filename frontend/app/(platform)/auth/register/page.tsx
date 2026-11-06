@@ -14,6 +14,10 @@ import { ApiError } from '@/lib/api/types';
 import { useAuth } from '@/components/platform/AuthProvider';
 import { InternationalPartnerHints } from '@/components/platform/InternationalPartnerHints';
 import {
+  AuthOrDivider,
+  GoogleAuthButton,
+} from '@/components/platform/GoogleAuthButton';
+import {
   AuthErrorBanner,
   AuthPage,
   AuthSessionGate,
@@ -56,6 +60,8 @@ function RegisterPageContent() {
   const [submitting, setSubmitting] = useState(false);
 
   const isPartnerType = PARTNER_ACCOUNT_TYPES.includes(accountType);
+  const isBuyerEnterprise =
+    BUYER_ENTERPRISE_ACCOUNT_TYPES.includes(accountType);
   const passwordStrength = useMemo(
     () => passwordStrengthLabel(form.password),
     [form.password],
@@ -96,9 +102,18 @@ function RegisterPageContent() {
 
     setSubmitting(true);
     try {
+      const email = form.email.trim();
+      const companyTrimmed = form.companyName.trim();
+      let companyName = companyTrimmed;
+      if (!companyName && isBuyerEnterprise) {
+        const name = form.contactPersonName.trim();
+        companyName =
+          name.length >= 2 ? name : `Individual buyer — ${email}`;
+      }
       const u = await register({
         ...form,
-        email: form.email.trim(),
+        email,
+        companyName,
         accountType,
         state: form.state.trim() || undefined,
         city: form.city.trim() || undefined,
@@ -137,6 +152,8 @@ function RegisterPageContent() {
       }
     >
       <AuthErrorBanner message={error} />
+      <GoogleAuthButton mode="register" accountType={accountType} />
+      <AuthOrDivider />
       <form
         className="platform-card platform-form platform-auth-card"
         onSubmit={onSubmit}
@@ -224,15 +241,25 @@ function RegisterPageContent() {
         <fieldset className="platform-form-section">
           <legend className="platform-form-section-title">Company</legend>
           <div className="platform-field">
-            <label htmlFor="companyName">Company or organization name</label>
+            <label htmlFor="companyName">
+              {isBuyerEnterprise
+                ? 'Company or organization name (optional)'
+                : 'Company or organization name'}
+            </label>
             <input
               id="companyName"
               name="organization"
               autoComplete="organization"
-              required
+              required={!isBuyerEnterprise}
               value={form.companyName}
               onChange={(e) => update('companyName', e.target.value)}
             />
+            {isBuyerEnterprise ? (
+              <p className="platform-field-hint">
+                Optional for individual buyers. If left blank, we use your
+                contact name.
+              </p>
+            ) : null}
           </div>
 
           <div className="platform-field-row">

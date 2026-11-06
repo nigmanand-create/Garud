@@ -165,6 +165,15 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   PUBLIC_APP_URL?: string;
+
+  /** Google OAuth web client (Login with Google) */
+  @IsOptional()
+  @IsString()
+  GOOGLE_OAUTH_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  GOOGLE_OAUTH_CLIENT_SECRET?: string;
 }
 
 const WEAK_SECRET_MARKERS = [

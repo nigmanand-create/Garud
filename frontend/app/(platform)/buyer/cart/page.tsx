@@ -11,8 +11,11 @@ import {
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { EmptyState } from '@/components/platform/EmptyState';
-import { formatPrice } from '@/lib/platform/labels';
-import { SINGLE_SELLER_POLICY } from '@/lib/platform/cart';
+import { formatListingMinOrderLabel, formatPrice } from '@/lib/platform/labels';
+import {
+  effectiveCartMinQuantity,
+  SINGLE_SELLER_POLICY,
+} from '@/lib/platform/cart';
 import type { CartResponse } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
@@ -27,26 +30,48 @@ export default function BuyerCartPage() {
 function BuyerCartInner() {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    fetchCart()
-      .then(setCart)
-      .catch((e) =>
-        setError(e instanceof ApiError ? e.message : 'Failed to load cart'),
-      );
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      let data = await fetchCart();
+      const fixes: { id: string; moq: number }[] = [];
+      for (const item of data.items) {
+        const minQty = effectiveCartMinQuantity(item.listing.minOrderQuantity);
+        if (item.quantity < minQty) {
+          fixes.push({ id: item.id, moq: minQty });
+        }
+      }
+      if (fixes.length > 0) {
+        for (const fix of fixes) {
+          data = await updateCartItem(fix.id, fix.moq);
+        }
+        const uniqueMoqs = [...new Set(fixes.map((f) => f.moq))];
+        setNotice(
+          uniqueMoqs.length === 1
+            ? `Quantity adjusted to minimum order (${uniqueMoqs[0]}).`
+            : 'Quantities adjusted to meet minimum order requirements.',
+        );
+      }
+      setCart(data);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Failed to load cart');
+    }
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  async function onQty(itemId: string, quantity: number) {
-    if (quantity < 1) return;
+  async function onQty(itemId: string, quantity: number, minQty: number) {
+    const nextQty = Math.max(minQty, quantity);
+    if (nextQty < 1) return;
     setBusy(itemId);
     setError(null);
     try {
-      const next = await updateCartItem(itemId, quantity);
+      const next = await updateCartItem(itemId, nextQty);
       setCart(next);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Update failed');
@@ -113,6 +138,22 @@ function BuyerCartInner() {
           ) : undefined
         }
       />
+      {notice && (
+        <div className="platform-flash-success" role="status">
+          <div className="platform-flash-success__content">
+            <span aria-hidden>✓</span>
+            <span className="platform-font-semibold">{notice}</span>
+          </div>
+          <button
+            type="button"
+            className="platform-flash-dismiss"
+            onClick={() => setNotice(null)}
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {error && <div className="platform-card platform-error">{error}</div>}
       {!empty && (
         <p className="platform-muted platform-text-sm" role="note">
@@ -130,7 +171,14 @@ function BuyerCartInner() {
         <div className="platform-detail-layout">
           <div className="platform-card">
             <ul className="platform-cart-lines">
-              {cart.items.map((item) => (
+              {cart.items.map((item) => {
+                const minQty = effectiveCartMinQuantity(
+                  item.listing.minOrderQuantity,
+                );
+                const minOrderLabel = formatListingMinOrderLabel(
+                  item.listing.minOrderQuantity,
+                );
+                return (
                 <li key={item.id} className="platform-cart-line">
                   <div>
                     <Link href={`/marketplace/listings/${item.listing.id}`}>
@@ -141,13 +189,20 @@ function BuyerCartInner() {
                         SKU: {item.listing.sku}
                       </p>
                     )}
+                    {minOrderLabel && (
+                      <p className="platform-muted platform-text-muted-sm platform-mt-sm">
+                        {minOrderLabel}
+                      </p>
+                    )}
                   </div>
                   <div className="platform-cart-line-qty">
                     <button
                       type="button"
                       className="platform-qty-btn"
-                      disabled={busy === item.id || item.quantity <= 1}
-                      onClick={() => onQty(item.id, item.quantity - 1)}
+                      disabled={busy === item.id || item.quantity <= minQty}
+                      onClick={() =>
+                        onQty(item.id, item.quantity - 1, minQty)
+                      }
                       aria-label="Decrease quantity"
                     >
                       −
@@ -157,7 +212,9 @@ function BuyerCartInner() {
                       type="button"
                       className="platform-qty-btn"
                       disabled={busy === item.id}
-                      onClick={() => onQty(item.id, item.quantity + 1)}
+                      onClick={() =>
+                        onQty(item.id, item.quantity + 1, minQty)
+                      }
                       aria-label="Increase quantity"
                     >
                       +
@@ -175,7 +232,8 @@ function BuyerCartInner() {
                     </button>
                   </div>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           </div>
           <aside>

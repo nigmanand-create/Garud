@@ -13,7 +13,6 @@ import {
   type AdminSubscriptionRow,
 } from '@/lib/api/billing';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -135,7 +134,7 @@ function BillingInner() {
   const modeNotice = data ? billingModeNotice(data.billingMode) : null;
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Partner billing"
         subtitle="Configure plans and entitlements, sync them to Razorpay, and oversee partner subscriptions."
@@ -152,7 +151,6 @@ function BillingInner() {
           </button>
         }
       />
-      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {notice && (
@@ -288,15 +286,23 @@ function BillingInner() {
 
       {data && (
         <>
-          <section className="platform-card">
-            <div className="platform-page-header-row">
-              <h2>Plans</h2>
-              <span className="platform-muted">
-                Estimated MRR (active subscriptions): <strong>{formatInrCompact(data.mrrInr)}</strong>
-              </span>
+          <section
+            className="platform-card platform-admin-ops-section platform-card--flush"
+            aria-labelledby="billing-plans"
+          >
+            <div className="platform-admin-ops-section-head platform-admin-ops-section-head--bar">
+              <div className="platform-page-header-row">
+                <h2 id="billing-plans" className="platform-admin-ops-section-title">
+                  Plans
+                </h2>
+                <span className="platform-muted platform-text-sm">
+                  Estimated MRR (active subscriptions):{' '}
+                  <strong>{formatInrCompact(data.mrrInr)}</strong>
+                </span>
+              </div>
             </div>
             <div className="platform-table-wrap">
-              <table className="platform-table">
+              <table className="platform-table mod-table">
                 <thead>
                   <tr>
                     <th>Plan</th>
@@ -305,13 +311,13 @@ function BillingInner() {
                     <th>Flags</th>
                     <th>Subscribers</th>
                     <th>Razorpay</th>
-                    <th />
+                    <th className="platform-table-th-actions">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.plans.map((p) => (
                     <tr key={p.id}>
-                      <td>
+                      <td className="platform-table-cell-wrap">
                         <strong>{p.name}</strong>{' '}
                         <span className="platform-muted platform-text-sm">({p.key})</span>
                         <div>
@@ -330,11 +336,18 @@ function BillingInner() {
                         {p.subscribers.active} active / {p.subscribers.total}
                       </td>
                       <td>
-                        {p.priceInr <= 0 ? (
-                          '—'
-                        ) : p.razorpaySynced ? (
-                          <StatusBadge status="APPROVED" label="Synced" />
-                        ) : (
+                        {p.priceInr <= 0
+                          ? '—'
+                          : p.razorpaySynced
+                            ? (
+                                <StatusBadge status="APPROVED" label="Synced" />
+                              )
+                            : (
+                                <StatusBadge status="PENDING" label="Not synced" />
+                              )}
+                      </td>
+                      <td className="platform-table-actions-row">
+                        {p.priceInr > 0 && !p.razorpaySynced && (
                           <button
                             type="button"
                             className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -349,11 +362,9 @@ function BillingInner() {
                             Sync to Razorpay
                           </button>
                         )}
-                      </td>
-                      <td>
                         <button
                           type="button"
-                          className="platform-link-btn"
+                          className="platform-btn platform-btn-secondary platform-btn-sm"
                           onClick={() => startEdit(p)}
                         >
                           Edit
@@ -366,59 +377,81 @@ function BillingInner() {
             </div>
           </section>
 
-          <form
-            className="platform-card platform-form platform-filter-bar"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!assignOrg.trim() || !assignPlan) {
-                setError('Enter an organization ID and choose a plan.');
-                return;
-              }
-              void run(async () => {
-                const r = await adminAssignPlan(assignOrg.trim(), assignPlan);
-                setNotice(`${r.organization.companyName} assigned to ${r.planKey}.`);
-                setAssignOrg('');
-              });
-            }}
-          >
-            <div>
-              <label htmlFor="assign-org">Assign plan to organization (ID)</label>
-              <input
-                id="assign-org"
-                value={assignOrg}
-                onChange={(e) => setAssignOrg(e.target.value)}
-                placeholder="organization id"
-              />
+          <section className="platform-card platform-admin-ops-section" aria-labelledby="billing-assign">
+            <div className="platform-admin-ops-section-head">
+              <h2 id="billing-assign" className="platform-admin-ops-section-title">
+                Assign plan to organization
+              </h2>
+              <p className="platform-muted platform-text-sm platform-admin-ops-section-desc">
+                Set a partner&apos;s plan by organization ID without charging Razorpay.
+              </p>
             </div>
-            <div>
-              <label htmlFor="assign-plan">Plan</label>
-              <select
-                id="assign-plan"
-                value={assignPlan}
-                onChange={(e) => setAssignPlan(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {data.plans.map((p) => (
-                  <option key={p.key} value={p.key}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <button type="submit" className="platform-btn platform-btn-sm" disabled={busy}>
-                Assign (no charge)
-              </button>
-            </div>
-          </form>
+            <form
+              className="platform-form platform-filter-bar platform-admin-list-filter-bar"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!assignOrg.trim() || !assignPlan) {
+                  setError('Enter an organization ID and choose a plan.');
+                  return;
+                }
+                void run(async () => {
+                  const r = await adminAssignPlan(assignOrg.trim(), assignPlan);
+                  setNotice(`${r.organization.companyName} assigned to ${r.planKey}.`);
+                  setAssignOrg('');
+                });
+              }}
+            >
+              <div className="platform-admin-list-filter-field platform-admin-list-filter-field--grow">
+                <label htmlFor="assign-org">Organization ID</label>
+                <input
+                  id="assign-org"
+                  className="mod-filter-input"
+                  value={assignOrg}
+                  onChange={(e) => setAssignOrg(e.target.value)}
+                  placeholder="Paste organization UUID"
+                />
+              </div>
+              <div className="platform-admin-list-filter-field">
+                <label htmlFor="assign-plan">Plan</label>
+                <select
+                  id="assign-plan"
+                  className="mod-filter-select"
+                  value={assignPlan}
+                  onChange={(e) => setAssignPlan(e.target.value)}
+                >
+                  <option value="">Select…</option>
+                  {data.plans.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="platform-admin-list-filter-field platform-admin-list-filter-field--action">
+                <label className="platform-admin-list-filter-action-label" aria-hidden="true">
+                  &nbsp;
+                </label>
+                <button type="submit" className="platform-btn platform-btn-sm" disabled={busy}>
+                  Assign (no charge)
+                </button>
+              </div>
+            </form>
+          </section>
 
-          <section className="platform-card">
-            <h2>Recent subscriptions</h2>
+          <section
+            className="platform-card platform-admin-ops-section platform-card--flush"
+            aria-labelledby="billing-recent-subs"
+          >
+            <div className="platform-admin-ops-section-head platform-admin-ops-section-head--bar">
+              <h2 id="billing-recent-subs" className="platform-admin-ops-section-title">
+                Recent subscriptions
+              </h2>
+            </div>
             {subs.length === 0 ? (
-              <p className="platform-muted">No partner has chosen a plan yet.</p>
+              <p className="platform-muted platform-admin-ops-empty">No partner has chosen a plan yet.</p>
             ) : (
               <div className="platform-table-wrap">
-                <table className="platform-table">
+                <table className="platform-table mod-table">
                   <thead>
                     <tr>
                       <th>Partner</th>
@@ -463,6 +496,6 @@ function BillingInner() {
           </section>
         </>
       )}
-    </>
+    </div>
   );
 }

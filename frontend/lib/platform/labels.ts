@@ -135,3 +135,13 @@ export const SERVICE_VERTICALS: { key: string; label: string; categories: Catalo
   { key: 'finance', label: 'Finance & leasing', categories: ['CONSULTANCY', 'OTHER'] },
   { key: 'recycling', label: 'Recycling & disposal', categories: ['OTHER'] },
 ];
+
+/** Card/cart copy when MOQ is above 1; null when not shown. */
+export function formatListingMinOrderLabel(
+  minOrderQuantity?: number | null,
+): string | null {
+  if (minOrderQuantity != null && minOrderQuantity > 1) {
+    return `Min. order: ${minOrderQuantity} units`;
+  }
+  return null;
+}

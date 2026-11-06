@@ -47,7 +47,7 @@ export default function PartnerCatalogPage() {
 function CatalogTableSkeleton() {
   const rows = [0, 1, 2, 3];
   return (
-    <div className="platform-card" aria-busy="true" aria-label="Loading catalog">
+    <div className="platform-card platform-card--flush" aria-busy="true" aria-label="Loading catalog">
       <div className="platform-table-wrap">
         <table className="platform-table platform-table--catalog">
           <thead>
@@ -169,7 +169,10 @@ function CatalogInner() {
           )}
           {listings === null && !error && <CatalogTableSkeleton />}
           {listings && listings.length > 0 && (
-            <DataTable className="platform-card" tableClassName="platform-table platform-table--catalog">
+            <DataTable
+              className="platform-card platform-card--flush"
+              tableClassName="platform-table platform-table--catalog"
+            >
               <thead>
                 <tr>
                   <th>Name</th>

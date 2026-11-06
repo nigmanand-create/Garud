@@ -1,7 +1,7 @@
 import '@/app/styles/platform.css';
 import '@/app/styles/blog-legal.css';
 import { AuthProvider } from '@/components/platform/AuthProvider';
-import { MarketingShell } from '@/components/marketing/MarketingShell';
+import { PlatformShell } from '@/components/platform/PlatformShell';
 import { MarketingStyles } from '@/components/marketing/MarketingStyles';
 
 export const metadata = {
@@ -18,7 +18,7 @@ export default function PlatformLayout({
     <>
       <MarketingStyles />
       <AuthProvider>
-        <MarketingShell>{children}</MarketingShell>
+        <PlatformShell>{children}</PlatformShell>
       </AuthProvider>
     </>
   );

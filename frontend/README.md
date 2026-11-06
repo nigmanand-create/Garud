@@ -5,7 +5,7 @@
 1. **Marketing replica** — cloned HTML snapshots (default routes like `/`, `/about-us`, …)
 2. **Platform UI** — React app for the NestJS API (`/marketplace`, `/auth`, `/partner`, `/buyer`, `/admin`)
 
-Marketing snapshot routes are unchanged (`app/[...slug]/route.ts`, `lib/snapshot-html.ts`; home `/` is now React).
+Legacy marketing URLs redirect via `lib/snapshot-bridge.ts` + `middleware.ts`; `lib/snapshot-html.ts` keeps link-localization helpers for tests and any embedded HTML. Home `/` and flagship pages are React.
 
 ## Run (full stack)
 

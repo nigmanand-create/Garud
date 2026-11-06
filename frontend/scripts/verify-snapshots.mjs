@@ -1,41 +1,34 @@
 /**
- * Smoke-test snapshot routes (dev server must be running on PORT).
- * Bridged legacy slugs expect 307; blog/legal/platform-wrapped routes expect 200 HTML
- * without absolute garudhub.com URLs in href/src/content attributes.
+ * Smoke-test marketing bridge redirects and React platform routes (dev server on PORT).
  */
-import { existsSync, readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const root = join(import.meta.dirname, '..');
-const rawDir = join(root, 'content', 'raw');
 const port = process.env.PORT || '3001';
 const base = `http://localhost:${port}`;
 
 /** Keep in sync with SNAPSHOT_REACT_BRIDGE keys in lib/snapshot-bridge.ts */
 function bridgePathsFromSource() {
   const src = readFileSync(join(root, 'lib', 'snapshot-bridge.ts'), 'utf8');
-  return new Set([...src.matchAll(/^\s+'(\/[^']+)':/gm)].map((m) => m[1]));
+  return [...src.matchAll(/^\s+'(\/[^']+)':/gm)].map((m) => m[1]);
 }
 
-const bridgedPaths = bridgePathsFromSource();
+const bridgedPaths = new Set(bridgePathsFromSource());
 
-function routesFromRaw() {
-  const routes = new Set(['/']);
-  for (const f of readdirSync(rawDir)) {
-    if (!f.endsWith('.html')) continue;
-    if (f === 'blogging.html') routes.add('/blogging');
-    else if (f.startsWith('legal.php__page_'))
-      routes.add('/legal.php/' + f.replace('legal.php__page_', '').replace('.html', ''));
-    else if (f.startsWith('blogging__slug_'))
-      routes.add('/blogging/post/' + f.replace('blogging__slug_', '').replace('.html', ''));
-    else if (f.startsWith('blogging__category_'))
-      routes.add('/blogging/category/' + f.replace('blogging__category_', '').replace('.html', ''));
-    else routes.add('/' + f.replace('.html', ''));
-  }
-  return [...routes].sort();
-}
-
-const extra = [
+const platformRoutes = [
+  '/',
+  '/marketplace',
+  '/about-us',
+  '/services',
+  '/b2b-partners',
+  '/enquiry',
+  '/blogging',
+  '/blogging/post/10-things-to-know-before-buying-a-drone-in-india',
+  '/blogging/category/drone-guides',
+  '/legal/privacy',
+  '/legal/terms',
+  '/legal/refund',
   '/blogging?slug=10-things-to-know-before-buying-a-drone-in-india',
   '/blogging?category=drone-guides',
   '/legal.php?page=tos',
@@ -43,9 +36,7 @@ const extra = [
   '/legal.php?page=refund',
   '/about.php',
   '/blog',
-  '/legal/privacy',
-  '/legal/terms',
-  '/legal/refund',
+  '/legal.php/privacy',
 ];
 
 /** Absolute garudhub URLs in linkable attributes (ignore plain-text mentions in legal copy). */
@@ -82,8 +73,9 @@ function expectsLegalLegacyRedirect(route) {
 }
 
 let failed = 0;
+const routes = [...new Set([...bridgedPaths, ...platformRoutes])].sort();
 
-for (const r of [...routesFromRaw(), ...extra]) {
+for (const r of routes) {
   let res;
   try {
     res = await fetch(base + r, { redirect: 'manual' });
@@ -134,4 +126,4 @@ if (failed) {
   console.error(`\n${failed} check(s) failed. Is dev running? npm run dev`);
   process.exit(1);
 }
-console.log(`OK — ${routesFromRaw().length} snapshot routes + middleware smoke tests`);
+console.log(`OK — ${routes.length} bridge + platform route smoke tests`);

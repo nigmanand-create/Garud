@@ -115,6 +115,7 @@ export type MarketplaceListingSummary = {
   primaryImageUrl?: string | null;
   priceOnRequest: boolean;
   priceInr?: string | null;
+  minOrderQuantity?: number | null;
   organization: {
     id: string;
     companyName: string;

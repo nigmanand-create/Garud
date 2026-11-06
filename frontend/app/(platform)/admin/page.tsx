@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getAdminOverview, type AdminOverview } from '@/lib/api/admin';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -51,10 +50,10 @@ function OpsHomeInner() {
   const cards = data ? buildOpsCards(data.queues) : [];
 
   return (
-    <>
+    <div className="platform-admin-ops-home">
       <PlatformPageHeader
-        title="Operations home"
-        subtitle="Everything that needs an admin: partner KYC, enquiries and leads, partnerships, listings and orders — with a live activity feed."
+        title="Operations dashboard"
+        subtitle="Queue triage, commerce oversight, and recent audit activity — start with highlighted tiles when counts are non-zero."
         badge={
           data && data.attentionTotal > 0 ? (
             <span className="platform-status-badge platform-status-badge--pending">
@@ -63,23 +62,25 @@ function OpsHomeInner() {
           ) : undefined
         }
       />
-      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {!data && !error && <PlatformLoading />}
 
       {data && (
-        <>
-          <section className="platform-card platform-partner-ops-summary" aria-labelledby="ops-queues">
-            <div className="platform-partner-ops-summary-head">
-              <h2 id="ops-queues" className="platform-partner-ops-summary-title">
+        <div className="platform-admin-ops-dashboard">
+          <section
+            className="platform-card platform-admin-ops-section"
+            aria-labelledby="ops-queues"
+          >
+            <div className="platform-admin-ops-section-head">
+              <h2 id="ops-queues" className="platform-admin-ops-section-title">
                 Queues
               </h2>
-              <p className="platform-muted platform-text-sm">
+              <p className="platform-muted platform-text-sm platform-admin-ops-section-desc">
                 Enquiry → lead → partnership → listing: work through the highlighted tiles first.
               </p>
             </div>
-            <ul className="platform-partner-ops-grid">
+            <ul className="platform-admin-ops-grid">
               {cards.map((c) => (
                 <li key={c.key}>
                   <Link
@@ -95,36 +96,49 @@ function OpsHomeInner() {
             </ul>
           </section>
 
-          <section className="platform-card" aria-labelledby="ops-quick">
-            <h2 id="ops-quick" className="platform-partner-ops-summary-title">
-              Quick links
-            </h2>
-            <p className="platform-link-row">
-              {QUICK_LINKS.map((l, i) => (
-                <span key={l.href}>
-                  {i > 0 && ' · '}
-                  <Link href={l.href}>{l.label}</Link>
-                </span>
+          <section
+            className="platform-card platform-admin-ops-section"
+            aria-labelledby="ops-quick"
+          >
+            <div className="platform-admin-ops-section-head">
+              <h2 id="ops-quick" className="platform-admin-ops-section-title">
+                Quick links
+              </h2>
+              <p className="platform-muted platform-text-sm platform-admin-ops-section-desc">
+                {data.queues.admins.active} active platform admin
+                {data.queues.admins.active === 1 ? '' : 's'}.
+              </p>
+            </div>
+            <ul className="platform-admin-quick-links">
+              {QUICK_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="platform-admin-quick-link">
+                    {l.label}
+                  </Link>
+                </li>
               ))}
-            </p>
-            <p className="platform-text-sm platform-muted">
-              {data.queues.admins.active} active platform admin
-              {data.queues.admins.active === 1 ? '' : 's'}.
-            </p>
+            </ul>
           </section>
 
-          <section className="platform-card" aria-labelledby="ops-recent">
-            <div className="platform-page-header-row">
-              <h2 id="ops-recent" className="platform-partner-ops-summary-title">
-                Recent activity
-              </h2>
-              <Link href="/admin/audit-log">View full audit log →</Link>
+          <section
+            className="platform-card platform-admin-ops-section platform-card--flush"
+            aria-labelledby="ops-recent"
+          >
+            <div className="platform-admin-ops-section-head platform-admin-ops-section-head--bar">
+              <div className="platform-page-header-row">
+                <h2 id="ops-recent" className="platform-admin-ops-section-title">
+                  Recent activity
+                </h2>
+                <Link href="/admin/audit-log" className="platform-text-sm">
+                  View full audit log →
+                </Link>
+              </div>
             </div>
             {data.recentActivity.length === 0 ? (
-              <p className="platform-muted">No audit events yet.</p>
+              <p className="platform-muted platform-admin-ops-empty">No audit events yet.</p>
             ) : (
               <div className="platform-table-wrap">
-                <table className="platform-table">
+                <table className="platform-table mod-table">
                   <thead>
                     <tr>
                       <th>When</th>
@@ -157,8 +171,8 @@ function OpsHomeInner() {
               </div>
             )}
           </section>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

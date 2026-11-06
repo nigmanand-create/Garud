@@ -626,6 +626,86 @@
   padding: 2rem 1.25rem;
 }
 
+.platform-auth-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--platform-muted);
+  font-size: 0.8125rem;
+}
+
+.platform-auth-or::before,
+.platform-auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--platform-border);
+}
+
+.platform-btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 1rem;
+  background: #fff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 2px 0 rgb(60 64 67 / 30%),
+    0 1px 3px 1px rgb(60 64 67 / 15%);
+  text-decoration: none;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.platform-btn-google:hover {
+  background: #f8f9fa;
+  color: #3c4043;
+  box-shadow:
+    0 1px 3px 0 rgb(60 64 67 / 30%),
+    0 4px 8px 3px rgb(60 64 67 / 15%);
+}
+
+.platform-btn-google:focus-visible {
+  outline: 2px solid var(--platform-accent);
+  outline-offset: 2px;
+}
+
+.platform-btn-google.platform-btn-full {
+  width: 100%;
+  font-weight: 500;
+}
+
+.platform-btn-google__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.platform-btn-google__icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.platform-btn-google__label {
+  color: inherit;
+  white-space: nowrap;
+}
+
 .platform-form-section {
   border: none;
   margin: 0 0 1.25rem;
@@ -1699,6 +1779,58 @@ a.platform-section-tab {
   gap: 0.25rem;
 }
 
+/* Form field: uploaded listing image (primary / gallery) — small thumbnail, not full bleed */
+.platform-listing-image-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--platform-border);
+  border-radius: var(--platform-radius-lg);
+  background: #f1f5f9;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.platform-listing-image-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.platform-listing-gallery-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.platform-listing-gallery-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.platform-listing-gallery-remove {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--platform-danger, #b91c1c);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.platform-listing-gallery-remove:hover {
+  color: var(--platform-danger-hover, #991b1b);
+}
+
 .platform-inbox-list {
   display: flex;
   flex-direction: column;
@@ -1854,6 +1986,10 @@ a.platform-section-tab {
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--platform-text);
+}
+
+.platform-listing-card-moq {
+  margin: -0.25rem 0 0.5rem;
 }
 
 .platform-listing-card-partner {
@@ -2330,6 +2466,21 @@ a.platform-section-tab {
   padding: 0;
   overflow: hidden;
   margin-bottom: 1.5rem;
+}
+
+.platform-card--flush > .platform-table-wrap {
+  margin: 0;
+  padding: 0;
+}
+
+.platform-card--flush .platform-table th:first-child,
+.platform-card--flush .platform-table td:first-child {
+  padding-left: 1.25rem;
+}
+
+.platform-card--flush .platform-table th:last-child,
+.platform-card--flush .platform-table td:last-child {
+  padding-right: 1.25rem;
 }
 
 .platform-marketing-page {
@@ -3343,6 +3494,21 @@ a.platform-section-tab {
   margin-left: 0.85rem;
 }
 
+.platform-table--catalog th:last-child {
+  text-align: right;
+  width: 1%;
+}
+
+.platform-table--catalog td.platform-table-actions-row {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.platform-table--catalog .platform-table-actions-row {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
 .platform-table-skeleton-row td {
   vertical-align: middle;
 }
@@ -3612,6 +3778,20 @@ a.platform-section-tab {
   max-width: 220px !important;
   background-color: #fff !important;
   border-radius: 8px !important;
+}
+
+.mod-filter-input {
+  height: 40px;
+  margin-bottom: 0 !important;
+  max-width: none;
+  background-color: #fff !important;
+  border-radius: 8px !important;
+  box-sizing: border-box;
+}
+
+.mod-filter-input--date {
+  min-width: 10.5rem;
+  max-width: 11.5rem;
 }
 
 /* Moderation Table Row Enhancements */
@@ -4367,6 +4547,16 @@ a.platform-section-tab {
 
 .mod-kpi-card--filter-active {
   border-color: var(--platform-accent);
+}
+
+.mod-kpi-card--static {
+  cursor: default;
+}
+
+.mod-kpi-card--static:hover {
+  transform: none;
+  box-shadow: 0 2px 12px -4px rgb(20 21 15 / 6%);
+  border-color: var(--platform-border, #e3dcc8);
 }
 
 .platform-table-cell-mono {
@@ -5213,6 +5403,7 @@ a.platform-section-tab {
 .platform-btn-sm {
   padding: 0.35rem 0.85rem;
   font-size: 0.825rem;
+  min-height: 2.25rem;
 }
 
 .platform-btn-primary {
@@ -5642,10 +5833,12 @@ a.platform-section-tab {
 }
 
 .platform-catalog-thumb-img {
-  width: 36px;
-  height: 36px;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--platform-radius);
+  border: 1px solid var(--platform-border);
 }
 
 .platform-table-actions-row {
@@ -7084,3 +7277,917 @@ button.mod-kpi-card {
 .platform-marketing-footer h4 {
   color: #fff;
 }
+
+/* —— Partner app shell (dedicated hub, not marketing page) —— */
+.platform-partner-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--platform-bg, #f1f5f9);
+}
+
+.platform-partner-app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid var(--platform-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+}
+
+.platform-partner-app-topbar-inner {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.platform-partner-app-topbar-brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.platform-partner-app-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--platform-text, #0f172a);
+}
+
+.platform-partner-app-logo img {
+  display: block;
+  flex-shrink: 0;
+}
+
+.platform-partner-app-logo > span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
+  line-height: 1.2;
+}
+
+.platform-partner-app-logo strong {
+  display: block;
+  font-size: 0.9375rem;
+  line-height: 1.25;
+}
+
+.platform-partner-app-logo-sub {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--platform-muted, #64748b);
+}
+
+.platform-partner-app-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.platform-partner-app-topbar-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--platform-muted);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.platform-partner-app-topbar-link:hover {
+  color: var(--platform-text);
+}
+
+.platform-partner-app-account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-partner-app-account-email {
+  font-size: 0.75rem;
+  color: var(--platform-muted);
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-partner-app-frame {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.platform-partner-app-sidebar {
+  width: 15.5rem;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--platform-border, #e2e8f0);
+  overflow-y: auto;
+  padding: 1rem 0.75rem 2rem;
+}
+
+.platform-partner-app-main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.platform-partner-app-main-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2.5rem;
+}
+
+.platform-partner-app-nav-group {
+  margin-bottom: 1.25rem;
+}
+
+.platform-partner-app-nav-group-title {
+  margin: 0 0 0.35rem;
+  padding: 0 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--platform-muted, #64748b);
+}
+
+.platform-partner-app-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.platform-partner-app-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--platform-radius-md, 6px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+}
+
+.platform-partner-app-nav-link:hover {
+  background: rgb(47 82 51 / 8%);
+  color: var(--platform-text);
+}
+
+.platform-partner-app-nav-link--active {
+  background: rgb(47 82 51 / 14%);
+  color: #1e3a29;
+  font-weight: 600;
+}
+
+.platform-partner-app-nav-link .bi {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 767px) {
+  .platform-partner-app-frame {
+    flex-direction: column;
+  }
+
+  .platform-partner-app-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--platform-border);
+    padding: 0.5rem 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .platform-partner-app-nav {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .platform-partner-app-nav-group {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .platform-partner-app-nav-group-title {
+    display: none;
+  }
+
+  .platform-partner-app-nav-list {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .platform-partner-app-nav-link {
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .platform-partner-app-account-email {
+    display: none;
+  }
+}
+
+.page-platform.platform-partner-app .platform-partner-page-body {
+  width: 100%;
+}
+
+.page-platform.platform-partner-app .platform-partner-form-page {
+  max-width: none;
+  padding: 0;
+  gap: 1.25rem;
+}
+
+.page-platform.platform-partner-app .platform-page-header {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-partner-app .platform-page-header-row {
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+.page-platform.platform-partner-app .platform-page-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-platform.platform-partner-app .platform-page-header-actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.page-platform.platform-partner-app .platform-page-header .platform-subtitle {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-partner-app .platform-form-layout {
+  margin-inline: 0;
+  width: 100%;
+}
+
+.page-platform.platform-partner-app .platform-form-layout .platform-card--flush {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-partner-app .platform-partner-app-main-inner {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-platform.platform-partner-app .platform-partner-app-frame {
+  align-items: stretch;
+}
+
+.page-platform.platform-partner-app .platform-partner-app-sidebar {
+  min-height: 100%;
+}
+
+/* —— Admin app shell (operations console, not marketing page) —— */
+.platform-admin-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--platform-bg, #f1f5f9);
+}
+
+.platform-admin-app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid var(--platform-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+}
+
+.platform-admin-app-topbar-inner {
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-sizing: border-box;
+}
+
+.platform-admin-app-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.platform-admin-app-logo-mark {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  line-height: 0;
+}
+
+.platform-admin-app-logo-mark:hover,
+.platform-admin-app-logo-mark:focus,
+.platform-admin-app-logo-mark:visited {
+  text-decoration: none;
+}
+
+.platform-admin-app-logo-mark img {
+  display: block;
+  flex-shrink: 0;
+}
+
+.platform-admin-app-logo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.platform-admin-app-logo-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--platform-text, #0f172a);
+}
+
+.platform-admin-app-logo-sub {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--platform-muted, #64748b);
+}
+
+.platform-admin-app-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.platform-admin-app-topbar-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--platform-muted);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.platform-admin-app-topbar-link:hover {
+  color: var(--platform-text);
+}
+
+.platform-admin-app-account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-admin-app-account-email {
+  font-size: 0.75rem;
+  color: var(--platform-muted);
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-admin-app-frame {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.platform-admin-app-sidebar {
+  width: 15.5rem;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--platform-border, #e2e8f0);
+  overflow-y: auto;
+  padding: 1rem 0.75rem 2rem;
+}
+
+.platform-admin-app-main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.platform-admin-app-main-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2.5rem;
+}
+
+.platform-admin-app-nav {
+  padding: 0 0.25rem;
+}
+
+.platform-admin-app-nav-group {
+  margin-bottom: 1.25rem;
+}
+
+.platform-admin-app-nav-group-title {
+  margin: 0 0 0.35rem;
+  padding: 0 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--platform-muted, #64748b);
+}
+
+.platform-admin-app-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.platform-admin-app-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--platform-radius-md, 6px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+}
+
+.platform-admin-app-nav-link:hover {
+  background: rgb(47 82 51 / 8%);
+  color: var(--platform-text);
+}
+
+.platform-admin-app-nav-link--active {
+  background: rgb(47 82 51 / 14%);
+  color: #1e3a29;
+  font-weight: 600;
+}
+
+.platform-admin-app-nav-link .bi {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 767px) {
+  .platform-admin-app-frame {
+    flex-direction: column;
+  }
+
+  .platform-admin-app-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--platform-border);
+    padding: 0.5rem 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .platform-admin-app-nav {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .platform-admin-app-nav-group {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .platform-admin-app-nav-group-title {
+    display: none;
+  }
+
+  .platform-admin-app-nav-list {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .platform-admin-app-nav-link {
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .platform-admin-app-account-email {
+    display: none;
+  }
+}
+
+.page-platform.platform-admin-app .platform-page-header {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-page-header-row {
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+.page-platform.platform-admin-app .platform-page-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-platform.platform-admin-app .platform-page-header-actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.page-platform.platform-admin-app .platform-page-header .platform-subtitle {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-form-layout .platform-card--flush {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-app-main-inner {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-platform.platform-admin-app .platform-admin-app-frame {
+  align-items: stretch;
+}
+
+.page-platform.platform-admin-app .platform-admin-app-sidebar {
+  min-height: 100%;
+}
+
+.page-platform.platform-admin-app .mod-kpi-grid {
+  margin-top: 1.25rem;
+}
+
+.page-platform.platform-admin-app .mod-kpi-card--active,
+.page-platform.platform-admin-app .mod-kpi-card--filter-active {
+  border-color: var(--platform-accent, #2f5233);
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbf5 100%);
+  box-shadow: 0 0 0 1px var(--platform-accent, #2f5233);
+}
+
+.page-platform.platform-admin-app .mod-filter-select {
+  min-height: 2.5rem;
+  box-sizing: border-box;
+}
+
+.page-platform.platform-admin-app .platform-filter-bar {
+  align-items: flex-end;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-page .platform-filter-bar {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-page > .platform-card {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-bar {
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field--grow {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  max-width: 22rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field--grow-fill {
+  flex: 1 1 16rem;
+  min-width: 0;
+  max-width: none;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field--grow-fill .mod-filter-input {
+  width: 100%;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field--action {
+  flex-shrink: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-field label {
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--platform-muted, #64748b);
+}
+
+.page-platform.platform-admin-app .platform-admin-list-filter-action-label {
+  visibility: hidden;
+}
+
+.page-platform.platform-admin-app .platform-filter-bar select,
+.page-platform.platform-admin-app .platform-filter-bar .mod-filter-select,
+.page-platform.platform-admin-app .platform-filter-bar .mod-filter-input,
+.page-platform.platform-admin-app .platform-filter-bar .platform-btn {
+  min-height: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+.page-platform.platform-admin-app .platform-filter-bar .platform-btn {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .page-platform.platform-admin-app .platform-admin-list-filter-bar {
+    flex-wrap: wrap;
+  }
+}
+
+.page-platform.platform-admin-app .platform-admin-audit-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  max-width: 18rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-audit-change .platform-status-badge {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-audit-change-arrow {
+  color: var(--platform-muted, #64748b);
+  font-size: 0.875rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-audit-change-action {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--platform-text, #0f172a);
+}
+
+.page-platform.platform-admin-app .platform-table.mod-table tbody td {
+  border-bottom: 1px solid var(--platform-border, #e2e8f0);
+}
+
+.page-platform.platform-admin-app .platform-table.mod-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-pagination-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.page-platform.platform-admin-app .platform-td-right {
+  vertical-align: middle;
+}
+
+.page-platform.platform-admin-app .platform-td-right .mod-review-btn {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.page-platform.platform-admin-app .platform-table tbody td {
+  vertical-align: middle;
+}
+
+.page-platform.platform-admin-app .platform-table th.platform-table-th-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+  padding-right: 1.25rem;
+}
+
+.page-platform.platform-admin-app .platform-table td.platform-table-actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: normal;
+  vertical-align: middle;
+  text-align: right;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  padding-right: 1.25rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.page-platform.platform-admin-app .platform-table.mod-table td.platform-table-cell-wrap {
+  max-width: 14rem;
+  word-break: break-word;
+}
+
+.page-platform.platform-admin-app .platform-table td.platform-table-actions-row .platform-btn-sm {
+  flex-shrink: 0;
+  min-height: 2rem;
+  align-items: center;
+  display: inline-flex;
+}
+
+.platform-table-inline-select {
+  width: 100%;
+  max-width: 14rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0;
+  border: 1px solid var(--platform-border, #e2e8f0);
+  border-radius: var(--platform-radius, 6px);
+  font: inherit;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+/* Admin ops home — dashboard sections, queue grid, quick links */
+.page-platform.platform-admin-app .platform-admin-ops-home .platform-page-header {
+  margin-bottom: 0.25rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section {
+  margin-bottom: 0;
+  padding: 1.2rem 1.35rem 1.35rem;
+  background: var(--platform-surface, #fff);
+  border: 1px solid var(--platform-border, #e2e8f0);
+  box-shadow: var(--platform-shadow-card);
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section.platform-card--flush {
+  padding: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section-head {
+  margin: 0 0 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section-head--bar {
+  margin: 0;
+  padding: 1.1rem 1.35rem 0.85rem;
+  border-bottom: 1px solid var(--platform-border, #e2e8f0);
+  background: var(--platform-surface, #fff);
+}
+
+.page-platform.platform-admin-app
+  .platform-admin-ops-section-head--bar
+  .platform-page-header-row {
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-section-desc {
+  margin: 0.35rem 0 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+}
+
+.page-platform.platform-admin-app .platform-admin-quick-links {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+}
+
+.page-platform.platform-admin-app .platform-admin-quick-link {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  border: 1px solid var(--platform-border, #e2e8f0);
+  border-radius: var(--platform-radius-lg, 10px);
+  background: var(--platform-bg, #f8fafc);
+  color: var(--platform-text, #0f172a);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.page-platform.platform-admin-app .platform-admin-quick-link:hover {
+  border-color: #c7d9c9;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
+  text-decoration: none;
+  color: var(--platform-text, #0f172a);
+}
+
+.page-platform.platform-admin-app .platform-admin-ops-empty {
+  margin: 0;
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-app-topbar-inner {
+  min-height: 3.5rem;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+/* Admin list / queue pages — shared layout rhythm */
+.page-platform.platform-admin-app .platform-admin-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-page > .mod-kpi-grid,
+.page-platform.platform-admin-app .platform-admin-list-page > .mod-tabs-bar {
+  margin-top: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-page > .platform-page-header {
+  margin-bottom: 0;
+}
+
+.page-platform.platform-admin-app .platform-admin-list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--platform-border, #e2e8f0);
+  background: var(--platform-bg, #f8fafc);
+}
+
+.page-platform.platform-admin-app .platform-admin-detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-analytics-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.page-platform.platform-admin-app .platform-admin-analytics-dashboard .mod-kpi-card .platform-delta--up,
+.page-platform.platform-admin-app .platform-admin-analytics-dashboard .mod-kpi-card .platform-delta--down,
+.page-platform.platform-admin-app .platform-admin-analytics-dashboard .mod-kpi-card .platform-muted {
+  margin-top: 0.25rem;
+  display: block;
+}
+

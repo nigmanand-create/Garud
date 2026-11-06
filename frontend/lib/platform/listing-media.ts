@@ -1,5 +1,14 @@
 import { getApiBase } from '@/lib/api/client';
 
+/** Paths returned by POST /partner/catalog/listings/images (stored as-is in listing payload). */
+export function isPlatformListingMediaPath(url: string): boolean {
+  const trimmed = url.trim();
+  return (
+    trimmed.startsWith('/platform-api/v1/media/listings/') ||
+    trimmed.startsWith('/api/v1/media/listings/')
+  );
+}
+
 /** Resolve stored listing image URL for <img src> (upload paths or external HTTPS). */
 export function resolveListingImageUrl(
   url: string | null | undefined,

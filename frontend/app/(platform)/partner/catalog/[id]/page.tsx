@@ -1,7 +1,14 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PartnerPageShell } from '@/components/platform/PartnerPageShell';
@@ -88,6 +95,13 @@ function EditListingInner() {
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirmDialog();
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error) {
+      errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [error]);
 
   useEffect(() => {
     Promise.all([
@@ -120,11 +134,19 @@ function EditListingInner() {
     setForm(listingToForm(updated));
   }
 
-  async function save(e: FormEvent) {
+  async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form || !meta) return;
     setError(null);
     setMessage(null);
+    const formEl = e.currentTarget;
+    if (!formEl.checkValidity()) {
+      formEl.reportValidity();
+      setError(
+        'Could not save — please complete all required fields marked on the form.',
+      );
+      return;
+    }
     setSaving(true);
     try {
       const updated = await apiRequest<Listing>(`/partner/catalog/listings/${id}`, {
@@ -242,7 +264,15 @@ function EditListingInner() {
         )}
 
         <div className="platform-form-layout platform-form-layout--full">
-          {error && <div className="platform-card platform-error">{error}</div>}
+          {error && (
+            <div
+              ref={errorBannerRef}
+              className="platform-card platform-error"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
           {message && (
             <div className="platform-card platform-success">{message}</div>
           )}

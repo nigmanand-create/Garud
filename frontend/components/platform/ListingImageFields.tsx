@@ -72,6 +72,15 @@ export function ListingImageFields({
     }
   }
 
+  function removeGalleryUrl(urlToRemove: string) {
+    if (disabled) return;
+    const next = parseGalleryImageUrls(galleryImageUrlsText).filter(
+      (u) => u !== urlToRemove,
+    );
+    onGalleryTextChange(formatGalleryImageUrls(next));
+  }
+
+  const galleryUrls = parseGalleryImageUrls(galleryImageUrlsText);
   const primaryPreview = resolveListingImageUrl(primaryImageUrl);
 
   return (
@@ -84,9 +93,13 @@ export function ListingImageFields({
       <div className="platform-field">
         <label htmlFor="primaryImageUrl">Primary image</label>
         {primaryPreview && (
-          <div className="platform-listing-image-preview" style={{ marginBottom: '0.5rem' }}>
+          <div
+            className="platform-listing-image-preview"
+            title="Current primary image"
+            aria-hidden
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={primaryPreview} alt="" style={{ maxWidth: 200, borderRadius: 8 }} />
+            <img src={primaryPreview} alt="" />
           </div>
         )}
         <FileUploadZone
@@ -106,24 +119,55 @@ export function ListingImageFields({
           {uploadingPrimary ? 'Uploading…' : 'Upload as primary'}
         </button>
         <p className="platform-muted" style={{ fontSize: '0.8125rem', margin: '0.5rem 0 0' }}>
-          Or paste an HTTPS URL:
+          Or paste an HTTPS URL, or use the path returned after upload:
         </p>
         <input
           id="primaryImageUrl"
-          type="url"
+          type="text"
+          inputMode="url"
+          autoComplete="off"
+          spellCheck={false}
           value={primaryImageUrl}
           disabled={disabled}
           onChange={(e) => onPrimaryChange(e.target.value)}
-          placeholder="https://…"
+          placeholder="https://… or /platform-api/v1/media/listings/…"
         />
       </div>
       <div className="platform-field">
         <label>Gallery images</label>
-        <ul className="platform-muted" style={{ fontSize: '0.875rem', paddingLeft: '1.25rem' }}>
-          {parseGalleryImageUrls(galleryImageUrlsText).map((url) => (
-            <li key={url}>{url}</li>
-          ))}
-        </ul>
+        {galleryUrls.length > 0 && (
+          <ul className="platform-listing-gallery-list" aria-label="Gallery thumbnails">
+            {galleryUrls.map((url) => {
+              const src = resolveListingImageUrl(url);
+              return (
+                <li key={url} className="platform-listing-gallery-item">
+                  <div
+                    className="platform-listing-image-preview"
+                    title={url}
+                  >
+                    {src ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={src} alt="" />
+                    ) : (
+                      <span className="platform-listing-card-media-icon">
+                        <i className="ph ph-image" aria-hidden />
+                      </span>
+                    )}
+                  </div>
+                  {!disabled && (
+                    <button
+                      type="button"
+                      className="platform-listing-gallery-remove"
+                      onClick={() => removeGalleryUrl(url)}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <FileUploadZone
           file={galleryFile}
           onFileChange={setGalleryFile}
@@ -148,7 +192,7 @@ export function ListingImageFields({
           value={galleryImageUrlsText}
           disabled={disabled}
           onChange={(e) => onGalleryTextChange(e.target.value)}
-          placeholder={'https://…\nhttps://…'}
+          placeholder={'https://…\n/platform-api/v1/media/listings/…'}
         />
       </div>
     </>

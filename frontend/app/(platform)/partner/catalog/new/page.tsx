@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import Link from 'next/link';
@@ -33,6 +33,13 @@ function NewListingInner() {
   const [canListProducts, setCanListProducts] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<CatalogListingFormValues>(emptyCatalogListingForm());
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error) {
+      errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [error]);
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('type') === 'SERVICE') {
@@ -46,9 +53,17 @@ function NewListingInner() {
       .catch(() => setCanListProducts(false));
   }, []);
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    const formEl = e.currentTarget;
+    if (!formEl.checkValidity()) {
+      formEl.reportValidity();
+      setError(
+        'Could not create listing — please complete all required fields marked on the form.',
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = buildListingPayload(form);
@@ -84,7 +99,15 @@ function NewListingInner() {
         />
 
         <div className="platform-form-layout platform-form-layout--full">
-          {error && <div className="platform-card platform-error">{error}</div>}
+          {error && (
+            <div
+              ref={errorBannerRef}
+              className="platform-card platform-error"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
 
           {!canListProducts && (
             <div className="platform-callout platform-callout--partner">

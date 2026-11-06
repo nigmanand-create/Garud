@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
@@ -53,8 +52,7 @@ function Inner() {
     }).format(Number(v));
 
   return (
-    <div className="platform-admin-page">
-      <AdminSubnav />
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title={item.title}
         subtitle={`${GOV_TYPE_LABELS[item.type]} · ${item.issuingBody}`}
@@ -64,8 +62,8 @@ function Inner() {
           { label: item.title },
         ]}
       />
-      <div className="platform-form-layout platform-form-layout--full">
-        <div className="platform-card">
+      <div className="platform-admin-detail-stack">
+        <div className="platform-card platform-admin-ops-section">
           <p>{item.summary}</p>
           <ul className="platform-list">
             {item.referenceNo && <li>Reference: {item.referenceNo}</li>}

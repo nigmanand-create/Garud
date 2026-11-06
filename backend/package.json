@@ -23,7 +23,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "commerce:reset": "ts-node scripts/reset-commerce-data.ts",
+    "commerce:fresh": "ts-node scripts/reset-commerce-data.ts --seed-listings"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",
@@ -42,6 +44,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
+    "google-auth-library": "^10.9.1",
     "helmet": "^8.3.0",
     "nodemailer": "^7.0.13",
     "passport": "^0.7.0",

@@ -3,6 +3,7 @@ import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import {
   CATEGORY_LABELS,
   LISTING_TYPE_LABELS,
+  formatListingMinOrderLabel,
   formatPrice,
 } from '@/lib/platform/labels';
 import { resolveListingImageUrl } from '@/lib/platform/listing-media';
@@ -16,6 +17,7 @@ export type ListingCardData = {
   primaryImageUrl?: string | null;
   priceOnRequest: boolean;
   priceInr?: string | null;
+  minOrderQuantity?: number | null;
   organization: {
     id: string;
     companyName: string;
@@ -36,6 +38,7 @@ export function ListingCard({
     .filter(Boolean)
     .join(', ');
   const imageSrc = resolveListingImageUrl(item.primaryImageUrl);
+  const minOrderLabel = formatListingMinOrderLabel(item.minOrderQuantity);
 
   return (
     <article className="platform-listing-card">
@@ -68,6 +71,11 @@ export function ListingCard({
           <p className="platform-listing-card-price">
             {formatPrice(item.priceOnRequest, item.priceInr)}
           </p>
+          {minOrderLabel && (
+            <p className="platform-muted platform-text-muted-sm platform-listing-card-moq">
+              {minOrderLabel}
+            </p>
+          )}
           <p className="platform-listing-card-partner">
             <span className="platform-listing-card-partner-name">
               {item.organization.companyName}

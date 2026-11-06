@@ -20,8 +20,32 @@ import {
 } from '@/lib/platform/auth-login';
 import { hasClientAuthSessionHint } from '@/lib/api/auth-storage';
 import { ROLE_LOGIN_LINKS } from '@/lib/platform/header-nav';
+import {
+  AuthOrDivider,
+  GoogleAuthButton,
+} from '@/components/platform/GoogleAuthButton';
+import { GOOGLE_OAUTH_ERRORS } from '@/lib/platform/google-auth';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
+  return (
+    <Suspense fallback={<AuthSessionGate busy message="Loading…" />}>
+      <LoginPageContentInner intent={intent} />
+    </Suspense>
+  );
+}
+
+function LoginPageContentInner({ intent }: { intent?: LoginIntent }) {
+  const searchParams = useSearchParams();
+  const oauthErrorCode = searchParams.get('error');
+  const oauthError =
+    oauthErrorCode && GOOGLE_OAUTH_ERRORS[oauthErrorCode]
+      ? GOOGLE_OAUTH_ERRORS[oauthErrorCode]
+      : oauthErrorCode
+        ? 'Sign-in failed. Try again.'
+        : null;
+
   const { login, user, loading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -113,7 +137,9 @@ export function LoginPageContent({ intent }: { intent?: LoginIntent }) {
           account — use the email registered for that role.
         </p>
       ) : null}
-      <AuthErrorBanner message={error} />
+      <AuthErrorBanner message={oauthError ?? error} />
+      <GoogleAuthButton mode="login" intent={intent} />
+      <AuthOrDivider />
       <form
         className="platform-card platform-form platform-auth-card"
         onSubmit={onSubmit}

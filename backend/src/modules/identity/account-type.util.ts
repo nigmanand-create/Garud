@@ -40,3 +40,31 @@ export function requiresPartnerVerification(
 ): boolean {
   return status === VerificationStatus.APPROVED;
 }
+
+/** Fallback when individual buyers omit company name (MinLength(2) on DTO). */
+export function resolveCompanyNameForRegistration(
+  accountType: AccountType,
+  fields: {
+    companyName?: string;
+    contactPersonName?: string;
+    email: string;
+    displayName?: string;
+  },
+): string {
+  const trimmed = (fields.companyName ?? '').trim();
+  if (trimmed.length >= 2) {
+    return trimmed;
+  }
+  if (accountType !== AccountType.BUYER_ENTERPRISE) {
+    return trimmed;
+  }
+  const fromContact = (fields.contactPersonName ?? '').trim();
+  if (fromContact.length >= 2) {
+    return fromContact;
+  }
+  const fromDisplay = (fields.displayName ?? '').trim();
+  if (fromDisplay.length >= 2) {
+    return fromDisplay;
+  }
+  return `Individual buyer — ${fields.email.trim()}`;
+}

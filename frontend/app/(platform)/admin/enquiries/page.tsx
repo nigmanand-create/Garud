@@ -10,7 +10,6 @@ import {
 import { apiDownload, apiRequest } from '@/lib/api/client';
 import { buildEnquiryExportPath } from '@/lib/platform/notifications';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { ENQUIRY_INTENT_LABELS } from '@/lib/platform/labels';
@@ -135,12 +134,11 @@ function EnquiriesInner() {
     !!data && data.items.length > 0 && selected.size === data.items.length;
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Enquiry queue"
         subtitle="Triage inbound leads: filter by source, route to verified partners, and update status in bulk."
       />
-      <AdminSubnav />
 
       <div className="mod-kpi-grid" style={{ marginBottom: '1rem' }}>
         <div className="mod-kpi-card">
@@ -174,6 +172,7 @@ function EnquiriesInner() {
           <label htmlFor="enquiry-status-filter">Status</label>
           <select
             id="enquiry-status-filter"
+            className="mod-filter-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter((e.target.value || '') as EnquiryStatus | '')}
           >
@@ -187,6 +186,7 @@ function EnquiriesInner() {
           <label htmlFor="enquiry-intent-filter">Source</label>
           <select
             id="enquiry-intent-filter"
+            className="mod-filter-select"
             value={intentFilter}
             onChange={(e) => setIntentFilter((e.target.value || '') as EnquiryIntent | '')}
           >
@@ -202,6 +202,7 @@ function EnquiriesInner() {
           <label htmlFor="enquiry-routing-filter">Routing</label>
           <select
             id="enquiry-routing-filter"
+            className="mod-filter-select"
             value={routingFilter}
             onChange={(e) =>
               setRoutingFilter((e.target.value || '') as '' | 'ROUTED' | 'UNROUTED')
@@ -216,7 +217,7 @@ function EnquiriesInner() {
           <label>&nbsp;</label>
           <button
             type="button"
-            className="platform-btn platform-btn-secondary"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
             onClick={exportCsv}
           >
             Export CSV (CRM)
@@ -228,14 +229,16 @@ function EnquiriesInner() {
       {loading && <div className="platform-card">Loading enquiries…</div>}
 
       {!loading && data && (
-        <div className="platform-card">
+        <div className="platform-card platform-card--flush">
           {selected.size > 0 && (
-            <div style={{ marginBottom: '0.75rem' }}>
+            <div
+              className="platform-status-row--wrap"
+              style={{ marginBottom: '0.75rem', padding: '0.75rem 1.25rem 0' }}
+            >
               <strong>{selected.size} selected</strong>
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
-                style={{ marginLeft: '0.75rem' }}
                 onClick={() => bulk('READ')}
               >
                 Mark read
@@ -243,7 +246,6 @@ function EnquiriesInner() {
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
-                style={{ marginLeft: '0.5rem' }}
                 onClick={() => bulk('CLOSED')}
               >
                 Close
@@ -251,7 +253,7 @@ function EnquiriesInner() {
             </div>
           )}
           <div className="platform-table-wrap">
-            <table className="platform-table">
+            <table className="platform-table mod-table">
               <thead>
                 <tr>
                   <th>
@@ -274,7 +276,7 @@ function EnquiriesInner() {
                   <th>Source</th>
                   <th>Routed to</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th className="platform-table-th-actions">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -314,6 +316,7 @@ function EnquiriesInner() {
                       </td>
                       <td>
                         <select
+                          className="platform-table-inline-select"
                           aria-label={`Route ${row.subject}`}
                           value={row.organizationId ?? ''}
                           onChange={(e) => assign(row.id, e.target.value)}
@@ -340,7 +343,7 @@ function EnquiriesInner() {
                       <td>
                         <StatusBadge status={row.status} />
                       </td>
-                      <td>
+                      <td className="platform-table-actions-row">
                         <button
                           type="button"
                           className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -352,7 +355,6 @@ function EnquiriesInner() {
                           <button
                             type="button"
                             className="platform-btn platform-btn-sm"
-                            style={{ marginLeft: '0.5rem' }}
                             onClick={() => setStatus(row.id, 'READ')}
                           >
                             Mark read
@@ -362,7 +364,6 @@ function EnquiriesInner() {
                           <button
                             type="button"
                             className="platform-btn platform-btn-secondary platform-btn-sm"
-                            style={{ marginLeft: '0.5rem' }}
                             onClick={() => setStatus(row.id, 'CLOSED')}
                           >
                             Close
@@ -387,6 +388,6 @@ function EnquiriesInner() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

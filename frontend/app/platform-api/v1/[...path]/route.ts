@@ -42,12 +42,25 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     body = await request.arrayBuffer();
   }
 
-  const upstream = await fetch(url.toString(), {
-    method,
-    headers,
-    body: body?.byteLength ? body : undefined,
-    redirect: 'manual',
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url.toString(), {
+      method,
+      headers,
+      body: body?.byteLength ? body : undefined,
+      redirect: 'manual',
+    });
+  } catch {
+    if (path === 'auth/google') {
+      const login = new URL('/auth/login', request.nextUrl.origin);
+      login.searchParams.set('error', 'oauth_not_configured');
+      return NextResponse.redirect(login, 302);
+    }
+    return NextResponse.json(
+      { statusCode: 503, message: 'API backend unavailable' },
+      { status: 503 },
+    );
+  }
 
   const resHeaders = new Headers();
   const ct = upstream.headers.get('content-type');
@@ -56,6 +69,8 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   if (cd) resHeaders.set('Content-Disposition', cd);
   const upstreamRequestId = upstream.headers.get('x-request-id');
   if (upstreamRequestId) resHeaders.set('x-request-id', upstreamRequestId);
+  const location = upstream.headers.get('location');
+  if (location) resHeaders.set('Location', location);
   const setCookies = upstream.headers.getSetCookie?.() ?? [];
   for (const c of setCookies) {
     resHeaders.append('Set-Cookie', c);

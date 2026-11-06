@@ -11,3 +11,12 @@ export const SINGLE_SELLER_POLICY =
 export function isSingleSellerConflict(err: unknown): boolean {
   return err instanceof ApiError && err.status === 409;
 }
+
+/** Lowest quantity allowed in the cart for a listing (MOQ when above 1, else 1). */
+export function effectiveCartMinQuantity(
+  minOrderQuantity?: number | null,
+): number {
+  return minOrderQuantity != null && minOrderQuantity > 1
+    ? minOrderQuantity
+    : 1;
+}

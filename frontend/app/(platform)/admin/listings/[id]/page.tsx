@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { Button } from '@/components/platform/Button';
@@ -172,7 +171,6 @@ function ListingDetailInner() {
     return (
       <>
         <PlatformPageHeader title="Listing review" subtitle="Loading listing inspection data…" />
-        <AdminSubnav />
         <p className="platform-muted platform-loading-center">Loading listing inspection data…</p>
       </>
     );
@@ -221,7 +219,6 @@ function ListingDetailInner() {
       {!listing && !loading && (
         <PlatformPageHeader title="Listing review" backHref="/admin/listings" backLabel="Moderation queue" />
       )}
-      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {message && <div className="platform-card platform-success">{message}</div>}

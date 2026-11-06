@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { listAuditLog, type AuditLogResponse } from '@/lib/api/admin';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -66,25 +65,25 @@ function AuditLogInner() {
     : 0;
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Audit log"
         subtitle="Every admin decision in one place: KYC, listing moderation, partnership decisions, enquiry routing and user/role changes."
       />
-      <AdminSubnav />
 
       <form
-        className="platform-card platform-form platform-filter-bar"
+        className="platform-card platform-admin-ops-section platform-form platform-filter-bar platform-admin-list-filter-bar"
         onSubmit={(e) => {
           e.preventDefault();
           setPage(0);
           setSearch(searchInput);
         }}
       >
-        <div>
+        <div className="platform-admin-list-filter-field">
           <label htmlFor="audit-kind">Type</label>
           <select
             id="audit-kind"
+            className="mod-filter-select"
             value={kind}
             onChange={(e) => {
               setKind((e.target.value || '') as AuditKind | '');
@@ -100,21 +99,23 @@ function AuditLogInner() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--grow">
           <label htmlFor="audit-search">Search</label>
           <input
             id="audit-search"
             type="search"
+            className="mod-filter-input"
             placeholder="Company, listing, note, email…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field">
           <label htmlFor="audit-from">From</label>
           <input
             id="audit-from"
             type="date"
+            className="mod-filter-input mod-filter-input--date"
             value={from}
             onChange={(e) => {
               setFrom(e.target.value);
@@ -122,11 +123,12 @@ function AuditLogInner() {
             }}
           />
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field">
           <label htmlFor="audit-to">To</label>
           <input
             id="audit-to"
             type="date"
+            className="mod-filter-input mod-filter-input--date"
             value={to}
             onChange={(e) => {
               setTo(e.target.value);
@@ -134,7 +136,10 @@ function AuditLogInner() {
             }}
           />
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--action">
+          <label className="platform-admin-list-filter-action-label" aria-hidden="true">
+            &nbsp;
+          </label>
           <button type="submit" className="platform-btn platform-btn-sm">
             Apply
           </button>
@@ -142,12 +147,17 @@ function AuditLogInner() {
       </form>
 
       {error && <div className="platform-card platform-error">{error}</div>}
-      {loading && !data && <PlatformLoading />}
 
-      {data && (
-        <div className="platform-card" aria-busy={loading}>
+      <div
+        className="platform-card platform-admin-ops-section platform-card--flush"
+        aria-busy={loading}
+      >
+        {loading && !data ? (
+          <PlatformLoading />
+        ) : data ? (
+          <>
           <div className="platform-table-wrap">
-            <table className="platform-table">
+            <table className="platform-table mod-table">
               <thead>
                 <tr>
                   <th>When</th>
@@ -172,16 +182,23 @@ function AuditLogInner() {
                       <Link href={auditSubjectHref(e)}>{e.subject.label}</Link>
                     </td>
                     <td>
-                      {e.fromStatus && (
-                        <>
-                          <StatusBadge status={e.fromStatus} /> →{' '}
-                        </>
-                      )}
-                      {e.toStatus ? (
-                        <StatusBadge status={e.toStatus} />
-                      ) : (
-                        formatEnumLabel(e.action)
-                      )}
+                      <div className="platform-admin-audit-change">
+                        {e.fromStatus && (
+                          <>
+                            <StatusBadge status={e.fromStatus} />
+                            <span className="platform-admin-audit-change-arrow" aria-hidden="true">
+                              →
+                            </span>
+                          </>
+                        )}
+                        {e.toStatus ? (
+                          <StatusBadge status={e.toStatus} />
+                        ) : (
+                          <span className="platform-admin-audit-change-action">
+                            {formatEnumLabel(e.action)}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>{e.note ?? '—'}</td>
                     <td>{auditActorLabel(e.actor)}</td>
@@ -190,12 +207,12 @@ function AuditLogInner() {
               </tbody>
             </table>
           </div>
-          <div className="platform-page-header-row" style={{ marginTop: '0.75rem' }}>
+          <div className="platform-admin-list-pagination">
             <span className="platform-text-sm platform-muted">
               {data.total} event{data.total === 1 ? '' : 's'} · page {page + 1} of {pages} ·{' '}
               {AUDIT_PAGE_SIZE} per page
             </span>
-            <span>
+            <span className="platform-admin-list-pagination-actions">
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -203,7 +220,7 @@ function AuditLogInner() {
                 onClick={() => setPage((p) => Math.max(p - 1, 0))}
               >
                 Previous
-              </button>{' '}
+              </button>
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -214,8 +231,9 @@ function AuditLogInner() {
               </button>
             </span>
           </div>
-        </div>
-      )}
-    </>
+          </>
+        ) : null}
+      </div>
+    </div>
   );
 }

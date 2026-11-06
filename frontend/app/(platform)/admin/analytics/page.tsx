@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getCommerceAnalytics, type CommerceAnalytics } from '@/lib/api/admin';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import {
@@ -55,7 +54,7 @@ function AnalyticsInner() {
   const heights = data ? barHeights(data.trend.points.map((p) => p.gmvInr)) : [];
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Commerce analytics"
         subtitle="GMV and order trends, payment and fulfilment mix, top vendors and the RFQ → quotation → order funnel. GMV counts confirmed (non-cancelled) orders."
@@ -65,7 +64,6 @@ function AnalyticsInner() {
           </Link>
         }
       />
-      <AdminSubnav />
 
       <div className="platform-section-tabs" role="tablist" aria-label="Date range">
         {ANALYTICS_RANGES.map((r) => (
@@ -86,41 +84,51 @@ function AnalyticsInner() {
       {!data && !error && <PlatformLoading />}
 
       {data && (
-        <>
-          <ul className="platform-partner-ops-grid" aria-label="Headline metrics">
-            <li className="platform-partner-ops-stat">
-              <strong>{formatInrCompact(data.gmv.totalInr)}</strong>
-              <span>GMV</span>
-              <Delta pct={data.gmv.changePct} />
-            </li>
-            <li className="platform-partner-ops-stat">
-              <strong>{data.gmv.orders}</strong>
-              <span>Orders</span>
-              <Delta pct={data.gmv.ordersChangePct} />
-            </li>
-            <li className="platform-partner-ops-stat">
-              <strong>{formatInrCompact(data.gmv.avgOrderValueInr)}</strong>
-              <span>Avg order value</span>
-            </li>
-            <li className="platform-partner-ops-stat">
-              <strong>{formatInrCompact(data.gmv.paidInr)}</strong>
-              <span>Paid GMV</span>
-              <span className="platform-text-sm platform-muted">
-                {formatInrCompact(data.gmv.pendingInr)} awaiting payment
-              </span>
-            </li>
-            <li
-              className={`platform-partner-ops-stat${data.gmv.cancellationRatePct >= 20 ? ' platform-partner-ops-stat--alert' : ''}`}
+        <div className="platform-admin-analytics-dashboard">
+          <div className="mod-kpi-grid" aria-label="Headline metrics">
+            <div className="mod-kpi-card mod-kpi-card--static">
+              <div className="mod-kpi-data">
+                <div className="mod-kpi-num">{formatInrCompact(data.gmv.totalInr)}</div>
+                <div className="mod-kpi-label">GMV</div>
+                <Delta pct={data.gmv.changePct} />
+              </div>
+            </div>
+            <div className="mod-kpi-card mod-kpi-card--static">
+              <div className="mod-kpi-data">
+                <div className="mod-kpi-num">{data.gmv.orders}</div>
+                <div className="mod-kpi-label">Orders</div>
+                <Delta pct={data.gmv.ordersChangePct} />
+              </div>
+            </div>
+            <div className="mod-kpi-card mod-kpi-card--static">
+              <div className="mod-kpi-data">
+                <div className="mod-kpi-num">{formatInrCompact(data.gmv.avgOrderValueInr)}</div>
+                <div className="mod-kpi-label">Avg order value</div>
+              </div>
+            </div>
+            <div className="mod-kpi-card mod-kpi-card--static">
+              <div className="mod-kpi-data">
+                <div className="mod-kpi-num">{formatInrCompact(data.gmv.paidInr)}</div>
+                <div className="mod-kpi-label">Paid GMV</div>
+                <span className="platform-text-sm platform-muted">
+                  {formatInrCompact(data.gmv.pendingInr)} awaiting payment
+                </span>
+              </div>
+            </div>
+            <div
+              className={`mod-kpi-card mod-kpi-card--static${data.gmv.cancellationRatePct >= 20 ? ' mod-kpi-card--filter-active' : ''}`}
             >
-              <strong>{data.gmv.cancellationRatePct}%</strong>
-              <span>Cancellation rate</span>
-              <span className="platform-text-sm platform-muted">
-                {data.gmv.cancelledOrders} cancelled
-              </span>
-            </li>
-          </ul>
+              <div className="mod-kpi-data">
+                <div className="mod-kpi-num">{data.gmv.cancellationRatePct}%</div>
+                <div className="mod-kpi-label">Cancellation rate</div>
+                <span className="platform-text-sm platform-muted">
+                  {data.gmv.cancelledOrders} cancelled
+                </span>
+              </div>
+            </div>
+          </div>
 
-          <section className="platform-card" aria-labelledby="trend-h">
+          <section className="platform-card platform-admin-ops-section" aria-labelledby="trend-h">
             <h2 id="trend-h">
               GMV trend ({data.trend.bucketDays > 1 ? 'weekly' : 'daily'})
             </h2>
@@ -141,7 +149,7 @@ function AnalyticsInner() {
             </p>
           </section>
 
-          <section className="platform-card" aria-labelledby="rfq-h">
+          <section className="platform-card platform-admin-ops-section" aria-labelledby="rfq-h">
             <div className="platform-page-header-row">
               <h2 id="rfq-h">RFQ funnel</h2>
               <span className="platform-muted platform-text-sm">
@@ -192,7 +200,7 @@ function AnalyticsInner() {
           </section>
 
           <div className="platform-form-field-pair">
-            <section className="platform-card" aria-labelledby="mix-h">
+            <section className="platform-card platform-admin-ops-section" aria-labelledby="mix-h">
               <h2 id="mix-h">Order sources</h2>
               <p>
                 Via RFQ: <strong>{data.sourceSplit.rfq.orders}</strong> orders ·{' '}
@@ -220,13 +228,17 @@ function AnalyticsInner() {
               </ul>
             </section>
 
-            <section className="platform-card" aria-labelledby="vendors-h">
-              <h2 id="vendors-h">Top vendors by GMV</h2>
+            <section className="platform-card platform-admin-ops-section platform-card--flush" aria-labelledby="vendors-h">
+              <div className="platform-admin-ops-section-head platform-admin-ops-section-head--bar">
+                <h2 id="vendors-h" className="platform-admin-ops-section-title">
+                  Top vendors by GMV
+                </h2>
+              </div>
               {data.topVendors.length === 0 ? (
                 <p className="platform-muted">No orders in this range.</p>
               ) : (
                 <div className="platform-table-wrap">
-                  <table className="platform-table">
+                  <table className="platform-table mod-table">
                     <thead>
                       <tr>
                         <th>Vendor</th>
@@ -250,8 +262,8 @@ function AnalyticsInner() {
               )}
             </section>
           </div>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

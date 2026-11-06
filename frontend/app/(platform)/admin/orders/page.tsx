@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import type {
@@ -80,7 +79,7 @@ function OrdersInner() {
   };
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Platform Order Oversight"
         subtitle="Track all B2B drone transactions, gross merchandise value (GMV), vendor fulfillment, and settlement states."
@@ -90,11 +89,9 @@ function OrdersInner() {
           </Link>
         }
       />
-      <AdminSubnav />
 
-      {/* KPI Metric Cards */}
       <div className="mod-kpi-grid">
-        <div className="mod-kpi-card" role="region" aria-label="Total GMV">
+        <div className="mod-kpi-card mod-kpi-card--static" role="region" aria-label="Total GMV">
           <div className="mod-kpi-icon-wrap mod-kpi-icon-wrap--gmv">
             ₹
           </div>
@@ -133,7 +130,7 @@ function OrdersInner() {
         </div>
 
         <div
-          className={`mod-kpi-card ${paymentFilter === 'PENDING' ? 'mod-kpi-card--filter-active' : ''}`}
+          className={`mod-kpi-card${paymentFilter === 'PENDING' ? ' mod-kpi-card--active' : ''}`}
           onClick={() => setPaymentFilter(paymentFilter === 'PENDING' ? '' : 'PENDING')}
           role="button"
           tabIndex={0}
@@ -199,7 +196,7 @@ function OrdersInner() {
         {(searchQuery || paymentFilter || activeTab !== 'ALL') && (
           <button
             type="button"
-            className="platform-btn platform-btn--secondary platform-btn-sm"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
             onClick={() => {
               setSearchQuery('');
               setPaymentFilter('');
@@ -319,7 +316,7 @@ function OrdersInner() {
                 {(searchQuery || paymentFilter || activeTab !== 'ALL') && (
                   <button
                     type="button"
-                    className="platform-btn platform-btn--secondary platform-btn-sm platform-mt-md"
+                    className="platform-btn platform-btn-secondary platform-btn-sm platform-mt-md"
                     onClick={() => {
                       setSearchQuery('');
                       setPaymentFilter('');
@@ -334,6 +331,6 @@ function OrdersInner() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

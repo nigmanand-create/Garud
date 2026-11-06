@@ -8,10 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
-import { User, VerificationStatus } from '@prisma/client';
+import { User, VerificationStatus, AccountType, UserRole } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
   initialVerificationStatus,
+  resolveCompanyNameForRegistration,
   roleForAccountType,
 } from './account-type.util';
 import {
@@ -21,7 +22,10 @@ import {
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
+  RegisterGoogleDto,
 } from './dto/auth.dto';
+import type { GoogleOAuthState } from './google-oauth.util';
+import type { GoogleProfile } from './google-oauth.service';
 import { JwtPayload } from './types/auth.types';
 
 @Injectable()
@@ -64,7 +68,11 @@ export class AuthService {
         accountType: dto.accountType,
         organization: {
           create: {
-            companyName: dto.companyName,
+            companyName: resolveCompanyNameForRegistration(dto.accountType, {
+              companyName: dto.companyName,
+              contactPersonName: dto.contactPersonName,
+              email: dto.email,
+            }),
             country: dto.country,
             state: dto.state,
             city: dto.city,
@@ -89,6 +97,9 @@ export class AuthService {
     });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Sign in with Google for this account');
     }
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
@@ -175,6 +186,11 @@ export class AuthService {
       where: { id: userId },
       include: { organization: true },
     });
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        'This account uses Google sign-in. Set a password from account settings when available.',
+      );
+    }
     const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -198,6 +214,134 @@ export class AuthService {
       }),
     ]);
     return this.toUserResponse(updated);
+  }
+
+  /** Link or sign in with Google; may require completing registration. */
+  async loginFromGoogle(
+    profile: GoogleProfile,
+    state: GoogleOAuthState,
+  ): Promise<
+    | { outcome: 'session'; tokens: AuthTokensResponse }
+    | {
+        outcome: 'pending';
+        pending: { sub: string; email: string; displayName: string; accountType?: AccountType };
+      }
+    | { outcome: 'error'; code: string }
+  > {
+    if (!profile.emailVerified) {
+      return { outcome: 'error', code: 'email_not_verified' };
+    }
+
+    let user = await this.prisma.user.findUnique({
+      where: { googleSub: profile.sub },
+      include: { organization: true },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.findUnique({
+        where: { email: profile.email },
+        include: { organization: true },
+      });
+      if (user) {
+        if (user.googleSub && user.googleSub !== profile.sub) {
+          return { outcome: 'error', code: 'google_account_conflict' };
+        }
+        if (user.disabledAt) {
+          return { outcome: 'error', code: 'account_disabled' };
+        }
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { googleSub: profile.sub },
+          include: { organization: true },
+        });
+      }
+    }
+
+    if (user) {
+      if (user.disabledAt) {
+        return { outcome: 'error', code: 'account_disabled' };
+      }
+      return { outcome: 'session', tokens: await this.issueTokens(user) };
+    }
+
+    if (state.mode !== 'register') {
+      return { outcome: 'error', code: 'no_account' };
+    }
+
+    return {
+      outcome: 'pending',
+      pending: {
+        sub: profile.sub,
+        email: profile.email,
+        displayName: profile.displayName,
+        accountType: state.accountType,
+      },
+    };
+  }
+
+  async registerFromGoogle(
+    pending: { sub: string; email: string; displayName: string },
+    dto: RegisterGoogleDto,
+  ): Promise<AuthTokensResponse> {
+    if (dto.email.toLowerCase() !== pending.email) {
+      throw new BadRequestException('Email must match your Google account');
+    }
+
+    const existing = await this.prisma.user.findUnique({
+      where: { email: pending.email },
+    });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    const byGoogle = await this.prisma.user.findUnique({
+      where: { googleSub: pending.sub },
+    });
+    if (byGoogle) {
+      throw new ConflictException('Google account already linked');
+    }
+
+    const role = roleForAccountType(dto.accountType);
+    if (role === UserRole.PLATFORM_ADMIN) {
+      throw new BadRequestException('Invalid account type');
+    }
+
+    const verificationStatus = initialVerificationStatus(dto.accountType);
+    const passwordHash =
+      dto.password && dto.password.length >= 8
+        ? await bcrypt.hash(dto.password, 12)
+        : null;
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: pending.email,
+        passwordHash,
+        googleSub: pending.sub,
+        role,
+        accountType: dto.accountType,
+        organization: {
+          create: {
+            companyName: resolveCompanyNameForRegistration(dto.accountType, {
+              companyName: dto.companyName,
+              contactPersonName: dto.contactPersonName,
+              email: dto.email,
+              displayName: pending.displayName,
+            }),
+            country: dto.country,
+            state: dto.state,
+            city: dto.city,
+            website: dto.website,
+            contactPersonName: dto.contactPersonName || pending.displayName,
+            contactEmail: dto.contactEmail,
+            contactMobile: dto.contactMobile,
+            verificationStatus,
+          },
+        },
+      },
+      include: { organization: true },
+    });
+
+    return this.issueTokens(user);
   }
 
   private async issueTokens(

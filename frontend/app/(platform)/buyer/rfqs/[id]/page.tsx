@@ -194,13 +194,13 @@ function DetailInner() {
       }>(`/rfq/${id}/quotations/${awardingQuote.id}/accept`, {
         method: 'POST',
         auth: true,
-        body: JSON.stringify({
+        body: {
           purchaseOrderNumber: purchaseOrderNumber.trim() || undefined,
           notes: deliveryNotes.trim() || undefined,
           ...(needsAgreed
             ? { agreedPriceInr: Number(agreedUnitPrice) }
             : {}),
-        }),
+        },
       });
 
       setMessage(

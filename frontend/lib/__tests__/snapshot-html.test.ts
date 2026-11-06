@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractMainContentInner } from '../snapshot-main-content';
-import { loadSnapshotHtml, localizeSnapshotHtml } from '../snapshot-html';
+import { localizeSnapshotHtml } from '../snapshot-html';
 
 describe('blog and legal snapshot link cleanup (NEXT-U1)', () => {
   it('rewrites legacy blogging query URLs to path routes', () => {
@@ -9,19 +8,6 @@ describe('blog and legal snapshot link cleanup (NEXT-U1)', () => {
     );
     expect(out).toContain('href="/blogging/post/my-post"');
     expect(out).toContain('href="/blogging/category/guides"');
-  });
-
-  it('extracts main content for MarketingShell wrapper pages', () => {
-    const html = loadSnapshotHtml('/blogging');
-    expect(html).toBeTruthy();
-    const inner = extractMainContentInner(html!);
-    expect(inner).toContain('tblog-wrap');
-    expect(inner).not.toContain('header-desktop header-mega');
-  });
-
-  it('patches blogging index title', () => {
-    const html = loadSnapshotHtml('/blogging');
-    expect(html).toContain('<title>Insights &amp; Blog | GarudHub</title>');
   });
 });
 

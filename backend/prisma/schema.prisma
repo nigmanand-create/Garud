@@ -73,7 +73,9 @@ enum CatalogCategory {
 model User {
   id                 String      @id @default(uuid())
   email              String      @unique
-  passwordHash       String      @map("password_hash")
+  passwordHash       String?     @map("password_hash")
+  /// Google OAuth subject (`sub`); unique when linked.
+  googleSub          String?     @unique @map("google_sub")
   role               UserRole
   accountType        AccountType @map("account_type")
   /// Set when an admin created the account / reset the password with a temporary one.

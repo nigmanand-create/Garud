@@ -1,9 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 import { injectSnapshotHeaderCtas } from '@/lib/snapshot-bridge';
-
-const root = process.cwd();
-const rawDir = join(root, 'content', 'raw');
 
 const GARUDHUB_ORIGIN =
   /https?:\/\/(?:www\.)?garudhub\.com/gi;
@@ -99,30 +94,6 @@ function bridgeMarketingToPlatform(html: string): string {
   return out;
 }
 
-function patchSnapshotDocumentMeta(html: string, pathname: string): string {
-  let out = html;
-
-  if (pathname === '/blogging') {
-    out = out.replace(/<title>DroneHub<\/title>/, '<title>Insights &amp; Blog | GarudHub</title>');
-  }
-
-  if (pathname.startsWith('/legal.php/')) {
-    const page = pathname.replace('/legal.php/', '');
-    const alias =
-      page === 'privacy' ? '/legal/privacy' : page === 'tos' ? '/legal/terms' : page === 'refund' ? '/legal/refund' : pathname;
-    out = out.replaceAll(`content="/legal.php?page=${page}"`, `content="${alias}"`);
-    out = out.replaceAll(`href="/legal.php?page=${page}"`, `href="${alias}"`);
-  }
-
-  // Clone bug: feature image URL was the site root after origin stripping.
-  out = out.replace(
-    /(<img class="tblog-feature-img"[^>]*\ssrc=")\/(")/g,
-    '$1/data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"$2',
-  );
-
-  return out;
-}
-
 function fixUtf8Mojibake(html: string): string {
   return html
     .replaceAll('â€"', '—')
@@ -160,54 +131,4 @@ export function localizeSnapshotHtml(html: string): string {
   out = fixUtf8Mojibake(out);
 
   return out;
-}
-
-export function resolveSnapshotFile(pathname: string): string | null {
-  const path = pathname.replace(/\/$/, '') || '/';
-
-  if (path === '/') {
-    return join(root, 'public', 'index.html');
-  }
-
-  if (path === '/blogging') {
-    return join(rawDir, 'blogging.html');
-  }
-
-  const legal = path.match(/^\/legal\.php\/([^/]+)$/);
-  if (legal) {
-    return join(rawDir, `legal.php__page_${legal[1]}.html`);
-  }
-
-  const blogPost = path.match(/^\/blogging\/post\/(.+)$/);
-  if (blogPost) {
-    return join(rawDir, `blogging__slug_${blogPost[1]}.html`);
-  }
-
-  const blogCategory = path.match(/^\/blogging\/category\/(.+)$/);
-  if (blogCategory) {
-    return join(rawDir, `blogging__category_${blogCategory[1]}.html`);
-  }
-
-  const segment = path.replace(/^\//, '');
-  const dotted = join(rawDir, `${segment}.html`);
-  if (existsSync(dotted)) return dotted;
-
-  return null;
-}
-
-export function loadSnapshotHtml(pathname: string): string | null {
-  const file = resolveSnapshotFile(pathname);
-  if (!file || !existsSync(file)) return null;
-  const localized = localizeSnapshotHtml(readFileSync(file, 'utf8'));
-  return patchSnapshotDocumentMeta(localized, pathname.replace(/\/$/, '') || '/');
-}
-
-export function htmlResponse(html: string, status = 200): Response {
-  return new Response(html, {
-    status,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=0, must-revalidate',
-    },
-  });
 }

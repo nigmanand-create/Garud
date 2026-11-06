@@ -12,7 +12,6 @@ import {
   type AdminUsersResponse,
 } from '@/lib/api/admin';
 import { RequireAuth, useAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { useConfirmDialog } from '@/components/platform/ConfirmDialog';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
@@ -162,13 +161,12 @@ function UsersInner() {
   const pages = data ? Math.max(Math.ceil(data.total / PAGE_SIZE), 1) : 1;
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       {dialog}
       <PlatformPageHeader
         title="Users & roles"
         subtitle="Create platform admins, promote or demote with guard rails, reset passwords and disable accounts. Every change lands in the audit log."
       />
-      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {notice && (
@@ -195,18 +193,25 @@ function UsersInner() {
         </div>
       )}
 
-      <form className="platform-card platform-form platform-filter-bar" onSubmit={onCreate}>
-        <div>
+      <form
+        className="platform-card platform-admin-ops-section platform-form platform-filter-bar platform-admin-list-filter-bar"
+        onSubmit={onCreate}
+      >
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--grow-fill">
           <label htmlFor="new-admin-email">Invite a platform admin (email)</label>
           <input
             id="new-admin-email"
             type="email"
+            className="mod-filter-input"
             placeholder="ops@garudhub.in"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
           />
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--action">
+          <label className="platform-admin-list-filter-action-label" aria-hidden="true">
+            &nbsp;
+          </label>
           <button type="submit" className="platform-btn platform-btn-sm" disabled={busy}>
             Create admin
           </button>
@@ -214,17 +219,18 @@ function UsersInner() {
       </form>
 
       <form
-        className="platform-card platform-form platform-filter-bar"
+        className="platform-card platform-admin-ops-section platform-form platform-filter-bar platform-admin-list-filter-bar"
         onSubmit={(e) => {
           e.preventDefault();
           setPage(0);
           setSearch(searchInput);
         }}
       >
-        <div>
+        <div className="platform-admin-list-filter-field">
           <label htmlFor="user-role">Role</label>
           <select
             id="user-role"
+            className="mod-filter-select"
             value={role}
             onChange={(e) => {
               setRole((e.target.value || '') as UserRole | '');
@@ -240,10 +246,11 @@ function UsersInner() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field">
           <label htmlFor="user-status">Status</label>
           <select
             id="user-status"
+            className="mod-filter-select"
             value={status}
             onChange={(e) => {
               setStatus(e.target.value as '' | 'active' | 'disabled');
@@ -255,28 +262,37 @@ function UsersInner() {
             <option value="disabled">Disabled</option>
           </select>
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--grow">
           <label htmlFor="user-search">Search</label>
           <input
             id="user-search"
             type="search"
+            className="mod-filter-input"
             placeholder="Email or company"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        <div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--action">
+          <label className="platform-admin-list-filter-action-label" aria-hidden="true">
+            &nbsp;
+          </label>
           <button type="submit" className="platform-btn platform-btn-sm">
             Apply
           </button>
         </div>
       </form>
 
-      {!data && !error && <PlatformLoading />}
-      {data && (
-        <div className="platform-card">
+      <div
+        className="platform-card platform-admin-ops-section platform-card--flush"
+        aria-busy={!data && !error}
+      >
+        {!data && !error ? (
+          <PlatformLoading />
+        ) : data ? (
+          <>
           <div className="platform-table-wrap">
-            <table className="platform-table">
+            <table className="platform-table mod-table">
               <thead>
                 <tr>
                   <th>Email</th>
@@ -284,7 +300,7 @@ function UsersInner() {
                   <th>Company</th>
                   <th>Status</th>
                   <th>Created</th>
-                  <th>Actions</th>
+                  <th className="platform-table-th-actions">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -302,7 +318,7 @@ function UsersInner() {
                         {u.id === me?.id && <span className="platform-text-muted"> (you)</span>}
                       </td>
                       <td>{formatEnumLabel(u.role)}</td>
-                      <td>
+                      <td className="platform-table-cell-wrap">
                         {u.organization?.companyName ?? '—'}
                         <div className="platform-text-muted">{formatEnumLabel(u.accountType)}</div>
                       </td>
@@ -317,14 +333,13 @@ function UsersInner() {
                         )}
                       </td>
                       <td>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
-                      <td className="platform-link-row">
+                      <td className="platform-table-actions-row">
                         {actions.length === 0 && '—'}
                         {actions.map((a) => (
                           <button
                             key={a}
                             type="button"
                             className="platform-btn platform-btn-secondary platform-btn-sm"
-                            style={{ marginRight: '0.35rem' }}
                             disabled={busy}
                             onClick={() => onAction(u, a)}
                           >
@@ -346,12 +361,12 @@ function UsersInner() {
               </tbody>
             </table>
           </div>
-          <div className="platform-page-header-row" style={{ marginTop: '0.75rem' }}>
+          <div className="platform-admin-list-pagination">
             <span className="platform-text-sm platform-muted">
               {data.total} user{data.total === 1 ? '' : 's'} · {data.activeAdmins} active admin
               {data.activeAdmins === 1 ? '' : 's'} · page {page + 1} of {pages}
             </span>
-            <span>
+            <span className="platform-admin-list-pagination-actions">
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -359,7 +374,7 @@ function UsersInner() {
                 onClick={() => setPage((p) => Math.max(p - 1, 0))}
               >
                 Previous
-              </button>{' '}
+              </button>
               <button
                 type="button"
                 className="platform-btn platform-btn-secondary platform-btn-sm"
@@ -370,8 +385,9 @@ function UsersInner() {
               </button>
             </span>
           </div>
-        </div>
-      )}
-    </>
+          </>
+        ) : null}
+      </div>
+    </div>
   );
 }

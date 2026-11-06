@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -116,7 +117,22 @@ export class CartService {
   }
 
   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
-    const item = await this.findOwnedCartItem(userId, itemId);
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: {
+        cart: true,
+        listing: { select: { minOrderQuantity: true, name: true } },
+      },
+    });
+    if (!item || item.cart.userId !== userId) {
+      throw new NotFoundException('Cart item not found');
+    }
+    const moq = item.listing.minOrderQuantity;
+    if (moq != null && moq > 1 && dto.quantity < moq) {
+      throw new BadRequestException(
+        `Minimum order quantity for "${item.listing.name}" is ${moq}.`,
+      );
+    }
     await this.prisma.cartItem.update({
       where: { id: item.id },
       data: { quantity: dto.quantity },
@@ -156,6 +172,12 @@ export class CartService {
     }
     for (const item of cart.items) {
       this.assertPurchasable(item.listing);
+      const moq = item.listing.minOrderQuantity;
+      if (moq != null && moq > 1 && item.quantity < moq) {
+        throw new UnprocessableEntityException(
+          `Minimum order quantity for "${item.listing.name}" is ${moq}. Increase quantity in your cart or request a quote via RFQ.`,
+        );
+      }
     }
     return cart;
   }

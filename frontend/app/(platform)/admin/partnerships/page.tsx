@@ -8,7 +8,6 @@ import {
   type PartnershipRequestStatus,
 } from '@/lib/api/partnerships';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -32,16 +31,22 @@ function PartnershipsInner() {
   const [filter, setFilter] = useState<PartnershipRequestStatus | ''>('SUBMITTED');
   const [data, setData] = useState<AdminPartnershipsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   const load = useCallback(() => {
+    setLoading(true);
     setError(null);
     listAdminPartnerships(filter || undefined)
-      .then(setData)
-      .catch((e) =>
-        setError(e instanceof ApiError ? e.message : 'Failed to load requests'),
-      );
+      .then((res) => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch((e) => {
+        setError(e instanceof ApiError ? e.message : 'Failed to load requests');
+        setLoading(false);
+      });
   }, [filter]);
 
   useEffect(() => {
@@ -58,136 +63,158 @@ function PartnershipsInner() {
   }
 
   return (
-    <div className="platform-partner-form-page">
-      <AdminSubnav />
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Partnership requests"
         subtitle="Review distributor, dealer, OEM and technology partnership requests from verified partners."
       />
-      <div className="platform-form-layout platform-form-layout--full">
-        {error && <div className="platform-card platform-error">{error}</div>}
 
-        <div className="platform-card platform-form platform-filter-bar">
-          <div>
-            <label htmlFor="pr-status-filter">Status</label>
-            <select
-              id="pr-status-filter"
-              value={filter}
-              onChange={(e) => setFilter((e.target.value || '') as PartnershipRequestStatus | '')}
-            >
-              <option value="">All</option>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {PARTNERSHIP_STATUS_LABELS[s]}
-                  {data ? ` (${data.statusCounts[s]})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+      {data && (
+        <div className="mod-kpi-grid">
+          {(['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'DECLINED'] as PartnershipRequestStatus[]).map(
+            (s) => (
+              <div
+                key={s}
+                className={`mod-kpi-card${filter === s ? ' mod-kpi-card--active' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setFilter(s)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') setFilter(s);
+                }}
+              >
+                <div className="mod-kpi-data">
+                  <div className="mod-kpi-num">{data.statusCounts[s] ?? 0}</div>
+                  <div className="mod-kpi-label">{PARTNERSHIP_STATUS_LABELS[s]}</div>
+                </div>
+              </div>
+            ),
+          )}
         </div>
+      )}
 
-        {!data && !error && <PlatformLoading />}
-        {data && data.items.length === 0 && (
-          <div className="platform-card platform-muted">No requests match this filter.</div>
-        )}
+      {error && <div className="platform-card platform-error">{error}</div>}
 
-        {data && data.items.length > 0 && (
-          <div className="platform-card">
-            <div className="platform-table-wrap">
-              <table className="platform-table">
-                <thead>
-                  <tr>
-                    <th>Submitted</th>
-                    <th>Partner</th>
-                    <th>Type</th>
-                    <th>Request</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((r) => (
-                    <Fragment key={r.id}>
+      <div className="platform-card platform-form platform-filter-bar">
+        <div>
+          <label htmlFor="pr-status-filter">Status</label>
+          <select
+            id="pr-status-filter"
+            className="mod-filter-select"
+            value={filter}
+            onChange={(e) => setFilter((e.target.value || '') as PartnershipRequestStatus | '')}
+          >
+            <option value="">All</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {PARTNERSHIP_STATUS_LABELS[s]}
+                {data ? ` (${data.statusCounts[s]})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="platform-card platform-card--flush" aria-busy={loading}>
+        {loading && !data ? (
+          <PlatformLoading />
+        ) : data && data.items.length === 0 ? (
+          <p className="platform-muted platform-admin-ops-empty">No requests match this filter.</p>
+        ) : data ? (
+          <div className="platform-table-wrap">
+            <table className="platform-table mod-table">
+              <thead>
+                <tr>
+                  <th>Submitted</th>
+                  <th>Partner</th>
+                  <th>Type</th>
+                  <th>Request</th>
+                  <th>Status</th>
+                  <th className="platform-table-th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((r) => (
+                  <Fragment key={r.id}>
+                    <tr>
+                      <td>{new Date(r.createdAt).toLocaleDateString('en-IN')}</td>
+                      <td>
+                        {r.organization.companyName}
+                        <div className="platform-text-muted">{r.organization.contactEmail}</div>
+                      </td>
+                      <td>{PARTNERSHIP_TYPE_LABELS[r.type]}</td>
+                      <td>
+                        {r.title}
+                        {r.targetOrganization && (
+                          <div className="platform-text-muted">
+                            Target: {r.targetOrganization.companyName}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <StatusBadge status={r.status} label={PARTNERSHIP_STATUS_LABELS[r.status]} />
+                      </td>
+                      <td className="platform-table-actions-row">
+                        <button
+                          type="button"
+                          className="platform-btn platform-btn-secondary platform-btn-sm"
+                          onClick={() => setExpanded(expanded === r.id ? null : r.id)}
+                        >
+                          {expanded === r.id ? 'Hide' : 'Review'}
+                        </button>
+                      </td>
+                    </tr>
+                    {expanded === r.id && (
                       <tr>
-                        <td>{new Date(r.createdAt).toLocaleDateString('en-IN')}</td>
-                        <td>
-                          {r.organization.companyName}
-                          <div className="platform-text-muted">{r.organization.contactEmail}</div>
-                        </td>
-                        <td>{PARTNERSHIP_TYPE_LABELS[r.type]}</td>
-                        <td>
-                          {r.title}
-                          {r.targetOrganization && (
-                            <div className="platform-text-muted">
-                              Target: {r.targetOrganization.companyName}
+                        <td colSpan={6}>
+                          <p style={{ whiteSpace: 'pre-wrap' }}>{r.message}</p>
+                          {r.regions && <p className="platform-text-muted">Regions: {r.regions}</p>}
+                          {r.status !== 'WITHDRAWN' && (
+                            <div className="platform-form">
+                              <label htmlFor={`note-${r.id}`}>Note to partner</label>
+                              <textarea
+                                id={`note-${r.id}`}
+                                rows={2}
+                                maxLength={2000}
+                                value={notes[r.id] ?? r.adminNote ?? ''}
+                                onChange={(e) =>
+                                  setNotes((n) => ({ ...n, [r.id]: e.target.value }))
+                                }
+                              />
+                              <div className="platform-form-actions">
+                                <button
+                                  type="button"
+                                  className="platform-btn platform-btn-cta platform-btn-sm"
+                                  onClick={() => decide(r.id, 'APPROVED')}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  className="platform-btn platform-btn-secondary platform-btn-sm"
+                                  onClick={() => decide(r.id, 'UNDER_REVIEW')}
+                                >
+                                  Mark under review
+                                </button>
+                                <button
+                                  type="button"
+                                  className="platform-btn platform-btn-secondary platform-btn-sm"
+                                  onClick={() => decide(r.id, 'DECLINED')}
+                                >
+                                  Decline
+                                </button>
+                              </div>
                             </div>
                           )}
                         </td>
-                        <td>
-                          <StatusBadge status={r.status} label={PARTNERSHIP_STATUS_LABELS[r.status]} />
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className="platform-btn platform-btn-secondary platform-btn-sm"
-                            onClick={() => setExpanded(expanded === r.id ? null : r.id)}
-                          >
-                            {expanded === r.id ? 'Hide' : 'Review'}
-                          </button>
-                        </td>
                       </tr>
-                      {expanded === r.id && (
-                        <tr>
-                          <td colSpan={6}>
-                            <p style={{ whiteSpace: 'pre-wrap' }}>{r.message}</p>
-                            {r.regions && <p className="platform-text-muted">Regions: {r.regions}</p>}
-                            {r.status !== 'WITHDRAWN' && (
-                              <div className="platform-form">
-                                <label htmlFor={`note-${r.id}`}>Note to partner</label>
-                                <textarea
-                                  id={`note-${r.id}`}
-                                  rows={2}
-                                  maxLength={2000}
-                                  value={notes[r.id] ?? r.adminNote ?? ''}
-                                  onChange={(e) =>
-                                    setNotes((n) => ({ ...n, [r.id]: e.target.value }))
-                                  }
-                                />
-                                <div className="platform-form-actions">
-                                  <button
-                                    type="button"
-                                    className="platform-btn platform-btn-cta platform-btn-sm"
-                                    onClick={() => decide(r.id, 'APPROVED')}
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="platform-btn platform-btn-secondary platform-btn-sm"
-                                    onClick={() => decide(r.id, 'UNDER_REVIEW')}
-                                  >
-                                    Mark under review
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="platform-btn platform-btn-secondary platform-btn-sm"
-                                    onClick={() => decide(r.id, 'DECLINED')}
-                                  >
-                                    Decline
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

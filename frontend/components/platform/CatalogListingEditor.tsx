@@ -36,7 +36,7 @@ type CatalogListingFormProps = {
   form: CatalogListingFormValues;
   setForm: SetForm;
   disabled?: boolean;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   footer: ReactNode;
   /** Rendered after section cards, before sticky footer (e.g. edit moderation). */
   trailingSection?: ReactNode;

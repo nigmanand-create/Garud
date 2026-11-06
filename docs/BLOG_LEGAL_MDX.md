@@ -1,6 +1,6 @@
 # Blog & legal content (Markdown CMS pattern)
 
-GarudHub serves **blog** and **legal** pages from native React routes with Markdown source files — not from `content/raw` HTML snapshots. Marketing snapshots (~35 other pages) remain HTML until migrated the same way.
+GarudHub serves **blog** and **legal** pages from native React routes with Markdown source files. Remaining legacy marketing paths use **307 bridges** in `lib/snapshot-bridge.ts` or dedicated React pages — static `content/raw` HTML snapshots were removed (2026-11-05).
 
 ## Routes
 

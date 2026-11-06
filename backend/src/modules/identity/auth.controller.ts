@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -27,6 +29,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
+  RegisterGoogleDto,
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -37,6 +40,10 @@ import {
   clearAuthSession,
   readRefreshTokenFromRequest,
 } from './auth-session.helper';
+import { GoogleOAuthService } from './google-oauth.service';
+import { GOOGLE_PENDING_COOKIE } from './google-oauth.util';
+import { AccountType } from '@prisma/client';
+import { cookieBaseFromConfig } from './google-oauth-cookies.helper';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -44,6 +51,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly googleOAuth: GoogleOAuthService,
   ) {}
 
   @Post('register')
@@ -132,5 +140,139 @@ export class AuthController {
   @ApiOkResponse({ type: AuthUserResponse })
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getMe(user.userId);
+  }
+
+  @Get('google')
+  @Throttle({ default: throttleFor('auth') })
+  @ApiOperation({ summary: 'Start Google OAuth (redirects to Google)' })
+  googleStart(
+    @Query('mode') mode: string | undefined,
+    @Query('accountType') accountType: string | undefined,
+    @Query('intent') intent: string | undefined,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!this.googleOAuth.isConfigured()) {
+      res.redirect(this.authPageUrl('/auth/login', 'oauth_not_configured'));
+      return;
+    }
+    const flow = mode === 'register' ? 'register' : 'login';
+    let parsedAccountType: AccountType | undefined;
+    if (accountType && accountType in AccountType) {
+      parsedAccountType = accountType as AccountType;
+    }
+    try {
+      const url = this.googleOAuth.buildAuthorizationUrl({
+        mode: flow,
+        accountType: parsedAccountType,
+        intent: intent?.trim() || undefined,
+      });
+      res.redirect(url);
+    } catch {
+      res.redirect(this.authPageUrl('/auth/login', 'oauth_not_configured'));
+    }
+  }
+
+  @Get('google/callback')
+  @Throttle({ default: throttleFor('auth') })
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleCallback(
+    @Query('code') code: string | undefined,
+    @Query('state') state: string | undefined,
+    @Query('error') oauthError: string | undefined,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (oauthError || !code) {
+      res.redirect(this.authPageUrl('/auth/login', oauthError || 'oauth_denied'));
+      return;
+    }
+    if (!this.googleOAuth.isConfigured()) {
+      res.redirect(this.authPageUrl('/auth/login', 'oauth_not_configured'));
+      return;
+    }
+    const parsedState = this.googleOAuth.parseState(state);
+    if (!parsedState) {
+      res.redirect(this.authPageUrl('/auth/login', 'oauth_state_invalid'));
+      return;
+    }
+    try {
+      const profile = await this.googleOAuth.exchangeCode(code);
+      const result = await this.authService.loginFromGoogle(profile, parsedState);
+      if (result.outcome === 'error') {
+        res.redirect(this.authPageUrl('/auth/login', result.code));
+        return;
+      }
+      if (result.outcome === 'pending') {
+        const token = this.googleOAuth.signPendingSignup(result.pending);
+        const base = cookieBaseFromConfig(this.config);
+        res.cookie(GOOGLE_PENDING_COOKIE, token, {
+          ...base,
+          maxAge: 10 * 60 * 1000,
+        });
+        res.redirect(this.authPageUrl('/auth/register/google', undefined));
+        return;
+      }
+      applyAuthSession(req, res, this.config, result.tokens);
+      res.redirect(this.authPageUrl('/auth/oauth/callback', undefined, '1'));
+    } catch {
+      res.redirect(this.authPageUrl('/auth/login', 'oauth_failed'));
+    }
+  }
+
+  @Get('google/pending')
+  @ApiOperation({ summary: 'Google signup profile from pending cookie' })
+  googlePending(@Req() req: Request) {
+    const token = req.cookies?.[GOOGLE_PENDING_COOKIE] as string | undefined;
+    if (!token) {
+      return { pending: null };
+    }
+    const pending = this.googleOAuth.parsePendingSignup(token);
+    if (!pending) {
+      return { pending: null };
+    }
+    return {
+      pending: {
+        email: pending.email,
+        displayName: pending.displayName,
+        accountType: pending.accountType,
+      },
+    };
+  }
+
+  @Post('google/complete')
+  @HttpCode(200)
+  @Throttle({ default: throttleFor('auth') })
+  @ApiOperation({ summary: 'Complete registration after Google OAuth' })
+  @ApiOkResponse({ type: AuthTokensResponse })
+  async googleComplete(
+    @Body() dto: RegisterGoogleDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = req.cookies?.[GOOGLE_PENDING_COOKIE] as string | undefined;
+    if (!token) {
+      throw new BadRequestException('Google signup session expired. Try again.');
+    }
+    const pending = this.googleOAuth.parsePendingSignup(token);
+    if (!pending) {
+      throw new BadRequestException('Google signup session expired. Try again.');
+    }
+    const tokens = await this.authService.registerFromGoogle(pending, dto);
+    res.clearCookie(GOOGLE_PENDING_COOKIE, cookieBaseFromConfig(this.config));
+    return applyAuthSession(req, res, this.config, tokens);
+  }
+
+  private authPageUrl(
+    path: string,
+    error?: string,
+    success?: string,
+  ): string {
+    const base = this.config
+      .get<string>('PUBLIC_APP_URL', 'http://localhost:3001')
+      .replace(/\/+$/, '');
+    const url = new URL(path, base);
+    if (error) url.searchParams.set('error', error);
+    if (success) url.searchParams.set('success', success);
+    return url.toString();
   }
 }

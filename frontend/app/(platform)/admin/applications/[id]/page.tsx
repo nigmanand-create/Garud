@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { apiDownload, apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { Button } from '@/components/platform/Button';
@@ -90,7 +89,6 @@ function DetailInner() {
     return (
       <>
         <PlatformPageHeader title="Partner application" subtitle="Loading application details…" />
-        <AdminSubnav />
         <p className="platform-muted platform-loading-center">Loading…</p>
       </>
     );
@@ -113,7 +111,6 @@ function DetailInner() {
         backHref="/admin/applications"
         backLabel="Applications"
       />
-      <AdminSubnav />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {message && <div className="platform-card platform-success">{message}</div>}

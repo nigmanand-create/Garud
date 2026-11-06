@@ -114,7 +114,7 @@ export default function ListingDetailPage() {
     try {
       // One seller per cart: replacing means clearing the existing (other-seller) cart first.
       if (replaceCart) await clearCart();
-      await addToCart(listing.id, listing.minOrderQuantity ?? 1);
+      await addToCart(listing.id, 1);
       router.push('/buyer/cart');
     } catch (e) {
       if (isSingleSellerConflict(e)) {
@@ -229,9 +229,9 @@ export default function ListingDetailPage() {
             <p className="platform-detail-price">
               {formatPrice(listing.priceOnRequest, listing.priceInr)}
             </p>
-            {listing.minOrderQuantity != null && (
+            {listing.minOrderQuantity != null && listing.minOrderQuantity > 1 && (
               <p className="platform-muted platform-text-muted-sm">
-                MOQ: {listing.minOrderQuantity}
+                Minimum order: {listing.minOrderQuantity} units (enforced at checkout)
               </p>
             )}
             {listing.warranty && (

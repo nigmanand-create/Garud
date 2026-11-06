@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { RequireAuth } from '@/components/platform/AuthProvider';
-import { AdminSubnav } from '@/components/platform/AdminSubnav';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
 import { CATEGORY_LABELS, formatEnumLabel, formatPrice } from '@/lib/platform/labels';
@@ -77,12 +76,11 @@ function ListingsQueueInner() {
   ];
 
   return (
-    <>
+    <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Listing Moderation Console"
         subtitle="Review, approve, or reject partner drone hardware and service listings before they go live on the public marketplace."
       />
-      <AdminSubnav />
 
       {/* KPI Metric Cards */}
       <div className="mod-kpi-grid">
@@ -187,7 +185,7 @@ function ListingsQueueInner() {
         {(searchQuery || category || status !== 'PENDING_REVIEW') && (
           <button
             type="button"
-            className="platform-btn platform-btn--secondary platform-btn-sm"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
             onClick={() => {
               setSearchQuery('');
               setCategory('');
@@ -327,6 +325,6 @@ function ListingsQueueInner() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

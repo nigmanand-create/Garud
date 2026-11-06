@@ -40,6 +40,10 @@ Verify these **immediately after deploy** on the staging host (VPS + pm2/systemd
 
 **Do not use demo passwords on production.** Staging seed (if needed): on the host only, after migrate — `cd backend && npm run prisma:seed` when permitted ([`ALLOW_DEMO_SEED`](./PAYMENTS_RUNBOOK.md#2-environment-matrix) / non-production policy). **Never** seed production.
 
+### Fresh data reset (local or staging)
+
+To wipe orders, RFQs, enquiries, carts, and catalog rows **without** deleting demo users (`admin@`, `partner@`, `buyer@`, etc.): from `backend/`, run `npm run commerce:fresh` (or `commerce:reset` then `prisma:seed`). On production-like `NODE_ENV`, set `ALLOW_COMMERCE_RESET=true` for a one-off wipe. Default seed no longer creates sample orders; use `SEED_DEMO_TRANSACTIONS=true npm run prisma:seed` if you need the legacy PO/NEFT demo order.
+
 **Checkout listing (after seed):** **Garud AgriSpray X1** (SKU `GD-AGRI-X1`) — see [`DEMO_ACCOUNTS.md`](../DEMO_ACCOUNTS.md#checkout-test-manual-qa).
 
 ### httpOnly session cookies

@@ -16,7 +16,7 @@ Related: [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) · [`DEPLOY_CLOU
 | Partner plan | Razorpay Subscriptions | `subscription.*` webhooks (checkout callback activates early) | `partner-billing.service.ts` |
 | Buyer order — COD (opt-in) | — (no Razorpay order) | `CASH_ON_DELIVERY` transaction + manual settlement; **`POST /payments/intent`** and wire UTR return **422** | `checkout.service.ts`, `payments.service.ts` |
 
-**COD opt-in:** Set `COD_ENABLED=true` on the API to expose Cash on Delivery at buyer checkout (default off / unset). Razorpay intents and bank UTR flows are blocked server-side for COD orders.
+**COD opt-in:** Set `COD_ENABLED=true` on the API to expose Cash on Delivery at buyer checkout (default off / unset). Razorpay intents and bank UTR flows are blocked server-side for COD orders. **Do not enable in production until Biz closes [NEXT-B1](./NEXT_TASK_LIST.md#sprint-business-optional)** — see [`COD_DECISION.md`](./COD_DECISION.md).
 
 ---
 

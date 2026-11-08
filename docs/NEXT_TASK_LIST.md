@@ -25,7 +25,7 @@
 2. ~~**Home / snapshot → React** design parity~~ — hero done `7c94b28`; optional: migrate remaining snapshot-only marketing pages.  
 3. ~~**Blog/legal** snapshot migration~~ — **MDX/markdown CMS** `a611290` — see [`BLOG_LEGAL_MDX.md`](./BLOG_LEGAL_MDX.md); ~35 marketing HTML pages still snapshot (later pass).  
 4. Fix only what **staging smoke** fails (checkout/webhook) — see open checkboxes below.  
-5. **COD** — blocked on biz (**NEXT-B1/B2**).
+5. **COD** — blocked on biz (**[NEXT-B1](./COD_DECISION.md#next-b1--three-options-for-biz)** / **[NEXT-B2](./COD_DECISION.md#gaps--what-next-b2-would-still-need-if-biz-approves)**) — see [`COD_DECISION.md`](./COD_DECISION.md).
 
 **Parallel (not coding):** **NEXT-L2**, **P0-PAY3/4**, host Phase 0 — [`STAGING_SMOKE_GUIDE.md`](./STAGING_SMOKE_GUIDE.md).
 
@@ -151,8 +151,8 @@ Revenue, trust, and spec depth after launch gate. Ordered by typical dependency.
 
 Requires product/legal decisions; not launch blockers.
 
-- [ ] **NEXT-B1** — COD payment decision — **P2** — Biz chooses whether to wire `CASH_ON_DELIVERY` end-to-end ([PRD Phase 4 deferral](./PRD_REMAINING_TASKS.md#phase-4--marketplace-prd-gaps)). *(Biz)* — **Blocked on business decision.**
-- [ ] **NEXT-B2** — COD implementation — **P2** — If approved: checkout, order state, and admin reconciliation for COD. *(Dev)* — **Blocked on NEXT-B1.**
+- [ ] **NEXT-B1** — COD payment decision — **P2** — Biz picks **Approve full COD / Defer (hide) / Limited pilot** — options in [`COD_DECISION.md`](./COD_DECISION.md#next-b1--three-options-for-biz); context in [PRD Phase 4](./PRD_REMAINING_TASKS.md#phase-4--marketplace-prd-gaps). *(Biz)* — **Blocked on business decision.**
+- [ ] **NEXT-B2** — COD implementation — **P2** — If B1 approves (A or C): finish **admin COD reconciliation**, ops runbook, tests/smoke, and policy hooks — partial flow already behind `COD_ENABLED` (see [`COD_DECISION.md`](./COD_DECISION.md#what-already-exists-feature-flagged)). *(Dev)* — **Blocked on [NEXT-B1](#sprint-business-optional).**
 - [x] **NEXT-B3** — GST invoices / billing history — **P2** — Partner subscription and order invoices for Indian B2B compliance. *(Dev/Biz)* — *2026-11-04: HTML receipt stubs — `GET /buyer/orders/:id/receipt.html` (paid), `GET /partner/subscription/receipt.html` (active paid plan); UI links on order + subscription pages; **not** statutory GST / e-invoice — Biz + formal compliance still backlog.*
 
 ---

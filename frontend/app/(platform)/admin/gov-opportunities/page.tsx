@@ -9,9 +9,11 @@ import { StatusBadge } from '@/components/platform/StatusBadge';
 import {
   createGovOpportunity,
   deleteGovOpportunity,
+  importGovOpportunitiesCsv,
   listAdminGovOpportunities,
   updateGovOpportunity,
   type AdminGovResponse,
+  type GovImportReport,
 } from '@/lib/api/gov';
 import { ApiError } from '@/lib/api/types';
 import {
@@ -51,6 +53,11 @@ function Inner() {
   const [description, setDescription] = useState('');
   const [publishNow, setPublishNow] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPaste, setImportPaste] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importReport, setImportReport] = useState<GovImportReport | null>(null);
 
   const load = useCallback(() => {
     listAdminGovOpportunities(filter || undefined)
@@ -109,15 +116,120 @@ function Inner() {
     }
   }
 
+  async function runImport(e: FormEvent) {
+    e.preventDefault();
+    setImporting(true);
+    setError(null);
+    setNotice(null);
+    setImportReport(null);
+    try {
+      const report = await importGovOpportunitiesCsv({
+        file: importFile ?? undefined,
+        csvText: importPaste.trim() || undefined,
+      });
+      setImportReport(report);
+      setNotice(
+        `Import finished: ${report.created} created, ${report.updated} updated, ${report.skipped} skipped, ${report.errors} errors.`,
+      );
+      setImportFile(null);
+      setImportPaste('');
+      load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="platform-admin-list-page">
       <PlatformPageHeader
         title="Tenders & schemes"
         subtitle="Curate government tenders, schemes and subsidies shown on /government. Visitor interest arrives in the enquiry queue as Tender / scheme leads."
+        actions={
+          <button
+            type="button"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
+            onClick={() => setImportOpen((v) => !v)}
+          >
+            {importOpen ? 'Hide import' : 'Import CSV'}
+          </button>
+        }
       />
 
       {error && <div className="platform-card platform-error">{error}</div>}
       {notice && <div className="platform-card platform-success">{notice}</div>}
+
+      {importOpen && (
+        <section
+          className="platform-card platform-admin-ops-section platform-form"
+          aria-labelledby="go-import-heading"
+        >
+          <div className="platform-admin-ops-section-head">
+            <h2 id="go-import-heading" className="platform-admin-ops-section-title">
+              Bulk import (CSV)
+            </h2>
+            <p className="platform-muted platform-admin-ops-section-sub">
+              Rows import as <strong>draft</strong> unless the <code>publish</code> column is true.
+              Dedupe by <code>referenceNo</code>, or title + issuing body. See{' '}
+              <code>docs/GOV_TENDER_IMPORT.md</code>.
+            </p>
+          </div>
+          <p>
+            <a
+              href="/samples/gov-opportunity-import-template.csv"
+              download="gov-opportunity-import-template.csv"
+              className="platform-link"
+            >
+              Download sample CSV template
+            </a>
+          </p>
+          <form onSubmit={runImport}>
+            <div>
+              <label htmlFor="go-import-file">CSV file</label>
+              <input
+                id="go-import-file"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(ev) => setImportFile(ev.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div>
+              <label htmlFor="go-import-paste">Or paste CSV</label>
+              <textarea
+                id="go-import-paste"
+                rows={6}
+                placeholder="type,title,summary,issuingBody,..."
+                value={importPaste}
+                onChange={(ev) => setImportPaste(ev.target.value)}
+              />
+            </div>
+            <div className="platform-form-actions">
+              <button
+                type="submit"
+                className="platform-btn platform-btn-cta platform-btn-sm"
+                disabled={importing || (!importFile && !importPaste.trim())}
+              >
+                {importing ? 'Importing…' : 'Run import'}
+              </button>
+            </div>
+          </form>
+          {importReport && importReport.rows.length > 0 && (
+            <details className="platform-admin-import-report">
+              <summary>Row-by-row report ({importReport.rows.length})</summary>
+              <ul className="platform-admin-import-report-list">
+                {importReport.rows.map((r) => (
+                  <li key={`${r.row}-${r.action}-${r.title ?? ''}`}>
+                    Row {r.row}: {r.action}
+                    {r.title ? ` — ${r.title}` : ''}
+                    {r.message ? ` (${r.message})` : ''}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </section>
+      )}
 
       {data && (
         <div className="mod-kpi-grid">

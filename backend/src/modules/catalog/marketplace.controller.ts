@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AccountType, CatalogCategory, ListingType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CatalogService } from './catalog.service';
 
 @ApiTags('Marketplace')
@@ -45,7 +46,41 @@ export class MarketplaceController {
   @ApiQuery({
     name: 'state',
     required: false,
-    description: 'Vendor state (exact, case-insensitive)',
+    description: 'Verified vendor organization state (exact, case-insensitive)',
+  })
+  @ApiQuery({
+    name: 'listingState',
+    required: false,
+    description:
+      'Listing-level state field when set on the catalog row (exact, case-insensitive)',
+  })
+  @ApiQuery({
+    name: 'brand',
+    required: false,
+    description: 'Listing brand (exact match, case-insensitive)',
+  })
+  @ApiQuery({
+    name: 'city',
+    required: false,
+    description: 'Listing city (exact match, case-insensitive)',
+  })
+  @ApiQuery({
+    name: 'minPrice',
+    required: false,
+    type: Number,
+    description: 'Min listed INR price (priced listings only)',
+  })
+  @ApiQuery({
+    name: 'maxPrice',
+    required: false,
+    type: Number,
+    description: 'Max listed INR price (priced listings only)',
+  })
+  @ApiQuery({
+    name: 'maxMoq',
+    required: false,
+    type: Number,
+    description: 'Include listings with no MOQ or min order quantity at most this value',
   })
   @ApiQuery({ name: 'priceType', required: false, enum: ['priced', 'rfq'] })
   @ApiQuery({
@@ -69,6 +104,12 @@ export class MarketplaceController {
     @Query('skip') skip?: string,
     @Query('take') take?: string,
     @Query('state') state?: string,
+    @Query('listingState') listingState?: string,
+    @Query('brand') brand?: string,
+    @Query('city') city?: string,
+    @Query('minPrice') minPriceRaw?: string,
+    @Query('maxPrice') maxPriceRaw?: string,
+    @Query('maxMoq') maxMoqRaw?: string,
     @Query('priceType') priceType?: string,
     @Query('sort') sort?: string,
   ) {
@@ -79,12 +120,36 @@ export class MarketplaceController {
           .filter(Boolean) as CatalogCategory[])
       : undefined;
 
+    const parseMoney = (raw?: string) => {
+      if (raw == null || raw === '') return undefined;
+      const n = parseFloat(raw);
+      if (!Number.isFinite(n) || n < 0) return undefined;
+      try {
+        return new Prisma.Decimal(raw);
+      } catch {
+        return undefined;
+      }
+    };
+
+    const minPrice = parseMoney(minPriceRaw);
+    const maxPrice = parseMoney(maxPriceRaw);
+    const maxMoqParsed = maxMoqRaw != null ? parseInt(maxMoqRaw, 10) : undefined;
+
     return this.catalogService.browsePublic({
       listingType,
       category: categories?.length ? undefined : category,
       categories,
       q,
       state,
+      listingState: listingState?.trim() || undefined,
+      brand: brand?.trim() || undefined,
+      city: city?.trim() || undefined,
+      minPrice,
+      maxPrice,
+      maxMoq:
+        maxMoqParsed != null && Number.isFinite(maxMoqParsed)
+          ? maxMoqParsed
+          : undefined,
       priceType:
         priceType === 'priced' || priceType === 'rfq' ? priceType : undefined,
       sort:

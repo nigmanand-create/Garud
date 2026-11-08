@@ -1,9 +1,21 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { FormEvent, Suspense, useCallback, useEffect, useState } from 'react';
+import {
+  FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
 import {
   createAdminUser,
+  deleteAdminUser,
   listAdminUsers,
   resetUserPassword,
   setUserDisabled,
@@ -41,6 +53,201 @@ export default function AdminUsersPage() {
 
 type Secret = { email: string; password: string; title: string };
 
+const USER_ACTION_MENU_ORDER: UserAction[] = [
+  'promote',
+  'demote',
+  'reset',
+  'disable',
+  'enable',
+  'delete',
+];
+
+function userActionMenuLabel(action: UserAction): string {
+  switch (action) {
+    case 'promote':
+      return 'Make admin';
+    case 'demote':
+      return 'Demote';
+    case 'reset':
+      return 'Reset password';
+    case 'disable':
+      return 'Disable';
+    case 'enable':
+      return 'Enable';
+    case 'delete':
+      return 'Delete';
+    default:
+      return action;
+  }
+}
+
+function UserRowActionsMenu({
+  user: u,
+  actions,
+  busy,
+  open,
+  onOpenChange,
+  onPick,
+}: {
+  user: AdminUser;
+  actions: UserAction[];
+  busy: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPick: (user: AdminUser, action: UserAction) => void;
+}) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  const sortedActions = [...actions].sort(
+    (a, b) => USER_ACTION_MENU_ORDER.indexOf(a) - USER_ACTION_MENU_ORDER.indexOf(b),
+  );
+
+  const updatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const menuEl = menuRef.current;
+    if (!trigger) return;
+    const tr = trigger.getBoundingClientRect();
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 0;
+    const margin = 8;
+    const width = menuEl?.offsetWidth ?? 176;
+    let left = tr.right - width;
+    if (left + width > vw - margin) left = vw - margin - width;
+    if (left < margin) left = margin;
+    setCoords({ top: tr.bottom + 6, left });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+  }, [open, sortedActions.length, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onScrollOrResize() {
+      updatePosition();
+    }
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, [open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: MouseEvent) {
+      const t = e.target as Node;
+      if (triggerRef.current?.contains(t)) return;
+      if (menuRef.current?.contains(t)) return;
+      onOpenChange(false);
+    }
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open, onOpenChange]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onOpenChange(false);
+        triggerRef.current?.focus();
+      }
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
+  function onTriggerKeyDown(e: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpenChange(!open);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!open) onOpenChange(true);
+      requestAnimationFrame(() => {
+        const first = menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+        first?.focus();
+      });
+    }
+  }
+
+  function onMenuKeyDown(e: ReactKeyboardEvent<HTMLDivElement>) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const items = [
+      ...Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []),
+    ];
+    if (items.length === 0) return;
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    const delta = e.key === 'ArrowDown' ? 1 : -1;
+    let next = i < 0 ? (delta === 1 ? 0 : items.length - 1) : i + delta;
+    next = ((next % items.length) + items.length) % items.length;
+    items[next]?.focus();
+  }
+
+  const portal =
+    open && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            ref={menuRef}
+            id={menuId}
+            className="platform-user-actions-menu"
+            style={{ top: coords.top, left: coords.left }}
+            role="menu"
+            aria-label={`Actions for ${u.email}`}
+            onKeyDown={onMenuKeyDown}
+          >
+            {sortedActions.map((a) => (
+              <button
+                key={a}
+                type="button"
+                role="menuitem"
+                className={
+                  a === 'delete' || a === 'demote' || a === 'disable'
+                    ? 'platform-user-actions-menu__item platform-user-actions-menu__item--danger'
+                    : 'platform-user-actions-menu__item'
+                }
+                disabled={busy}
+                onClick={() => {
+                  onOpenChange(false);
+                  onPick(u, a);
+                }}
+              >
+                {userActionMenuLabel(a)}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null;
+
+  return (
+    <div className="platform-user-actions-wrap">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="platform-user-actions-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-label={`Open actions for ${u.email}`}
+        disabled={busy}
+        onClick={() => onOpenChange(!open)}
+        onKeyDown={onTriggerKeyDown}
+      >
+        <i className="bi bi-three-dots-vertical" aria-hidden />
+      </button>
+      {portal}
+    </div>
+  );
+}
+
 function UsersInner() {
   const { user: me } = useAuth();
   const params = useSearchParams();
@@ -56,6 +263,7 @@ function UsersInner() {
   const [secret, setSecret] = useState<Secret | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [busy, setBusy] = useState(false);
+  const [openActionsUserId, setOpenActionsUserId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     listAdminUsers({
@@ -74,6 +282,10 @@ function UsersInner() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    setOpenActionsUserId(null);
+  }, [page, search, role, status]);
 
   async function run(work: () => Promise<void>) {
     setError(null);
@@ -104,7 +316,10 @@ function UsersInner() {
   }
 
   async function onAction(u: AdminUser, action: UserAction) {
-    const copy: Record<UserAction, { title: string; message: string; destructive?: boolean }> = {
+    const copy: Record<
+      UserAction,
+      { title: string; message: string; destructive?: boolean }
+    > = {
       promote: {
         title: `Promote ${u.email} to platform admin?`,
         message:
@@ -130,6 +345,12 @@ function UsersInner() {
         title: `Re-enable ${u.email}?`,
         message: 'They will be able to sign in again.',
       },
+      delete: {
+        title: `Delete ${u.email}?`,
+        message:
+          'Soft delete: sign-in is blocked, credentials cleared, and this account is removed from the directory. Orders and history stay linked for compliance. This cannot be undone from the console.',
+        destructive: true,
+      },
     };
     const ok = await confirm({
       ...copy[action],
@@ -151,6 +372,9 @@ function UsersInner() {
           password: res.temporaryPassword,
           title: 'Temporary password issued',
         });
+      } else if (action === 'delete') {
+        await deleteAdminUser(u.id);
+        setNotice(`${u.email} was deleted (soft delete; audit log updated).`);
       } else {
         await setUserDisabled(u.id, action === 'disable');
         setNotice(`${u.email} ${action === 'disable' ? 'disabled' : 're-enabled'}.`);
@@ -165,7 +389,7 @@ function UsersInner() {
       {dialog}
       <PlatformPageHeader
         title="Users & roles"
-        subtitle="Create platform admins, promote or demote with guard rails, reset passwords and disable accounts. Every change lands in the audit log."
+        subtitle="Create platform admins, promote or demote with guard rails, reset passwords, disable accounts, or soft-delete. Every change lands in the audit log."
       />
 
       {error && <div className="platform-card platform-error">{error}</div>}
@@ -333,27 +557,33 @@ function UsersInner() {
                         )}
                       </td>
                       <td>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
-                      <td className="platform-table-actions-row">
-                        {actions.length === 0 && '—'}
-                        {actions.map((a) => (
-                          <button
-                            key={a}
-                            type="button"
-                            className="platform-btn platform-btn-secondary platform-btn-sm"
-                            disabled={busy}
-                            onClick={() => onAction(u, a)}
-                          >
-                            {a === 'promote'
-                              ? 'Make admin'
-                              : a === 'demote'
-                                ? 'Demote'
-                                : a === 'reset'
-                                  ? 'Reset password'
-                                  : a === 'disable'
-                                    ? 'Disable'
-                                    : 'Enable'}
-                          </button>
-                        ))}
+                      <td className="platform-table-td-actions">
+                        <div
+                          className={`platform-table-actions-inner${
+                            actions.length === 0
+                              ? ' platform-table-actions-inner--empty'
+                              : ' platform-table-actions-inner--menu'
+                          }`}
+                        >
+                          {actions.length === 0 ? (
+                            '—'
+                          ) : (
+                            <UserRowActionsMenu
+                              user={u}
+                              actions={actions}
+                              busy={busy}
+                              open={openActionsUserId === u.id}
+                              onOpenChange={(next) => {
+                                if (next) setOpenActionsUserId(u.id);
+                                else
+                                  setOpenActionsUserId((cur) =>
+                                    cur === u.id ? null : cur,
+                                  );
+                              }}
+                              onPick={onAction}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

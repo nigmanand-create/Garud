@@ -21,6 +21,7 @@ describe('AdminUsersService', () => {
   const prismaMock = {
     user: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -39,6 +40,7 @@ describe('AdminUsersService', () => {
     accountType: AccountType.TECHNOLOGY_COMPANY,
     mustChangePassword: false,
     disabledAt: null,
+    deletedAt: null,
     createdAt: new Date(),
     organization: null,
     ...over,
@@ -50,6 +52,7 @@ describe('AdminUsersService', () => {
     accountType: AccountType.MANUFACTURER,
     mustChangePassword: false,
     disabledAt: null,
+    deletedAt: null,
     createdAt: new Date(),
     organization: {
       id: 'org-1',
@@ -61,6 +64,10 @@ describe('AdminUsersService', () => {
 
   beforeEach(async () => {
     jest.resetAllMocks();
+    prismaMock.user.findFirst.mockImplementation(
+      (args: { where: { id: string } }) =>
+        prismaMock.user.findUnique({ where: { id: args.where.id } }),
+    );
     prismaMock.$transaction.mockImplementation(
       (fn: (tx: typeof prismaMock) => unknown) => fn(prismaMock),
     );
@@ -107,11 +114,34 @@ describe('AdminUsersService', () => {
     });
 
     it('rejects an email that is already registered', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({ id: 'u' });
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 'u',
+        deletedAt: null,
+      });
       await expect(
         service.createAdmin('admin-1', { email: 'a@b.com' }),
       ).rejects.toBeInstanceOf(ConflictException);
       expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('re-uses an email freed from a soft-deleted user', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 'old-del',
+        email: 'a@b.com',
+        deletedAt: new Date(),
+      });
+      prismaMock.user.create.mockImplementation(
+        ({ data }: { data: { email: string } }) =>
+          Promise.resolve(admin({ email: data.email, id: 'new-admin' })),
+      );
+
+      await service.createAdmin('admin-1', { email: 'a@b.com' });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith({
+        where: { id: 'old-del' },
+        data: { email: 'deleted_old-del@removed.garudhub.invalid' },
+      });
+      expect(prismaMock.user.create).toHaveBeenCalled();
     });
   });
 
@@ -283,6 +313,48 @@ describe('AdminUsersService', () => {
     });
   });
 
+  describe('deleteUser', () => {
+    it('soft-deletes, anonymizes, revokes tokens, and audits', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(partner());
+      await service.deleteUser('admin-1', 'user-1');
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: expect.objectContaining({
+            deletedAt: expect.any(Date),
+            email: 'deleted_user-1@removed.garudhub.invalid',
+            passwordHash: null,
+            googleSub: null,
+            phoneE164: null,
+          }),
+        }),
+      );
+      expect(prismaMock.refreshToken.updateMany).toHaveBeenCalled();
+      expect(prismaMock.adminUserAuditLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          action: AdminUserAuditAction.USER_DELETED,
+          targetUserId: 'user-1',
+          targetEmail: 'partner@x.com',
+        }),
+      });
+    });
+
+    it('blocks deleting yourself', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(admin({ id: 'admin-1' }));
+      await expect(service.deleteUser('admin-1', 'admin-1')).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+
+    it('refuses to delete the last active platform admin', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(admin());
+      prismaMock.user.count.mockResolvedValue(0);
+      await expect(service.deleteUser('admin-1', 'admin-2')).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+  });
+
   describe('list', () => {
     it('applies filters and returns role counts', async () => {
       prismaMock.user.findMany.mockResolvedValue([partner()]);
@@ -300,6 +372,7 @@ describe('AdminUsersService', () => {
 
       const args = prismaMock.user.findMany.mock.calls[0][0];
       expect(args.take).toBe(100);
+      expect(args.where.deletedAt).toBeNull();
       expect(args.where.role).toBe(UserRole.PARTNER);
       expect(args.where.disabledAt).toBeNull();
       expect(args.where.OR).toHaveLength(2);

@@ -14,11 +14,32 @@ import {
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
   CreateGovOpportunityDto,
+  ImportGovOpportunityRowDto,
   SubmitGovBidDto,
   UpdateGovOpportunityDto,
 } from './dto/gov.dto';
 import { GovBidDocumentService } from './gov-bid-document.service';
+import { mapCsvRow, parseCsvText, parseTruthyPublish } from './gov-csv.util';
 import { areTenderBidsUnsealed, isOpportunityExpired } from './gov.rules';
+
+export type GovImportRowResult = {
+  row: number;
+  action: 'created' | 'updated' | 'skipped' | 'error';
+  message?: string;
+  id?: string;
+  referenceNo?: string | null;
+  title?: string;
+};
+
+export type GovImportReport = {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  rows: GovImportRowResult[];
+};
+
+const MAX_IMPORT_ROWS = 500;
 
 function withFlags<T extends { closingDate: Date | null }>(row: T) {
   return { ...row, isExpired: isOpportunityExpired(row.closingDate) };
@@ -144,6 +165,226 @@ export class GovService {
     if (open && close && close < open) {
       throw new BadRequestException('Closing date must be after the open date');
     }
+  }
+
+  async importFromCsv(
+    adminUserId: string,
+    csvText: string,
+  ): Promise<GovImportReport> {
+    const parsed = parseCsvText(csvText.replace(/^\uFEFF/, ''));
+    if (!parsed.headers.length) {
+      throw new BadRequestException('CSV has no header row');
+    }
+    const records = parsed.rows.map((cells, idx) => ({
+      rowNumber: idx + 2,
+      raw: mapCsvRow(parsed.headers, cells),
+    }));
+    return this.importRawRows(adminUserId, records);
+  }
+
+  async importJsonRows(
+    adminUserId: string,
+    rows: ImportGovOpportunityRowDto[],
+  ): Promise<GovImportReport> {
+    if (!rows?.length) {
+      throw new BadRequestException('No rows to import');
+    }
+    const records = rows.map((row, idx) => ({
+      rowNumber: idx + 1,
+      raw: this.jsonRowToRaw(row),
+    }));
+    return this.importRawRows(adminUserId, records);
+  }
+
+  private jsonRowToRaw(
+    row: ImportGovOpportunityRowDto,
+  ): Record<string, string> {
+    const out: Record<string, string> = {};
+    const put = (key: string, val: unknown) => {
+      if (val === undefined || val === null) return;
+      if (typeof val === 'number') out[key] = String(val);
+      else if (typeof val === 'string' && val.trim() !== '')
+        out[key] = val.trim();
+      else if (typeof val === 'boolean') out[key] = val ? 'true' : 'false';
+    };
+    put('type', row.type);
+    put('title', row.title);
+    put('summary', row.summary);
+    put('description', row.description);
+    put('issuingBody', row.issuingBody);
+    put('referenceNo', row.referenceNo);
+    put('state', row.state);
+    put('sourceUrl', row.sourceUrl);
+    put('estimatedValueInr', row.estimatedValueInr);
+    put('openDate', row.openDate);
+    put('closingDate', row.closingDate);
+    put('eligibility', row.eligibility);
+    if (row.status === GovOpportunityStatus.PUBLISHED) put('publish', 'true');
+    else if (row.publish) put('publish', row.publish);
+    return out;
+  }
+
+  private async importRawRows(
+    adminUserId: string,
+    records: { rowNumber: number; raw: Record<string, string> }[],
+  ): Promise<GovImportReport> {
+    if (records.length > MAX_IMPORT_ROWS) {
+      throw new BadRequestException(
+        `Import limited to ${MAX_IMPORT_ROWS} rows per request`,
+      );
+    }
+    const report: GovImportReport = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: 0,
+      rows: [],
+    };
+    for (const { rowNumber, raw } of records) {
+      try {
+        const dto = this.rawToCreateDto(raw);
+        const result = await this.upsertImportedRow(adminUserId, dto);
+        report.rows.push({ row: rowNumber, ...result });
+        if (result.action === 'created') report.created += 1;
+        else if (result.action === 'updated') report.updated += 1;
+        else report.skipped += 1;
+      } catch (e) {
+        const message =
+          e instanceof BadRequestException
+            ? e.message
+            : 'Import failed for this row';
+        report.rows.push({ row: rowNumber, action: 'error', message });
+        report.errors += 1;
+      }
+    }
+    return report;
+  }
+
+  private rawToCreateDto(raw: Record<string, string>): CreateGovOpportunityDto {
+    const typeRaw = (raw.type ?? 'TENDER').trim().toUpperCase();
+    if (!(typeRaw in GovOpportunityType)) {
+      throw new BadRequestException(`Invalid type "${raw.type ?? ''}"`);
+    }
+    const title = raw.title?.trim() ?? '';
+    const summary = raw.summary?.trim() ?? '';
+    const issuingBody = raw.issuingBody?.trim() ?? '';
+    if (title.length < 3)
+      throw new BadRequestException('title is required (min 3 chars)');
+    if (summary.length < 10) {
+      throw new BadRequestException('summary is required (min 10 chars)');
+    }
+    if (issuingBody.length < 2) {
+      throw new BadRequestException('issuingBody is required (min 2 chars)');
+    }
+    const publish = parseTruthyPublish(raw.publish);
+    const status = publish
+      ? GovOpportunityStatus.PUBLISHED
+      : GovOpportunityStatus.DRAFT;
+    const estimatedValueInr = raw.estimatedValueInr
+      ? Number(raw.estimatedValueInr.replace(/,/g, ''))
+      : undefined;
+    if (
+      raw.estimatedValueInr &&
+      (estimatedValueInr === undefined || Number.isNaN(estimatedValueInr))
+    ) {
+      throw new BadRequestException('estimatedValueInr must be a number');
+    }
+    const sourceUrl = raw.sourceUrl?.trim();
+    if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) {
+      throw new BadRequestException(
+        'officialUrl must start with http:// or https://',
+      );
+    }
+    return {
+      type: typeRaw as GovOpportunityType,
+      title,
+      summary,
+      description: raw.description?.trim() || undefined,
+      issuingBody,
+      referenceNo: raw.referenceNo?.trim() || undefined,
+      state: raw.state?.trim() || undefined,
+      sourceUrl: sourceUrl || undefined,
+      estimatedValueInr,
+      openDate: this.parseImportDate(raw.openDate),
+      closingDate: this.parseImportDate(raw.closingDate),
+      eligibility: raw.eligibility?.trim() || undefined,
+      status,
+    };
+  }
+
+  private parseImportDate(raw?: string): string | undefined {
+    if (!raw?.trim()) return undefined;
+    const d = new Date(raw.trim());
+    if (Number.isNaN(d.getTime())) {
+      throw new BadRequestException(`Invalid date "${raw}"`);
+    }
+    return d.toISOString();
+  }
+
+  private async upsertImportedRow(
+    adminUserId: string,
+    dto: CreateGovOpportunityDto,
+  ): Promise<
+    Omit<GovImportRowResult, 'row' | 'action'> & {
+      action: 'created' | 'updated' | 'skipped';
+    }
+  > {
+    const existing = await this.findDuplicateImport(dto);
+    if (!existing) {
+      const created = await this.create(adminUserId, dto);
+      return {
+        action: 'created',
+        id: created.id,
+        referenceNo: created.referenceNo,
+        title: created.title,
+      };
+    }
+    if (existing.status !== GovOpportunityStatus.DRAFT) {
+      return {
+        action: 'skipped',
+        id: existing.id,
+        referenceNo: existing.referenceNo,
+        title: existing.title,
+        message: `Existing ${existing.status} record not overwritten (dedupe match)`,
+      };
+    }
+    const updated = await this.update(existing.id, {
+      type: dto.type,
+      title: dto.title,
+      summary: dto.summary,
+      description: dto.description,
+      issuingBody: dto.issuingBody,
+      referenceNo: dto.referenceNo,
+      state: dto.state,
+      sourceUrl: dto.sourceUrl,
+      estimatedValueInr: dto.estimatedValueInr,
+      openDate: dto.openDate,
+      closingDate: dto.closingDate,
+      eligibility: dto.eligibility,
+      status: dto.status,
+    });
+    return {
+      action: 'updated',
+      id: updated.id,
+      referenceNo: updated.referenceNo,
+      title: updated.title,
+    };
+  }
+
+  private async findDuplicateImport(dto: CreateGovOpportunityDto) {
+    const ref = dto.referenceNo?.trim();
+    if (ref) {
+      const byRef = await this.prisma.govOpportunity.findFirst({
+        where: { referenceNo: { equals: ref, mode: 'insensitive' } },
+      });
+      if (byRef) return byRef;
+    }
+    return this.prisma.govOpportunity.findFirst({
+      where: {
+        title: { equals: dto.title.trim(), mode: 'insensitive' },
+        issuingBody: { equals: dto.issuingBody.trim(), mode: 'insensitive' },
+      },
+    });
   }
 
   async create(adminUserId: string, dto: CreateGovOpportunityDto) {
@@ -311,6 +552,38 @@ export class GovService {
         hasDocument: Boolean(bid.storedRelativePath),
         submittedAt: bid.updatedAt.toISOString(),
       },
+    };
+  }
+
+  /** All sealed bids placed by this user (for buyer / government hub). */
+  async listMyBids(userId: string, role: UserRole) {
+    this.assertBidderRole(role);
+    const rows = await this.prisma.govOpportunityBid.findMany({
+      where: { bidderUserId: userId },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        opportunity: {
+          select: {
+            id: true,
+            type: true,
+            title: true,
+            issuingBody: true,
+            status: true,
+            closingDate: true,
+            referenceNo: true,
+          },
+        },
+      },
+    });
+    return {
+      items: rows.map((row) => ({
+        id: row.id,
+        opportunityId: row.opportunityId,
+        amountInr: row.amountInr,
+        hasDocument: Boolean(row.storedRelativePath),
+        submittedAt: row.updatedAt.toISOString(),
+        opportunity: withFlags(row.opportunity),
+      })),
     };
   }
 

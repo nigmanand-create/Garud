@@ -52,8 +52,19 @@ export type AccountNavLink = {
 const BUYER_LINKS: AccountNavLink[] = [
   { href: '/buyer/rfqs', label: 'My RFQs', icon: 'bi-file-earmark-text' },
   { href: '/buyer/orders', label: 'My Orders', icon: 'bi-box-seam' },
+  { href: '/buyer/addresses', label: 'Addresses', icon: 'bi-geo-alt' },
   { href: '/buyer/messages', label: 'Messages', icon: 'bi-chat-dots' },
   { href: '/buyer/cart', label: 'Cart', icon: 'bi-cart3', cart: true },
+];
+
+const GOVERNMENT_LINKS: AccountNavLink[] = [
+  {
+    href: '/government/dashboard',
+    label: 'Gov · My work',
+    icon: 'bi-speedometer2',
+  },
+  { href: '/government', label: 'Gov opportunities', icon: 'bi-building' },
+  ...BUYER_LINKS,
 ];
 
 const PARTNER_LINKS: AccountNavLink[] = [
@@ -72,8 +83,9 @@ const ADMIN_LINKS: AccountNavLink[] = [
 export function getAccountNavLinks(role: string | undefined): AccountNavLink[] {
   switch (role) {
     case 'BUYER':
-    case 'GOVERNMENT':
       return BUYER_LINKS;
+    case 'GOVERNMENT':
+      return GOVERNMENT_LINKS;
     case 'PARTNER':
       return PARTNER_LINKS;
     case 'PLATFORM_ADMIN':
@@ -89,7 +101,8 @@ export function getDashboardLink(
 ): { href: string; label: string } | null {
   if (role === 'PLATFORM_ADMIN') return { href: '/admin', label: 'Admin' };
   if (role === 'PARTNER') return { href: '/partner', label: 'Partner' };
-  if (role === 'BUYER' || role === 'GOVERNMENT') {
+  if (role === 'GOVERNMENT') return { href: '/government/dashboard', label: 'Government' };
+  if (role === 'BUYER') {
     return { href: '/buyer/rfqs', label: 'Buyer' };
   }
   return null;

@@ -12,11 +12,9 @@ import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { EmptyState } from '@/components/platform/EmptyState';
 import { formatListingMinOrderLabel, formatPrice } from '@/lib/platform/labels';
-import {
-  effectiveCartMinQuantity,
-  SINGLE_SELLER_POLICY,
-} from '@/lib/platform/cart';
-import type { CartResponse } from '@/lib/api/types';
+import { effectiveCartMinQuantity } from '@/lib/platform/cart';
+import { resolveListingImageUrl } from '@/lib/platform/listing-media';
+import type { CartResponse, SellerCart } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
 
 export default function BuyerCartPage() {
@@ -38,10 +36,12 @@ function BuyerCartInner() {
     try {
       let data = await fetchCart();
       const fixes: { id: string; moq: number }[] = [];
-      for (const item of data.items) {
-        const minQty = effectiveCartMinQuantity(item.listing.minOrderQuantity);
-        if (item.quantity < minQty) {
-          fixes.push({ id: item.id, moq: minQty });
+      for (const sc of data.sellerCarts) {
+        for (const item of sc.items) {
+          const minQty = effectiveCartMinQuantity(item.listing.minOrderQuantity);
+          if (item.quantity < minQty) {
+            fixes.push({ id: item.id, moq: minQty });
+          }
         }
       }
       if (fixes.length > 0) {
@@ -114,17 +114,19 @@ function BuyerCartInner() {
     );
   }
 
-  const empty = cart.items.length === 0;
+  const empty = cart.sellerCarts.length === 0;
+  const sellerLabel =
+    cart.sellerCarts.length === 0
+      ? 'Review items before checkout'
+      : cart.sellerCarts.length === 1
+        ? `Items from ${cart.sellerCarts[0].partnerOrganization.companyName}`
+        : `${cart.sellerCarts.length} sellers · ${cart.itemCount} units`;
 
   return (
     <>
       <PlatformPageHeader
         title="Cart"
-        subtitle={
-          cart.partnerOrganization
-            ? `Items from ${cart.partnerOrganization.companyName}`
-            : 'Review items before checkout'
-        }
+        subtitle={sellerLabel}
         actions={
           !empty ? (
             <button
@@ -133,7 +135,7 @@ function BuyerCartInner() {
               disabled={busy === 'clear'}
               onClick={() => onClear()}
             >
-              Clear cart
+              Clear all carts
             </button>
           ) : undefined
         }
@@ -157,8 +159,9 @@ function BuyerCartInner() {
       {error && <div className="platform-card platform-error">{error}</div>}
       {!empty && (
         <p className="platform-muted platform-text-sm" role="note">
-          {SINGLE_SELLER_POLICY}{' '}
-          <Link href="/buyer/rfqs/new">Raise an RFQ</Link>
+          Lines are grouped by seller. Use <strong>Checkout this seller</strong> for that seller only (one
+          order per checkout). To compare vendors or custom terms,{' '}
+          <Link href="/buyer/rfqs/new">raise an RFQ</Link>.
         </p>
       )}
       {empty ? (
@@ -170,88 +173,142 @@ function BuyerCartInner() {
       ) : (
         <div className="platform-detail-layout">
           <div className="platform-card">
-            <ul className="platform-cart-lines">
-              {cart.items.map((item) => {
-                const minQty = effectiveCartMinQuantity(
-                  item.listing.minOrderQuantity,
-                );
-                const minOrderLabel = formatListingMinOrderLabel(
-                  item.listing.minOrderQuantity,
-                );
-                return (
-                <li key={item.id} className="platform-cart-line">
-                  <div>
-                    <Link href={`/marketplace/listings/${item.listing.id}`}>
-                      <strong>{item.listing.name}</strong>
-                    </Link>
-                    {item.listing.sku && (
-                      <p className="platform-muted platform-text-muted-sm platform-mt-sm">
-                        SKU: {item.listing.sku}
-                      </p>
-                    )}
-                    {minOrderLabel && (
-                      <p className="platform-muted platform-text-muted-sm platform-mt-sm">
-                        {minOrderLabel}
-                      </p>
-                    )}
-                  </div>
-                  <div className="platform-cart-line-qty">
-                    <button
-                      type="button"
-                      className="platform-qty-btn"
-                      disabled={busy === item.id || item.quantity <= minQty}
-                      onClick={() =>
-                        onQty(item.id, item.quantity - 1, minQty)
-                      }
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      type="button"
-                      className="platform-qty-btn"
-                      disabled={busy === item.id}
-                      onClick={() =>
-                        onQty(item.id, item.quantity + 1, minQty)
-                      }
-                      aria-label="Increase quantity"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="platform-cart-line-total">
-                    <div>{formatPrice(false, item.lineTotalInr)}</div>
-                    <button
-                      type="button"
-                      className="platform-link-btn"
-                      disabled={busy === item.id}
-                      onClick={() => onRemove(item.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              );
-              })}
-            </ul>
+            {cart.sellerCarts.map((sellerCart) => (
+              <SellerCartSection
+                key={sellerCart.id}
+                sellerCart={sellerCart}
+                busy={busy}
+                onQty={onQty}
+                onRemove={onRemove}
+              />
+            ))}
           </div>
           <aside>
             <div className="platform-card">
-              <p className="platform-order-total-label">Subtotal</p>
+              <p className="platform-order-total-label">Subtotal (all sellers)</p>
               <p className="platform-order-total-amount">
                 {formatPrice(false, cart.subtotalInr)}
               </p>
               <p className="platform-muted platform-text-muted-sm">
-                Pay offline after order placement (Phase 2). GST and shipping calculated at confirmation.
+                Line totals are list prices × quantity. Shipping is confirmed with the seller at fulfillment.
               </p>
-              <Link href="/buyer/checkout" className="platform-btn platform-btn-cta platform-btn-full platform-mt-md">
-                Proceed to checkout
-              </Link>
             </div>
           </aside>
         </div>
       )}
     </>
+  );
+}
+
+function SellerCartSection({
+  sellerCart,
+  busy,
+  onQty,
+  onRemove,
+}: {
+  sellerCart: SellerCart;
+  busy: string | null;
+  onQty: (itemId: string, quantity: number, minQty: number) => void;
+  onRemove: (itemId: string) => void;
+}) {
+  const { partnerOrganization } = sellerCart;
+  return (
+    <section
+      className="platform-cart-seller-block platform-mt-md"
+      style={{ borderBottom: '1px solid var(--platform-border, #e2e8f0)', paddingBottom: '1.25rem' }}
+      aria-labelledby={`seller-heading-${partnerOrganization.id}`}
+    >
+      <h2
+        id={`seller-heading-${partnerOrganization.id}`}
+        className="platform-section-heading platform-mb-md"
+      >
+        {partnerOrganization.companyName}
+      </h2>
+      <ul className="platform-cart-lines">
+        {sellerCart.items.map((item) => {
+          const minQty = effectiveCartMinQuantity(item.listing.minOrderQuantity);
+          const minOrderLabel = formatListingMinOrderLabel(item.listing.minOrderQuantity);
+          return (
+            <li key={item.id} className="platform-cart-line">
+              <div className="platform-cart-line-main">
+                {(() => {
+                  const thumb = resolveListingImageUrl(item.listing.primaryImageUrl);
+                  return thumb ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumb}
+                      alt=""
+                      className="platform-cart-line-thumb"
+                    />
+                  ) : (
+                    <div className="platform-cart-line-thumb platform-cart-line-thumb--placeholder" aria-hidden>
+                      ✦
+                    </div>
+                  );
+                })()}
+                <div className="platform-cart-line-details">
+                  <Link href={`/marketplace/listings/${item.listing.id}`}>
+                    <strong>{item.listing.name}</strong>
+                  </Link>
+                  {item.listing.sku && (
+                    <p className="platform-muted platform-text-muted-sm platform-mt-sm">
+                      SKU: {item.listing.sku}
+                    </p>
+                  )}
+                  {minOrderLabel && (
+                    <p className="platform-muted platform-text-muted-sm platform-mt-sm">
+                      {minOrderLabel}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="platform-cart-line-qty">
+                <button
+                  type="button"
+                  className="platform-qty-btn"
+                  disabled={busy === item.id || item.quantity <= minQty}
+                  onClick={() => onQty(item.id, item.quantity - 1, minQty)}
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <span>{item.quantity}</span>
+                <button
+                  type="button"
+                  className="platform-qty-btn"
+                  disabled={busy === item.id}
+                  onClick={() => onQty(item.id, item.quantity + 1, minQty)}
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+              <div className="platform-cart-line-total">
+                <div>{formatPrice(false, item.lineTotalInr)}</div>
+                <button
+                  type="button"
+                  className="platform-link-btn"
+                  disabled={busy === item.id}
+                  onClick={() => onRemove(item.id)}
+                >
+                  Remove from cart
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="platform-mt-md platform-cart-seller-actions">
+        <p className="platform-muted platform-text-sm platform-mb-sm">
+          Seller subtotal: <strong>{formatPrice(false, sellerCart.subtotalInr)}</strong>
+        </p>
+        <Link
+          href={`/buyer/checkout?vendor=${encodeURIComponent(partnerOrganization.id)}`}
+          className="platform-btn platform-btn-cta"
+        >
+          Checkout this seller
+        </Link>
+      </div>
+    </section>
   );
 }

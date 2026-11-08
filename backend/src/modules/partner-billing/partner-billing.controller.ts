@@ -35,7 +35,7 @@ export class PartnerBillingController {
   @Header('Content-Type', 'text/html; charset=utf-8')
   @ApiOperation({
     summary:
-      'HTML subscription payment record stub (paid plans; not a statutory GST invoice)',
+      'HTML GST receipt for paid partner subscription (SAC, intra/inter-state GST split; requires GARUD_PLATFORM_GSTIN)',
   })
   receipt(@CurrentUser() user: AuthenticatedUser) {
     return this.receipts.subscriptionReceiptHtml(user.userId);

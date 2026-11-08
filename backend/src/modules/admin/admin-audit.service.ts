@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { toCsv, type CsvColumn } from '../integrations/csv.util';
 
 export const AUDIT_KINDS = [
   'KYC',
@@ -33,10 +34,22 @@ export type AuditLogQuery = {
   to?: Date;
   skip?: number;
   take?: number;
+  /** Raise page cap (used for CSV export only). */
+  maxTake?: number;
 };
 
 const MAX_TAKE = 100;
+/** Upper bound for CSV export (merged across sources). */
+const EXPORT_MAX_TAKE = 10_000;
 const MAX_WINDOW = 1000;
+
+const AUDIT_KIND_CSV_LABELS: Record<AuditKind, string> = {
+  KYC: 'KYC decision',
+  LISTING: 'Listing moderation',
+  PARTNERSHIP: 'Partnership decision',
+  ENQUIRY: 'Enquiry routing',
+  USER: 'User & role',
+};
 
 /** Parses `kind=KYC,LISTING` (or a single value) into valid kinds; empty => all. */
 export function parseAuditKinds(raw?: string): AuditKind[] | undefined {
@@ -81,7 +94,8 @@ export class AdminAuditService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: AuditLogQuery) {
-    const take = Math.min(Math.max(query.take ?? 25, 1), MAX_TAKE);
+    const cap = Math.min(query.maxTake ?? MAX_TAKE, EXPORT_MAX_TAKE);
+    const take = Math.min(Math.max(query.take ?? 25, 1), cap);
     const skip = Math.min(Math.max(query.skip ?? 0, 0), MAX_WINDOW);
     const window = skip + take;
     const wanted = new Set<AuditKind>(query.kinds ?? AUDIT_KINDS);
@@ -342,6 +356,62 @@ export class AdminAuditService {
       take,
       kindCounts,
     };
+  }
+
+  /**
+   * Newest events matching filters, up to EXPORT_MAX_TAKE rows, as CRM-style CSV.
+   */
+  async exportCsv(query: Omit<AuditLogQuery, 'skip' | 'take' | 'maxTake'>) {
+    const { items } = await this.list({
+      ...query,
+      skip: 0,
+      take: EXPORT_MAX_TAKE,
+      maxTake: EXPORT_MAX_TAKE,
+    });
+
+    type Row = {
+      when: string;
+      type: string;
+      subject: string;
+      change: string;
+      note: string;
+      by: string;
+    };
+
+    const rows: Row[] = items.map((e) => ({
+      when: e.createdAt.toISOString(),
+      type: AUDIT_KIND_CSV_LABELS[e.kind],
+      subject: e.subject.label,
+      change: this.formatAuditChange(e),
+      note: e.note ?? '',
+      by: e.actor?.email ?? 'System',
+    }));
+
+    const columns: CsvColumn<Row>[] = [
+      { header: 'when', value: (r) => r.when },
+      { header: 'type', value: (r) => r.type },
+      { header: 'subject', value: (r) => r.subject },
+      { header: 'change', value: (r) => r.change },
+      { header: 'note', value: (r) => r.note },
+      { header: 'by', value: (r) => r.by },
+    ];
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    return {
+      csv: toCsv(rows, columns),
+      filename: `garudhub-audit-log-${stamp}.csv`,
+    };
+  }
+
+  private formatAuditChange(e: AuditEvent): string {
+    if (e.toStatus) {
+      const from = e.fromStatus ? `${e.fromStatus} → ` : '';
+      return `${from}${e.toStatus}`;
+    }
+    return e.action
+      .split('_')
+      .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+      .join(' ');
   }
 
   /** Newest N events across all sources (dashboard widget). */

@@ -1,16 +1,31 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Param,
+  Patch,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { LeadStatus, UserRole } from '@prisma/client';
+import { CurrentUser } from '../identity/decorators/current-user.decorator';
 import { Roles } from '../identity/decorators/roles.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { RolesGuard } from '../identity/guards/roles.guard';
+import type { AuthenticatedUser } from '../identity/types/auth.types';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
+import { AdminUpdateLeadDto } from '../enquiries/dto/enquiry.dto';
 import { AdminAuditService, parseAuditKinds } from './admin-audit.service';
 import { AdminAnalyticsService } from './admin-analytics.service';
 import { AdminOverviewService } from './admin-overview.service';
@@ -64,6 +79,45 @@ export class AdminOpsController {
     return this.analytics.commerceAnalytics(parseIntOrUndefined(days));
   }
 
+  @Get('audit-log/export.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary:
+      'Export filtered audit events as CSV (same filters as audit log list, max 10,000 rows)',
+  })
+  @ApiQuery({
+    name: 'kind',
+    required: false,
+    description: 'Comma list of KYC,LISTING,PARTNERSHIP,ENQUIRY,USER',
+  })
+  @ApiQuery({ name: 'actorUserId', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'from', required: false, description: 'ISO date' })
+  @ApiQuery({ name: 'to', required: false, description: 'ISO date' })
+  async exportAuditCsv(
+    @Res({ passthrough: true }) res: Response,
+    @Query('kind') kind?: string,
+    @Query('actorUserId') actorUserId?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const toDate = parseDate(to);
+    if (toDate && to && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      toDate.setUTCHours(23, 59, 59, 999);
+    }
+    const { csv, filename } = await this.audit.exportCsv({
+      kinds: parseAuditKinds(kind),
+      actorUserId: actorUserId || undefined,
+      search,
+      from: parseDate(from),
+      to: toDate,
+    });
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return csv;
+  }
+
   @Get('audit-log')
   @ApiOperation({
     summary:
@@ -106,9 +160,23 @@ export class AdminOpsController {
     });
   }
 
+  @Patch('leads/:id')
+  @ApiOperation({
+    summary:
+      'Update partner lead status / note or reroute to another verified partner',
+  })
+  @ApiParam({ name: 'id', description: 'Lead id' })
+  updateLead(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateLeadDto,
+  ) {
+    return this.overview.updateLead(id, user.userId, dto);
+  }
+
   @Get('leads')
   @ApiOperation({
-    summary: 'Read-only oversight of partner leads (routed enquiries)',
+    summary: 'Partner leads oversight (routed enquiries)',
   })
   @ApiQuery({ name: 'status', enum: LeadStatus, required: false })
   @ApiQuery({ name: 'organizationId', required: false })

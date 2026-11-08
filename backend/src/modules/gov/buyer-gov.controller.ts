@@ -76,6 +76,15 @@ export class BuyerGovController {
     return this.gov.submitBid(user.userId, user.role, id, dto);
   }
 
+  /** Static path must be registered before `:id/bids/mine` or `id` captures `bids`. */
+  @Get('bids/mine')
+  @ApiOperation({
+    summary: 'List all your tender bids (amounts visible only to you)',
+  })
+  listMyBids(@CurrentUser() user: AuthenticatedUser) {
+    return this.gov.listMyBids(user.userId, user.role);
+  }
+
   @Get(':id/bids/mine')
   @ApiOperation({
     summary: 'Your bid on this tender (amount visible only to you)',

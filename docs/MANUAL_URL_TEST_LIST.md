@@ -242,6 +242,7 @@ Prefix: `/api/v1` on API host, or `/platform-api/v1` through Next. Use browser (
 | `GET /buyer/service-requests` | http://127.0.0.1:3000/api/v1/buyer/service-requests | https://dev.garudhub.me/platform-api/v1/buyer/service-requests | Buyer |
 | `GET /buyer/conversations` | http://127.0.0.1:3000/api/v1/buyer/conversations | https://dev.garudhub.me/platform-api/v1/buyer/conversations | Buyer messages |
 | `GET /buyer/conversations/{id}` | http://127.0.0.1:3000/api/v1/buyer/conversations/{id} | https://dev.garudhub.me/platform-api/v1/buyer/conversations/{id} | Buyer |
+| `GET /buyer/gov-opportunities/bids/mine` | http://127.0.0.1:3000/api/v1/buyer/gov-opportunities/bids/mine | https://dev.garudhub.me/platform-api/v1/buyer/gov-opportunities/bids/mine | Buyer / GOVERNMENT — all sealed bids |
 | `GET /buyer/gov-opportunities/{id}/bids/mine` | http://127.0.0.1:3000/api/v1/buyer/gov-opportunities/{id}/bids/mine | https://dev.garudhub.me/platform-api/v1/buyer/gov-opportunities/{id}/bids/mine | Buyer / GOVERNMENT |
 | `GET /notifications` | http://127.0.0.1:3000/api/v1/notifications | https://dev.garudhub.me/platform-api/v1/notifications | Authenticated |
 | `GET /notifications/unread-count` | http://127.0.0.1:3000/api/v1/notifications/unread-count | https://dev.garudhub.me/platform-api/v1/notifications/unread-count | Authenticated |

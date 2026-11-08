@@ -89,6 +89,14 @@ export class PaymentsService {
     }
   }
 
+  /** COD orders settle outside Razorpay; block gateway/wire intents for that order. */
+  private async orderHasCashOnDelivery(orderId: string): Promise<boolean> {
+    const row = await this.prisma.paymentTransaction.findFirst({
+      where: { orderId, gateway: PaymentGateway.CASH_ON_DELIVERY },
+    });
+    return Boolean(row);
+  }
+
   /**
    * Create payment intent with Gateway (Razorpay or Sandbox simulation)
    */
@@ -120,6 +128,12 @@ export class PaymentsService {
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new UnprocessableEntityException(
         'This order is already marked as PAID',
+      );
+    }
+
+    if (await this.orderHasCashOnDelivery(order.id)) {
+      throw new UnprocessableEntityException(
+        'This order is Cash on Delivery. Online payment and bank UTR submission are not used — pay the courier at delivery.',
       );
     }
 
@@ -254,6 +268,12 @@ export class PaymentsService {
       };
     }
 
+    if (await this.orderHasCashOnDelivery(order.id)) {
+      throw new UnprocessableEntityException(
+        'This order is Cash on Delivery; Razorpay verification does not apply.',
+      );
+    }
+
     // The gateway order must have been created by our own intent for THIS order.
     // (A valid signature only proves the payment belongs to *some* order of the merchant.)
     const existingTx = await this.prisma.paymentTransaction.findFirst({
@@ -374,6 +394,12 @@ export class PaymentsService {
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new UnprocessableEntityException(
         'This order is already marked as PAID',
+      );
+    }
+
+    if (await this.orderHasCashOnDelivery(order.id)) {
+      throw new UnprocessableEntityException(
+        'This order is Cash on Delivery; bank transfer UTR is not used for this order.',
       );
     }
 
@@ -668,6 +694,18 @@ export class PaymentsService {
     if (!tx) {
       this.logger.warn(
         `Captured payment ${p.id} for unknown order ${p.order_id}`,
+      );
+      return false;
+    }
+    if (tx.gateway !== PaymentGateway.RAZORPAY) {
+      this.logger.warn(
+        `Ignoring Razorpay capture for non-gateway transaction ${tx.id} (gateway=${tx.gateway})`,
+      );
+      return false;
+    }
+    if (await this.orderHasCashOnDelivery(tx.orderId)) {
+      this.logger.warn(
+        `Ignoring Razorpay capture for COD order ${tx.orderId}`,
       );
       return false;
     }

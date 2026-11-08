@@ -24,6 +24,7 @@ const USER_SELECT = {
   accountType: true,
   mustChangePassword: true,
   disabledAt: true,
+  deletedAt: true,
   createdAt: true,
   organization: {
     select: { id: true, companyName: true, verificationStatus: true },
@@ -53,6 +54,7 @@ export class AdminUsersService {
     const skip = Math.max(params.skip ?? 0, 0);
     const search = params.search?.trim();
     const where: Prisma.UserWhereInput = {
+      deletedAt: null,
       ...(params.role ? { role: params.role } : {}),
       ...(params.status === 'disabled'
         ? { disabledAt: { not: null } }
@@ -97,13 +99,19 @@ export class AdminUsersService {
   async createAdmin(actorUserId: string, dto: CreateAdminUserDto) {
     const email = dto.email.toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
-    if (existing) {
+    if (existing && !existing.deletedAt) {
       throw new ConflictException('Email already registered');
     }
     const temporaryPassword = AuthService.generateRandomPassword();
     const passwordHash = await bcrypt.hash(temporaryPassword, 12);
 
     const user = await this.prisma.$transaction(async (tx) => {
+      if (existing?.deletedAt) {
+        await tx.user.update({
+          where: { id: existing.id },
+          data: { email: `deleted_${existing.id}@removed.garudhub.invalid` },
+        });
+      }
       const created = await tx.user.create({
         data: {
           email,
@@ -127,7 +135,7 @@ export class AdminUsersService {
   }
 
   async updateRole(actorUserId: string, id: string, dto: UpdateUserRoleDto) {
-    const target = await this.requireUser(id);
+    const target = await this.requireActiveUser(id);
     if (target.id === actorUserId) {
       throw new ForbiddenException('You cannot change your own role');
     }
@@ -188,7 +196,7 @@ export class AdminUsersService {
   }
 
   async resetPassword(actorUserId: string, id: string) {
-    const target = await this.requireUser(id);
+    const target = await this.requireActiveUser(id);
     if (target.id === actorUserId) {
       throw new ForbiddenException(
         'Use change password to update your own password',
@@ -219,7 +227,7 @@ export class AdminUsersService {
   }
 
   async setDisabled(actorUserId: string, id: string, disabled: boolean) {
-    const target = await this.requireUser(id);
+    const target = await this.requireActiveUser(id);
     if (target.id === actorUserId) {
       throw new ForbiddenException('You cannot disable your own account');
     }
@@ -257,9 +265,59 @@ export class AdminUsersService {
     return { user };
   }
 
+  /**
+   * Soft-delete: anonymize PII, revoke sessions, exclude from admin user list.
+   * Keeps the row and FK history (orders, org owner, etc.). Does not remove last active admin.
+   */
+  async deleteUser(actorUserId: string, id: string) {
+    const target = await this.requireActiveUser(id);
+    if (target.id === actorUserId) {
+      throw new ForbiddenException('You cannot delete your own account');
+    }
+    if (target.role === UserRole.PLATFORM_ADMIN) {
+      await this.assertNotLastActiveAdmin(target.id);
+    }
+
+    const originalEmail = target.email;
+    const anonymizedEmail = `deleted_${target.id}@removed.garudhub.invalid`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: target.id },
+        data: {
+          deletedAt: new Date(),
+          email: anonymizedEmail,
+          passwordHash: null,
+          googleSub: null,
+          phoneE164: null,
+          phoneVerifiedAt: null,
+          mustChangePassword: false,
+          disabledAt: null,
+        },
+      });
+      await tx.refreshToken.updateMany({
+        where: { userId: target.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      await this.log(tx, {
+        actorUserId,
+        target: { id: target.id, email: originalEmail },
+        action: AdminUserAuditAction.USER_DELETED,
+        detail:
+          'Account soft-deleted (credentials cleared, user removed from admin directory)',
+      });
+    });
+
+    return { ok: true as const };
+  }
+
   private countActiveAdmins() {
     return this.prisma.user.count({
-      where: { role: UserRole.PLATFORM_ADMIN, disabledAt: null },
+      where: {
+        role: UserRole.PLATFORM_ADMIN,
+        disabledAt: null,
+        deletedAt: null,
+      },
     });
   }
 
@@ -269,6 +327,7 @@ export class AdminUsersService {
       where: {
         role: UserRole.PLATFORM_ADMIN,
         disabledAt: null,
+        deletedAt: null,
         id: { not: targetId },
       },
     });
@@ -279,9 +338,9 @@ export class AdminUsersService {
     }
   }
 
-  private async requireUser(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+  private async requireActiveUser(id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
       select: USER_SELECT,
     });
     if (!user) {

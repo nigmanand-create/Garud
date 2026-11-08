@@ -1,8 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/components/platform/AuthProvider';
 import { EmptyState } from '@/components/platform/EmptyState';
+import {
+  GovernmentListingCta,
+  governmentListingCta,
+} from '@/components/platform/GovernmentListingCta';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
 import { PlatformPageHeader } from '@/components/platform/PlatformPageHeader';
 import { StatusBadge } from '@/components/platform/StatusBadge';
@@ -17,6 +22,7 @@ import {
 } from '@/lib/platform/verticals';
 
 export default function GovernmentOpportunitiesPage() {
+  const { user, loading: authLoading } = useAuth();
   const [type, setType] = useState<GovOpportunityType | ''>('');
   const [state, setState] = useState('');
   const [q, setQ] = useState('');
@@ -39,17 +45,18 @@ export default function GovernmentOpportunitiesPage() {
     return () => clearTimeout(t);
   }, [type, state, q, includeExpired]);
 
+  const emptyStatePrimary = useMemo(
+    () => governmentListingCta(user, authLoading),
+    [user, authLoading],
+  );
+
   return (
     <>
       <PlatformPageHeader
         title="Government tenders, schemes & subsidies"
         subtitle="Drone-related tenders, procurement schemes and subsidies curated by GarudHub. Express interest and our team connects you with the right partners."
         breadcrumbs={[{ label: 'Services', href: '/services' }, { label: 'Government' }]}
-        actions={
-          <Link href="/buyer/rfqs/new" className="platform-btn platform-btn-cta">
-            Post a tender / RFP
-          </Link>
-        }
+        actions={<GovernmentListingCta />}
       />
       {error && <div className="platform-card platform-error">{error}</div>}
 
@@ -98,7 +105,11 @@ export default function GovernmentOpportunitiesPage() {
         <EmptyState
           title="No open tenders or schemes right now"
           description="New opportunities are added regularly. Tell us about your programme and we will help."
-          primaryAction={{ label: 'Government programme enquiry', href: '/enquiry?service=tender&subject=Government%20drone%20project' }}
+          primaryAction={emptyStatePrimary}
+          secondaryAction={{
+            label: 'General government programme enquiry',
+            href: '/enquiry?service=tender&intent=TENDER&subject=Government%20drone%20programme%20enquiry',
+          }}
         />
       )}
       {items && items.length > 0 && (

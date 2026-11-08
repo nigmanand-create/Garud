@@ -10,9 +10,10 @@ export const HOME_HERO_IMAGE =
 
 export const HOME_CONTENT = {
   hero: {
+    brandName: 'GarudHub',
     eyebrow: "INDIA'S B2B DRONE ECOSYSTEM",
-    title: 'Connecting Global Drone Technology With India',
-    lead: 'Manufacturers, OEMs, distributors, dealers, service providers and enterprise buyers — on one verified B2B platform.',
+    title: "India's B2B Drone Ecosystem Platform",
+    lead: 'Connect global drone technology with India — marketplace, RFQs, training, compliance and projects in one verified B2B hub.',
     primaryCta: { ...HEADER_REGISTER_PARTNER_CTA },
     secondaryCta: { href: '/services', label: 'Explore Services' },
     signInCta: { ...HEADER_LOGIN_CTA },

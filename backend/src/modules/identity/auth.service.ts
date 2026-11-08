@@ -8,7 +8,12 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
-import { User, VerificationStatus, AccountType, UserRole } from '@prisma/client';
+import {
+  User,
+  VerificationStatus,
+  AccountType,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import {
   initialVerificationStatus,
@@ -53,6 +58,11 @@ export class AuthService {
       where: { email: dto.email.toLowerCase() },
     });
     if (existing) {
+      if (existing.deletedAt) {
+        throw new ConflictException(
+          'This email was used by a removed account. Contact support or use a different email.',
+        );
+      }
       throw new ConflictException('Email already registered');
     }
 
@@ -105,6 +115,27 @@ export class AuthService {
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Account no longer exists');
+    }
+    if (user.disabledAt) {
+      throw new UnauthorizedException('Account is disabled');
+    }
+    return this.issueTokens(user);
+  }
+
+  /** Issue JWT + refresh for an existing user (phone OTP and other secondary flows). */
+  async createSessionForUser(userId: string): Promise<AuthTokensResponse> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { organization: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Account no longer exists');
+    }
     if (user.disabledAt) {
       throw new UnauthorizedException('Account is disabled');
     }
@@ -148,7 +179,7 @@ export class AuthService {
       where: { id: payload.sub },
       include: { organization: true },
     });
-    if (!user || user.disabledAt) {
+    if (!user || user.deletedAt || user.disabledAt) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -224,7 +255,12 @@ export class AuthService {
     | { outcome: 'session'; tokens: AuthTokensResponse }
     | {
         outcome: 'pending';
-        pending: { sub: string; email: string; displayName: string; accountType?: AccountType };
+        pending: {
+          sub: string;
+          email: string;
+          displayName: string;
+          accountType?: AccountType;
+        };
       }
     | { outcome: 'error'; code: string }
   > {
@@ -246,6 +282,9 @@ export class AuthService {
         if (user.googleSub && user.googleSub !== profile.sub) {
           return { outcome: 'error', code: 'google_account_conflict' };
         }
+        if (user.deletedAt) {
+          return { outcome: 'error', code: 'no_account' };
+        }
         if (user.disabledAt) {
           return { outcome: 'error', code: 'account_disabled' };
         }
@@ -258,6 +297,9 @@ export class AuthService {
     }
 
     if (user) {
+      if (user.deletedAt) {
+        return { outcome: 'error', code: 'no_account' };
+      }
       if (user.disabledAt) {
         return { outcome: 'error', code: 'account_disabled' };
       }
@@ -291,6 +333,11 @@ export class AuthService {
       where: { email: pending.email },
     });
     if (existing) {
+      if (existing.deletedAt) {
+        throw new ConflictException(
+          'This email was used by a removed account. Contact support or use a different email.',
+        );
+      }
       throw new ConflictException('Email already registered');
     }
 
@@ -398,6 +445,7 @@ export class AuthService {
       organization: {
         id: string;
         verificationStatus: VerificationStatus;
+        contactPersonName?: string;
       } | null;
     },
   ): AuthUserResponse {
@@ -408,6 +456,8 @@ export class AuthService {
       accountType: user.accountType,
       orgId: user.organization?.id,
       verificationStatus: user.organization?.verificationStatus,
+      contactPersonName:
+        user.organization?.contactPersonName?.trim() || undefined,
       mustChangePassword: user.mustChangePassword || undefined,
     };
   }

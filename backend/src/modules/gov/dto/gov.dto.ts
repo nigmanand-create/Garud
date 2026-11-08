@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GovOpportunityStatus, GovOpportunityType } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -10,6 +12,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateGovOpportunityDto {
@@ -192,4 +195,89 @@ export class UpdateGovOpportunityDto {
   @IsOptional()
   @IsEnum(GovOpportunityStatus)
   status?: GovOpportunityStatus;
+}
+
+/** One row for JSON bulk import (fields align with CSV columns). */
+export class ImportGovOpportunityRowDto {
+  @IsOptional()
+  @IsEnum(GovOpportunityType)
+  type?: GovOpportunityType;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  summary?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  issuingBody?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  referenceNo?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  sourceUrl?: string;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  estimatedValueInr?: number;
+
+  @IsOptional()
+  @IsDateString()
+  openDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  closingDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(3000)
+  eligibility?: string;
+
+  @IsOptional()
+  @IsString()
+  publish?: string;
+
+  @IsOptional()
+  @IsEnum(GovOpportunityStatus)
+  status?: GovOpportunityStatus;
+}
+
+export class ImportGovOpportunitiesDto {
+  @ApiPropertyOptional({
+    description: 'Raw CSV text (headers flexible; see GOV_TENDER_IMPORT.md)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(5_000_000)
+  csv?: string;
+
+  @ApiPropertyOptional({ type: [ImportGovOpportunityRowDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ImportGovOpportunityRowDto)
+  rows?: ImportGovOpportunityRowDto[];
 }

@@ -14,7 +14,9 @@ Related: [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) · [`DEPLOY_CLOU
 | Buyer order — online | Razorpay Orders | `payment.captured` webhook **or** signed checkout callback (`POST /payments/verify-razorpay`) | `payments.service.ts` |
 | Buyer order — wire | NEFT/RTGS (UTR) | Admin approves UTR (`POST /payments/admin/verify-utr`) | `payments.service.ts` |
 | Partner plan | Razorpay Subscriptions | `subscription.*` webhooks (checkout callback activates early) | `partner-billing.service.ts` |
-| COD | — | **Not supported** (deferred, PRD Phase 4) | — |
+| Buyer order — COD (opt-in) | — (no Razorpay order) | `CASH_ON_DELIVERY` transaction + manual settlement; **`POST /payments/intent`** and wire UTR return **422** | `checkout.service.ts`, `payments.service.ts` |
+
+**COD opt-in:** Set `COD_ENABLED=true` on the API to expose Cash on Delivery at buyer checkout (default off / unset). Razorpay intents and bank UTR flows are blocked server-side for COD orders.
 
 ---
 
@@ -22,6 +24,7 @@ Related: [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) · [`DEPLOY_CLOU
 
 | Variable | Local | Staging (`dev.garudhub.me`) | Production (`garudhub.me`) |
 |----------|-------|-----------------------------|----------------------------|
+| `COD_ENABLED` | unset / `false` | optional `true` to test COD | optional `true` if business wants COD; default off |
 | `NODE_ENV` | `development` | `production` | `production` |
 | `GARUD_DEPLOY_ENV` | unset | `staging` | **`production`** |
 | `RAZORPAY_KEY_ID` | unset (sandbox) or `rzp_test_…` | `rzp_test_…` | **`rzp_live_…`** (boot fails otherwise) |

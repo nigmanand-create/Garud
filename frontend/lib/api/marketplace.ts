@@ -10,7 +10,16 @@ export type BrowseMarketplaceParams = {
   category?: CatalogCategory;
   categories?: CatalogCategory[];
   q?: string;
+  /** Verified vendor org state */
   state?: string;
+  /** Listing-level state (seller-entered on catalog row) */
+  listingState?: string;
+  brand?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  /** Listings with no MOQ or MOQ ≤ this value */
+  maxMoq?: number;
   priceType?: 'priced' | 'rfq';
   sort?: 'newest' | 'price_asc' | 'price_desc';
   skip?: number;
@@ -26,6 +35,16 @@ export function browseMarketplaceListings(params?: BrowseMarketplaceParams) {
   }
   if (params?.q?.trim()) search.set('q', params.q.trim());
   if (params?.state?.trim()) search.set('state', params.state.trim());
+  if (params?.listingState?.trim())
+    search.set('listingState', params.listingState.trim());
+  if (params?.brand?.trim()) search.set('brand', params.brand.trim());
+  if (params?.city?.trim()) search.set('city', params.city.trim());
+  if (params?.minPrice != null && Number.isFinite(params.minPrice))
+    search.set('minPrice', String(params.minPrice));
+  if (params?.maxPrice != null && Number.isFinite(params.maxPrice))
+    search.set('maxPrice', String(params.maxPrice));
+  if (params?.maxMoq != null && Number.isFinite(params.maxMoq))
+    search.set('maxMoq', String(params.maxMoq));
   if (params?.priceType) search.set('priceType', params.priceType);
   if (params?.sort && params.sort !== 'newest') search.set('sort', params.sort);
   if (params?.skip != null) search.set('skip', String(params.skip));
@@ -36,7 +55,16 @@ export function browseMarketplaceListings(params?: BrowseMarketplaceParams) {
   );
 }
 
-export type MarketplaceFacets = { states: string[] };
+export type MarketplaceFacets = {
+  states: string[];
+  categories: CatalogCategory[];
+  listingTypes: ListingType[];
+  brands: string[];
+  cities: string[];
+  listingStates: string[];
+  priceInr: { min: string; max: string } | null;
+  moqMax: number | null;
+};
 
 export function fetchMarketplaceFacets() {
   return apiRequest<MarketplaceFacets>('/marketplace/filters');

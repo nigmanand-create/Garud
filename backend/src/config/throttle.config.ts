@@ -18,6 +18,8 @@ export const THROTTLE_DEFAULTS = {
   auth: { limit: 10, ttlMs: 60_000 },
   /** refresh-token rotation (called silently by the SPA) */
   authRefresh: { limit: 30, ttlMs: 60_000 },
+  /** POST /auth/otp/request (stricter; pair with OTP_* per-phone limits) */
+  otpRequest: { limit: 5, ttlMs: 60_000 },
   /** public POST /enquiries */
   enquiry: { limit: 5, ttlMs: 60_000 },
 } as const;
@@ -28,6 +30,7 @@ const ENV_PREFIX: Record<ThrottleBucket, string> = {
   global: 'THROTTLE_GLOBAL',
   auth: 'THROTTLE_AUTH',
   authRefresh: 'THROTTLE_AUTH_REFRESH',
+  otpRequest: 'THROTTLE_OTP_REQUEST',
   enquiry: 'THROTTLE_ENQUIRY',
 };
 

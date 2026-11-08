@@ -5,7 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api/client';
 import { addToCart, clearCart } from '@/lib/api/cart';
-import { isSingleSellerConflict, SINGLE_SELLER_POLICY } from '@/lib/platform/cart';
+import {
+  effectiveCartMinQuantity,
+  isSingleSellerConflict,
+  SINGLE_SELLER_POLICY,
+} from '@/lib/platform/cart';
 import { useAuth } from '@/components/platform/AuthProvider';
 import type { CatalogCategory, ListingType } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
@@ -77,6 +81,7 @@ export default function ListingDetailPage() {
   const [adding, setAdding] = useState(false);
   const [sellerConflict, setSellerConflict] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [cartToast, setCartToast] = useState<string | null>(null);
   const isBuyer = user?.role === 'BUYER' || user?.role === 'GOVERNMENT';
   const canAddToCart =
     listing && !listing.priceOnRequest && listing.priceInr != null;
@@ -90,6 +95,12 @@ export default function ListingDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (!cartToast) return;
+    const t = window.setTimeout(() => setCartToast(null), 5000);
+    return () => clearTimeout(t);
+  }, [cartToast]);
+
   if (loading) {
     return (
       <div className="platform-grid" aria-busy="true">
@@ -102,7 +113,10 @@ export default function ListingDetailPage() {
     return <div className="platform-card platform-error">{error ?? 'Not found'}</div>;
   }
 
-  async function handleAddToCart(replaceCart: boolean) {
+  async function handleAddToCart(
+    replaceCart: boolean,
+    redirectTo: 'cart' | 'checkout' | 'stay',
+  ) {
     if (!listing) return;
     setCartError(null);
     setSellerConflict(false);
@@ -110,12 +124,18 @@ export default function ListingDetailPage() {
       router.push('/auth/login');
       return;
     }
+    const qty = effectiveCartMinQuantity(listing.minOrderQuantity);
     setAdding(true);
     try {
       // One seller per cart: replacing means clearing the existing (other-seller) cart first.
       if (replaceCart) await clearCart();
-      await addToCart(listing.id, 1);
-      router.push('/buyer/cart');
+      await addToCart(listing.id, qty);
+      const vendorQs = `?vendor=${encodeURIComponent(listing.organization.id)}`;
+      if (redirectTo === 'stay') {
+        setCartToast(`Added ${qty} unit${qty > 1 ? 's' : ''} to cart.`);
+        return;
+      }
+      router.push(redirectTo === 'checkout' ? `/buyer/checkout${vendorQs}` : '/buyer/cart');
     } catch (e) {
       if (isSingleSellerConflict(e)) {
         setSellerConflict(true);
@@ -281,14 +301,44 @@ export default function ListingDetailPage() {
 
               {canAddToCart && (
                 <div className="platform-cart-add-divider">
-                  <button
-                    type="button"
-                    className="platform-btn-add-cart"
-                    disabled={adding}
-                    onClick={() => handleAddToCart(false)}
-                  >
-                    🛒 Direct Sample Order ({formatPrice(listing.priceOnRequest, listing.priceInr)})
-                  </button>
+                  <div className="platform-action-stack platform-mt-sm">
+                    <button
+                      type="button"
+                      className="platform-btn platform-btn-secondary platform-btn-full"
+                      disabled={adding}
+                      onClick={() => handleAddToCart(false, 'stay')}
+                    >
+                      <span aria-hidden>🛒</span> Add to cart (
+                      {formatPrice(listing.priceOnRequest, listing.priceInr)})
+                    </button>
+                    <button
+                      type="button"
+                      className="platform-btn platform-btn-cta platform-btn-full"
+                      disabled={adding}
+                      onClick={() => handleAddToCart(false, 'checkout')}
+                    >
+                      Buy now
+                    </button>
+                  </div>
+                  <p className="platform-muted platform-text-muted-sm platform-mt-sm">
+                    Cart and checkout are per seller. MOQ is applied when adding to the cart.
+                  </p>
+                  {cartToast && (
+                    <div className="platform-cart-toast" role="status">
+                      <span>{cartToast}</span>
+                      <Link href="/buyer/cart" className="platform-btn platform-btn-secondary platform-btn-sm">
+                        View cart
+                      </Link>
+                      <button
+                        type="button"
+                        className="platform-cart-toast-dismiss"
+                        aria-label="Dismiss"
+                        onClick={() => setCartToast(null)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                   {cartError && (
                     <p className="platform-error platform-text-muted-sm platform-mt-sm">{cartError}</p>
                   )}
@@ -305,9 +355,17 @@ export default function ListingDetailPage() {
                           type="button"
                           className="platform-btn platform-btn-sm"
                           disabled={adding}
-                          onClick={() => handleAddToCart(true)}
+                          onClick={() => handleAddToCart(true, 'cart')}
                         >
                           Clear cart &amp; add this item
+                        </button>{' '}
+                        <button
+                          type="button"
+                          className="platform-btn platform-btn-sm platform-btn-secondary"
+                          disabled={adding}
+                          onClick={() => handleAddToCart(true, 'checkout')}
+                        >
+                          Clear cart &amp; buy now
                         </button>{' '}
                         <Link href="/buyer/rfqs/new" className="platform-btn platform-btn-secondary platform-btn-sm">
                           Raise an RFQ instead

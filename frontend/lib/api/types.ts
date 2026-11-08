@@ -189,15 +189,69 @@ export type CartLineItem = {
     sku?: string | null;
     primaryImageUrl?: string | null;
     minOrderQuantity?: number | null;
+    vendorOrganizationId: string;
+    hsnCode?: string | null;
+    gstPercent?: string | null;
   };
 };
 
-export type CartResponse = {
-  id: string | null;
-  partnerOrganization: { id: string; companyName: string } | null;
+/** One seller’s basket; buyers may have several (multi-vendor cart). */
+export type SellerCart = {
+  id: string;
+  partnerOrganization: { id: string; companyName: string };
   items: CartLineItem[];
   itemCount: number;
   subtotalInr: string;
+};
+
+export type CartResponse = {
+  sellerCarts: SellerCart[];
+  itemCount: number;
+  subtotalInr: string;
+};
+
+export type BuyerAddress = {
+  id: string;
+  label: string;
+  companyName: string;
+  contactName: string;
+  contactPhone: string;
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SavedCheckoutAddressPayload = {
+  companyName: string;
+  contactName: string;
+  contactPhone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  billingAddressLine1: string;
+  billingAddressLine2: string;
+  billingCity: string;
+  billingState: string;
+  billingPincode: string;
+  billingCountry: string;
+  billingSameAsShipping: boolean;
+  purchaseOrderNumber: string;
+};
+
+export type CheckoutSavedAddressResponse = {
+  hasSavedAddress: boolean;
+  source?: 'address_book' | 'last_order' | 'organization' | null;
+  selectedBuyerAddressId?: string | null;
+  address: SavedCheckoutAddressPayload | null;
 };
 
 export type OrderListItem = {
@@ -325,6 +379,11 @@ export type AdminOrderDetail = {
   transactions?: PaymentTransaction[];
 };
 
+/** GET /buyer/checkout/config */
+export type CheckoutConfig = {
+  codEnabled: boolean;
+};
+
 export type OrderDetail = {
   id: string;
   status: OrderStatus;
@@ -367,6 +426,8 @@ export type OrderDetail = {
   hardwareSerialNumbers?: string[];
   fulfillmentNotes?: string | null;
   vendorOrganization: { id: string; companyName: string };
+  /** Present on API responses when the order has a COD transaction (no Razorpay intent). */
+  codPaymentPending?: boolean;
   transactions?: PaymentTransaction[];
   lineItems: {
     id: string;
@@ -377,6 +438,12 @@ export type OrderDetail = {
     unitPriceInr: string;
     quantity: number;
     lineTotalInr: string;
+    hsnCode?: string | null;
+    gstPercent?: string | null;
+    taxableValueInr?: string | null;
+    cgstInr: string;
+    sgstInr: string;
+    igstInr: string;
   }[];
 };
 
@@ -471,6 +538,8 @@ export interface AuthUser {
   accountType: AccountType;
   verificationStatus?: VerificationStatus;
   orgId?: string;
+  /** Organization contact person; use to prefill delivery contact name when helpful */
+  contactPersonName?: string;
   /** True while the user is on an admin-issued temporary password. */
   mustChangePassword?: boolean;
 }

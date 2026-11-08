@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   EnquiryStatus,
   LeadStatus,
@@ -10,10 +10,26 @@ import {
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { AdminUpdateLeadDto } from '../enquiries/dto/enquiry.dto';
+import { EnquiryService } from '../enquiries/enquiry.service';
 import { AdminAuditService } from './admin-audit.service';
 
 /** A NEW lead untouched by the partner for this long is flagged as stale. */
 export const STALE_LEAD_DAYS = 3;
+
+const ADMIN_LEAD_INCLUDE = {
+  organization: { select: { id: true, companyName: true } },
+  enquiry: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      subject: true,
+      intent: true,
+    },
+  },
+  listing: { select: { id: true, name: true } },
+} satisfies Prisma.LeadInclude;
 
 /** Operations home: one narrative over KYC, listings, enquiries, leads, partnerships, orders. */
 @Injectable()
@@ -21,6 +37,7 @@ export class AdminOverviewService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AdminAuditService,
+    private readonly enquiryService: EnquiryService,
   ) {}
 
   async overview(now: Date = new Date()) {
@@ -63,7 +80,11 @@ export class AdminOverviewService {
         where: { paymentStatus: PaymentStatus.PENDING },
       }),
       this.prisma.user.count({
-        where: { role: UserRole.PLATFORM_ADMIN, disabledAt: null },
+        where: {
+          role: UserRole.PLATFORM_ADMIN,
+          disabledAt: null,
+          deletedAt: null,
+        },
       }),
       this.audit.recent(6),
     ]);
@@ -146,19 +167,7 @@ export class AdminOverviewService {
         orderBy: { createdAt: 'desc' },
         skip,
         take,
-        include: {
-          organization: { select: { id: true, companyName: true } },
-          enquiry: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              subject: true,
-              intent: true,
-            },
-          },
-          listing: { select: { id: true, name: true } },
-        },
+        include: ADMIN_LEAD_INCLUDE,
       }),
       this.prisma.lead.count({ where }),
       this.prisma.lead.groupBy({ by: ['status'], _count: { _all: true } }),
@@ -170,6 +179,80 @@ export class AdminOverviewService {
     for (const g of groups) statusCounts[g.status] = g._count._all;
 
     return { items, total, skip, take, statusCounts };
+  }
+
+  /**
+   * Update partner lead status/note or reroute the underlying enquiry to another partner
+   * (uses EnquiryService.assign). Return unrouted leads to the admin queue from Enquiry queue.
+   */
+  async updateLead(
+    leadId: string,
+    adminUserId: string,
+    dto: AdminUpdateLeadDto,
+  ) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        organizationId: true,
+        enquiryId: true,
+        status: true,
+        contactedAt: true,
+      },
+    });
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    if (
+      dto.organizationId !== undefined &&
+      dto.organizationId !== lead.organizationId
+    ) {
+      await this.enquiryService.assign(lead.enquiryId, adminUserId, {
+        organizationId: dto.organizationId,
+      });
+    }
+
+    const current = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        organizationId: true,
+        enquiryId: true,
+        status: true,
+        contactedAt: true,
+      },
+    });
+    if (!current) {
+      throw new NotFoundException('Lead not found after routing update');
+    }
+
+    const hasStatusOrNote =
+      dto.status !== undefined || dto.partnerNote !== undefined;
+
+    if (!hasStatusOrNote) {
+      return this.prisma.lead.findUniqueOrThrow({
+        where: { id: current.id },
+        include: ADMIN_LEAD_INCLUDE,
+      });
+    }
+
+    return this.prisma.lead.update({
+      where: { id: current.id },
+      data: {
+        status: dto.status,
+        ...(dto.partnerNote !== undefined
+          ? { partnerNote: dto.partnerNote?.trim() ?? null }
+          : {}),
+        contactedAt:
+          dto.status &&
+          dto.status !== LeadStatus.NEW &&
+          current.contactedAt == null
+            ? new Date()
+            : undefined,
+      },
+      include: ADMIN_LEAD_INCLUDE,
+    });
   }
 }
 

@@ -149,6 +149,11 @@ export async function apiDownload(
   URL.revokeObjectURL(url);
 }
 
+export type OtpRequestResponse = {
+  sent: boolean;
+  devOtpLogged?: boolean;
+};
+
 export const authApi = {
   register: (body: Record<string, unknown>) =>
     apiRequest<AuthTokensResponse>('/auth/register', {
@@ -159,6 +164,16 @@ export const authApi = {
     apiRequest<AuthTokensResponse>('/auth/login', {
       method: 'POST',
       body: { email, password },
+    }),
+  otpRequest: (phone: string) =>
+    apiRequest<OtpRequestResponse>('/auth/otp/request', {
+      method: 'POST',
+      body: { phone },
+    }),
+  otpVerify: (phone: string, code: string) =>
+    apiRequest<AuthTokensResponse>('/auth/otp/verify', {
+      method: 'POST',
+      body: { phone, code },
     }),
   logout: () =>
     apiRequest<void>('/auth/logout', {

@@ -7,6 +7,7 @@ import {
   auditPageCount,
   auditSubjectHref,
   availableUserActions,
+  buildAuditExportPath,
   buildAuditQuery,
   buildOpsCards,
   isAdminNavActive,
@@ -130,11 +131,12 @@ describe('user management actions', () => {
     expect(availableUserActions({ ...base, id: 'me' }, 'me')).toEqual([]);
   });
 
-  it('offers promote/reset/disable for customers', () => {
+  it('offers promote/reset/disable/delete for customers', () => {
     expect(availableUserActions({ ...base, id: 'u' }, 'me')).toEqual([
       'promote',
       'reset',
       'disable',
+      'delete',
     ]);
   });
 
@@ -149,7 +151,7 @@ describe('user management actions', () => {
   it('offers enable for disabled users', () => {
     expect(
       availableUserActions({ ...base, id: 'u', disabledAt: '2026-11-01' }, 'me'),
-    ).toContain('enable');
+    ).toEqual(['promote', 'reset', 'enable', 'delete']);
   });
 
   it('maps account types to the matching role', () => {

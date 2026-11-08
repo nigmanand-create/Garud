@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  Matches,
   MinLength,
   MaxLength,
 } from 'class-validator';
@@ -83,6 +84,36 @@ export class RegisterGoogleDto extends RegisterDto {
   declare password: string;
 }
 
+export class OtpRequestDto {
+  @ApiProperty({
+    example: '9876543210',
+    description: 'Indian mobile (10 digits) or +91…',
+  })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(20)
+  phone: string;
+}
+
+export class OtpVerifyDto extends OtpRequestDto {
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @Matches(/^\d{6}$/)
+  code: string;
+}
+
+export class OtpRequestResponse {
+  @ApiProperty({
+    description: 'True when SMS gateway accepted the send',
+  })
+  sent: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Dev-only: OTP was logged server-side (SMS missing or failed in non-production)',
+  })
+  devOtpLogged?: boolean;
+}
+
 export class LoginDto {
   @ApiProperty({ example: 'partner@company.com' })
   @IsEmail()
@@ -138,6 +169,11 @@ export class AuthUserResponse {
 
   @ApiPropertyOptional()
   orgId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Primary contact person on the organization profile',
+  })
+  contactPersonName?: string;
 
   @ApiPropertyOptional({
     description: 'True when an admin issued a temporary password',

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
@@ -22,8 +22,20 @@ export class BuyerCheckoutController {
   @ApiOperation({
     summary: 'Get buyer default saved address from profile or previous order',
   })
-  getSavedAddress(@CurrentUser() user: AuthenticatedUser) {
-    return this.checkoutService.getSavedAddress(user.userId);
+  getSavedAddress(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('selectedBuyerAddressId') selectedBuyerAddressId?: string,
+  ) {
+    return this.checkoutService.getSavedAddress(
+      user.userId,
+      selectedBuyerAddressId,
+    );
+  }
+
+  @Get('config')
+  @ApiOperation({ summary: 'Checkout feature flags' })
+  getCheckoutConfig() {
+    return this.checkoutService.getCheckoutFlags();
   }
 
   @Post('place')

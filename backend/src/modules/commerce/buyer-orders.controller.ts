@@ -31,7 +31,7 @@ export class BuyerOrdersController {
   @Header('Content-Type', 'text/html; charset=utf-8')
   @ApiOperation({
     summary:
-      'HTML payment receipt stub (paid orders; not a statutory GST invoice)',
+      'HTML GST receipt for a paid single-vendor order (buyer and seller GSTIN, HSN, tax lines when rates exist)',
   })
   receipt(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.receipts.orderReceiptHtml(user.userId, id);

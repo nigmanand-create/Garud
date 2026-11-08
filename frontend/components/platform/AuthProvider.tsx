@@ -29,6 +29,7 @@ type AuthState = {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
+  loginWithPhoneOtp: (phone: string, code: string) => Promise<AuthUser>;
   register: (body: Record<string, unknown>) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -100,6 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applyTokens],
   );
 
+  const loginWithPhoneOtp = useCallback(
+    async (phone: string, code: string) => {
+      const data = await authApi.otpVerify(phone, code);
+      return applyTokens(data);
+    },
+    [applyTokens],
+  );
+
   const register = useCallback(
     async (body: Record<string, unknown>) => {
       const data = await authApi.register(body);
@@ -119,8 +128,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, refreshUser }),
-    [user, loading, login, register, logout, refreshUser],
+    () => ({
+      user,
+      loading,
+      login,
+      loginWithPhoneOtp,
+      register,
+      logout,
+      refreshUser,
+    }),
+    [user, loading, login, loginWithPhoneOtp, register, logout, refreshUser],
   );
 
   return (

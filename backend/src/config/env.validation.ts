@@ -100,6 +100,36 @@ class EnvironmentVariables {
   @IsString()
   RAZORPAY_WEBHOOK_SECRET?: string;
 
+  /** GarudHub / platform GSTIN (2nd chapter) for subscription receipts and supply attribution. */
+  @IsOptional()
+  @IsString()
+  GARUD_PLATFORM_GSTIN?: string;
+
+  /** First two digits of state code used with partner GSTIN to split CGST/SGST vs IGST on subscription charges. */
+  @IsOptional()
+  @IsString()
+  GARUD_PLATFORM_GST_STATE_CODE?: string;
+
+  /** SAC for SaaS / platform subscription line (default 998431). */
+  @IsOptional()
+  @IsString()
+  PARTNER_SUBSCRIPTION_SAC_CODE?: string;
+
+  /** GST % included in published partner plan price (default 18). */
+  @IsOptional()
+  @IsString()
+  PARTNER_SUBSCRIPTION_GST_PERCENT?: string;
+
+  /** When `true`, buyers may place marketplace orders with Cash on Delivery (no Razorpay). Default off. */
+  @IsOptional()
+  @IsString()
+  COD_ENABLED?: string;
+
+  /** Phase 2 — official GeM/CPPP ingestion worker (default off; no scraping). */
+  @IsOptional()
+  @IsString()
+  GOV_GEM_ENABLED?: string;
+
   /** Transactional mail — omit SMTP_HOST to use the log-only provider. */
   @IsOptional()
   @IsString()

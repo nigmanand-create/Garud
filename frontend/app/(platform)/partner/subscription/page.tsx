@@ -211,9 +211,9 @@ function SubscriptionInner() {
                       rel="noopener noreferrer"
                       className="platform-link-btn"
                     >
-                      Payment record (stub)
+                      GST receipt (HTML)
                     </a>
-                    <span className="platform-muted"> · Not a statutory GST invoice</span>
+                    <span className="platform-muted"> · Requires partner GSTIN on file</span>
                   </p>
                 )}
                 {data.plan.status === 'PAST_DUE' && (

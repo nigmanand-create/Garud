@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -29,32 +28,49 @@ const cartInclude = {
           minOrderQuantity: true,
           primaryImageUrl: true,
           organizationId: true,
+          hsnCode: true,
+          gstPercent: true,
         },
       },
     },
     orderBy: { createdAt: 'asc' as const },
   },
-};
+} as const;
+
+export type CartWithRelations = Prisma.CartGetPayload<{
+  include: typeof cartInclude;
+}>;
 
 @Injectable()
 export class CartService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getCart(userId: string) {
-    const cart = await this.prisma.cart.findUnique({
+    const carts = await this.prisma.cart.findMany({
       where: { userId },
       include: cartInclude,
+      orderBy: { updatedAt: 'desc' },
     });
-    if (!cart) {
+    if (carts.length === 0) {
       return {
-        id: null,
-        partnerOrganization: null,
-        items: [],
+        sellerCarts: [] as ReturnType<CartService['serializeSellerCart']>[],
         itemCount: 0,
         subtotalInr: '0',
       };
     }
-    return this.serializeCart(cart);
+    let totalItems = 0;
+    let grandSubtotal = new Prisma.Decimal(0);
+    const sellerCarts = carts.map((c) => {
+      const ser = this.serializeSellerCart(c);
+      totalItems += ser.itemCount;
+      grandSubtotal = grandSubtotal.add(new Prisma.Decimal(ser.subtotalInr));
+      return ser;
+    });
+    return {
+      sellerCarts,
+      itemCount: totalItems,
+      subtotalInr: grandSubtotal.toFixed(2),
+    };
   }
 
   async addItem(userId: string, dto: AddCartItemDto) {
@@ -70,36 +86,18 @@ export class CartService {
     }
     this.assertPurchasable(listing);
 
-    const existingCart = await this.prisma.cart.findUnique({
-      where: { userId },
+    let cart = await this.prisma.cart.findUnique({
+      where: {
+        userId_partnerOrganizationId: {
+          userId,
+          partnerOrganizationId: listing.organizationId,
+        },
+      },
       include: { items: true },
     });
 
-    if (existingCart) {
-      if (existingCart.partnerOrganizationId !== listing.organizationId) {
-        throw new ConflictException(
-          'Your cart contains items from another seller. Clear the cart or complete checkout before adding items from this seller.',
-        );
-      }
-      const existingItem = existingCart.items.find(
-        (i) => i.listingId === listing.id,
-      );
-      if (existingItem) {
-        await this.prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { quantity: existingItem.quantity + quantity },
-        });
-      } else {
-        await this.prisma.cartItem.create({
-          data: {
-            cartId: existingCart.id,
-            listingId: listing.id,
-            quantity,
-          },
-        });
-      }
-    } else {
-      await this.prisma.cart.create({
+    if (!cart) {
+      cart = await this.prisma.cart.create({
         data: {
           userId,
           partnerOrganizationId: listing.organizationId,
@@ -110,7 +108,24 @@ export class CartService {
             },
           },
         },
+        include: { items: true },
       });
+    } else {
+      const existingItem = cart.items.find((i) => i.listingId === listing.id);
+      if (existingItem) {
+        await this.prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: existingItem.quantity + quantity },
+        });
+      } else {
+        await this.prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            listingId: listing.id,
+            quantity,
+          },
+        });
+      }
     }
 
     return this.getCart(userId);
@@ -141,35 +156,57 @@ export class CartService {
   }
 
   async removeItem(userId: string, itemId: string) {
-    await this.findOwnedCartItem(userId, itemId);
-    const cart = await this.prisma.cart.findUniqueOrThrow({
-      where: { userId },
-      include: { items: true },
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: { cart: true },
     });
+    if (!item || item.cart.userId !== userId) {
+      throw new NotFoundException('Cart item not found');
+    }
+    const cartId = item.cartId;
     await this.prisma.cartItem.delete({ where: { id: itemId } });
-    if (cart.items.length === 1) {
-      await this.prisma.cart.delete({ where: { id: cart.id } });
-      return this.getCart(userId);
+    const remaining = await this.prisma.cartItem.count({ where: { cartId } });
+    if (remaining === 0) {
+      await this.prisma.cart.delete({ where: { id: cartId } });
     }
     return this.getCart(userId);
   }
 
   async clearCart(userId: string) {
-    const cart = await this.prisma.cart.findUnique({ where: { userId } });
-    if (cart) {
-      await this.prisma.cart.delete({ where: { id: cart.id } });
-    }
+    await this.prisma.cart.deleteMany({ where: { userId } });
     return this.getCart(userId);
   }
 
-  async getCartForCheckout(userId: string) {
-    const cart = await this.prisma.cart.findUnique({
+  /** @param vendorOrganizationId — required when the buyer has more than one non-empty seller cart */
+  async getCartForCheckout(userId: string, vendorOrganizationId?: string) {
+    const carts = await this.prisma.cart.findMany({
       where: { userId },
       include: cartInclude,
     });
-    if (!cart || cart.items.length === 0) {
+    const nonEmpty = carts.filter((c) => c.items.length > 0);
+    if (nonEmpty.length === 0) {
       throw new UnprocessableEntityException('Cart is empty');
     }
+
+    let cart: CartWithRelations;
+    if (vendorOrganizationId) {
+      const found = nonEmpty.find(
+        (c) => c.partnerOrganizationId === vendorOrganizationId,
+      );
+      if (!found) {
+        throw new UnprocessableEntityException(
+          'No cart items for that seller. Add items from the marketplace first.',
+        );
+      }
+      cart = found;
+    } else if (nonEmpty.length === 1) {
+      cart = nonEmpty[0];
+    } else {
+      throw new UnprocessableEntityException(
+        'You have items from multiple sellers. Check out one seller at a time — open checkout from the cart section for that seller.',
+      );
+    }
+
     for (const item of cart.items) {
       this.assertPurchasable(item.listing);
       const moq = item.listing.minOrderQuantity;
@@ -212,20 +249,7 @@ export class CartService {
     }
   }
 
-  private async findOwnedCartItem(userId: string, itemId: string) {
-    const item = await this.prisma.cartItem.findUnique({
-      where: { id: itemId },
-      include: { cart: true },
-    });
-    if (!item || item.cart.userId !== userId) {
-      throw new NotFoundException('Cart item not found');
-    }
-    return item;
-  }
-
-  private serializeCart(
-    cart: Prisma.CartGetPayload<{ include: typeof cartInclude }>,
-  ) {
+  private serializeSellerCart(cart: CartWithRelations) {
     let subtotal = new Prisma.Decimal(0);
     const items = cart.items.map((item) => {
       const unit = item.listing.priceInr ?? new Prisma.Decimal(0);
@@ -242,6 +266,12 @@ export class CartService {
           sku: item.listing.sku,
           primaryImageUrl: item.listing.primaryImageUrl,
           minOrderQuantity: item.listing.minOrderQuantity,
+          vendorOrganizationId: item.listing.organizationId,
+          hsnCode: item.listing.hsnCode,
+          gstPercent:
+            item.listing.gstPercent != null
+              ? item.listing.gstPercent.toFixed(2)
+              : null,
         },
       };
     });

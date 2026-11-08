@@ -626,6 +626,15 @@ export class AdminService {
         listingId: li.listingId,
         snapshotName: li.snapshotName,
         snapshotSku: li.snapshotSku,
+        snapshotHsnCode: li.snapshotHsnCode,
+        snapshotGstPercent:
+          li.snapshotGstPercent != null
+            ? li.snapshotGstPercent.toFixed(2)
+            : null,
+        taxableValueInr: li.taxableValueInr?.toFixed(2) ?? null,
+        cgstInr: li.cgstInr.toFixed(2),
+        sgstInr: li.sgstInr.toFixed(2),
+        igstInr: li.igstInr.toFixed(2),
         unitPriceInr: li.unitPriceInr.toFixed(2),
         quantity: li.quantity,
         lineTotalInr: li.lineTotalInr.toFixed(2),

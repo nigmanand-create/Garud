@@ -17,7 +17,7 @@
 
 ## Current dev coding focus (not QA/Ops)
 
-**Already shipped on `dev`:** API proxy (incl. PUT/HEAD), `/api/v1` → platform rewrites, GOVERNMENT → `/government`, signed-out `/buyer/rfqs` → role login + auth timeout, buyer desktop **Account** menu, UX quick wins (`eaabd22`), **homepage React marketing parity** (`7c94b28`).
+**Already shipped on `dev`:** API proxy (incl. PUT/HEAD), `/api/v1` → platform rewrites, GOVERNMENT → `/government`, signed-out `/buyer/rfqs` → role login + auth timeout, buyer desktop **Account** menu, UX quick wins (`eaabd22`), **homepage React marketing parity** (`7c94b28`), **gov tender CSV bulk import** on `/admin/gov-opportunities` — see [`GOV_TENDER_IMPORT.md`](./GOV_TENDER_IMPORT.md).
 
 **Code next (suggested order):**
 

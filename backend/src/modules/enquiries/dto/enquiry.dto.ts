@@ -130,3 +130,14 @@ export class UpdateLeadDto {
   @MaxLength(2000)
   partnerNote?: string;
 }
+
+/** Admin operations: same as partner patch plus optional reroute to another verified partner. */
+export class AdminUpdateLeadDto extends UpdateLeadDto {
+  @ApiPropertyOptional({
+    description:
+      'Move this lead to another partner (updates enquiry routing). Omit to leave unchanged.',
+  })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+}

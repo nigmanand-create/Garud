@@ -9,6 +9,7 @@ import {
 } from '@/lib/api/gov';
 import { ApiError } from '@/lib/api/types';
 import Link from 'next/link';
+import { loginPathForIntent } from '@/lib/platform/auth-login';
 
 type Props = {
   opportunityId: string;
@@ -49,7 +50,11 @@ export function GovTenderBidForm({ opportunityId }: Props) {
       <div className="platform-card platform-muted">
         <p>
           Sign in with a buyer or government account to submit a sealed tender bid.{' '}
-          <Link href={`/login?next=/government/${opportunityId}`}>Log in</Link>
+          <Link
+            href={`${loginPathForIntent('buyer')}?next=${encodeURIComponent(`/government/${opportunityId}`)}`}
+          >
+            Log in
+          </Link>
         </p>
       </div>
     );

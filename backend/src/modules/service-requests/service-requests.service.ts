@@ -111,7 +111,7 @@ export class ServiceRequestsService {
     const orgs = await this.prisma.organization.findMany({
       where: {
         verificationStatus: VerificationStatus.APPROVED,
-        owner: { role: 'PARTNER', disabledAt: null },
+        owner: { role: 'PARTNER', disabledAt: null, deletedAt: null },
         id: { notIn: [...already] },
         OR: [
           { serviceCategories: { has: request.category } },

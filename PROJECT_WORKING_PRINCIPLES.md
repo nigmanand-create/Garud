@@ -6,7 +6,7 @@ These principles govern how work is planned, executed, and reviewed for the Garu
 
 ## 1. North star
 
-- **Product goal:** GarudHub is a **business-generation platform** — registration, verification, listings, RFQs, leads, partnerships — not a static marketing site.
+- **Product goal:** GarudHub is a **business-generation platform** — registration, verificatigoveron, listings, RFQs, leads, partnerships — not a static marketing site.
 - **Positioning anchor:** “India’s B2B Drone Ecosystem Platform” (blueprint), while respecting what already exists on [garudhub.com](https://garudhub.com/) (DroneHub lifecycle messaging) until product/marketing decisions say otherwise.
 - **Every feature** should trace to a **persona journey**: buyer, manufacturer, international company, distributor/dealer, service provider, training institute, government/PSU, or platform admin.
 
@@ -15,7 +15,7 @@ These principles govern how work is planned, executed, and reviewed for the Garu
 ## 2. Source of truth (priority order)
 
 1. **Explicit instructions** from the client in the current conversation.
-2. **`decode_jwt.docx` blueprint** — site map, flows, dashboard modules, RFQ model, partner types.
+2. `decode_jwt.docx` **blueprint** — site map, flows, dashboard modules, RFQ model, partner types.
 3. **Live site** — reference for existing branding, copy, and services; **not** assumed to be the target IA or B2B product model.
 4. **Code and infra in this repo** — once present, conventions in code override assumptions from the doc.
 
@@ -124,7 +124,7 @@ Phases reorder per client priority; never skip **auth + verification** for partn
 
 ## 13. Single web app (marketing + platform)
 
-Marketing snapshots and the PRD platform UI share **one Next.js frontend** on the same origin (`:3001` in local dev). Cross-links are applied in `frontend/lib/snapshot-html.ts` and in `PlatformShell` (Home → `/`). Route map and run instructions: **`PROJECT_TWO_TRACKS.md`**.
+Marketing snapshots and the PRD platform UI share **one Next.js frontend** on the same origin (`:3001` in local dev). Cross-links are applied in `frontend/lib/snapshot-html.ts` and in `PlatformShell` (Home → `/`). Route map and run instructions: `PROJECT_TWO_TRACKS.md`.
 
 ---
 

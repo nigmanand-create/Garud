@@ -29,6 +29,7 @@ function EnquiryPageInner() {
   const searchParams = useSearchParams();
   const service = searchParams.get('service') ?? undefined;
   const subjectParam = searchParams.get('subject') ?? undefined;
+  const messageParam = searchParams.get('message') ?? undefined;
   const listingId = uuidParam(searchParams.get('listing'));
   const organizationId = uuidParam(searchParams.get('partner'));
   const intentRaw = searchParams.get('intent')?.toUpperCase() as EnquiryIntent;
@@ -52,6 +53,7 @@ function EnquiryPageInner() {
       <EnquiryForm
         serviceKey={service}
         defaultSubject={subjectParam ?? ''}
+        defaultMessage={messageParam ?? ''}
         listingId={listingId}
         organizationId={organizationId}
         intent={intent}

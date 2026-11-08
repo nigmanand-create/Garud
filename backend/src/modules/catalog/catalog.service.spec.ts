@@ -4,6 +4,7 @@ import {
   CatalogCategory,
   ListingReviewStatus,
   ListingType,
+  Prisma,
   VerificationStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
@@ -21,6 +22,8 @@ describe('CatalogService', () => {
     partnerListing: {
       findMany: jest.fn(),
       count: jest.fn(),
+      groupBy: jest.fn(),
+      aggregate: jest.fn(),
     },
     organization: {
       findMany: jest.fn(),
@@ -84,15 +87,21 @@ describe('CatalogService', () => {
       });
 
       const expectedWhere = {
-        isPublished: true,
-        reviewStatus: ListingReviewStatus.APPROVED,
-        listingType: ListingType.PRODUCT,
-        category: CatalogCategory.AGRICULTURE_DRONE,
-        organization: { verificationStatus: VerificationStatus.APPROVED },
-        OR: [
-          { name: { contains: 'spray', mode: 'insensitive' } },
-          { description: { contains: 'spray', mode: 'insensitive' } },
-          { brand: { contains: 'spray', mode: 'insensitive' } },
+        AND: [
+          {
+            isPublished: true,
+            reviewStatus: ListingReviewStatus.APPROVED,
+            listingType: ListingType.PRODUCT,
+            category: CatalogCategory.AGRICULTURE_DRONE,
+            organization: { verificationStatus: VerificationStatus.APPROVED },
+          },
+          {
+            OR: [
+              { name: { contains: 'spray', mode: 'insensitive' } },
+              { description: { contains: 'spray', mode: 'insensitive' } },
+              { brand: { contains: 'spray', mode: 'insensitive' } },
+            ],
+          },
         ],
       };
 
@@ -224,8 +233,38 @@ describe('CatalogService', () => {
         { state: 'Delhi' },
         { state: ' Gujarat ' },
       ]);
+      prismaMock.partnerListing.groupBy.mockImplementation(
+        (args: { by: string[] }) => {
+          const key = args.by[0];
+          if (key === 'category')
+            return Promise.resolve([{ category: CatalogCategory.COMPONENT }]);
+          if (key === 'listingType')
+            return Promise.resolve([{ listingType: ListingType.PRODUCT }]);
+          if (key === 'brand') return Promise.resolve([{ brand: 'AgriBrand' }]);
+          if (key === 'city') return Promise.resolve([{ city: 'Bangalore' }]);
+          if (key === 'state')
+            return Promise.resolve([{ state: 'Karnataka' }]);
+          return Promise.resolve([]);
+        },
+      );
+      prismaMock.partnerListing.aggregate
+        .mockResolvedValueOnce({
+          _min: { priceInr: new Prisma.Decimal('1000') },
+          _max: { priceInr: new Prisma.Decimal('50000') },
+        })
+        .mockResolvedValueOnce({
+          _max: { minOrderQuantity: 10 },
+        });
+
       await expect(service.listPublicFacets()).resolves.toEqual({
         states: ['Delhi', 'Gujarat'],
+        categories: [CatalogCategory.COMPONENT],
+        listingTypes: [ListingType.PRODUCT],
+        brands: ['AgriBrand'],
+        cities: ['Bangalore'],
+        listingStates: ['Karnataka'],
+        priceInr: { min: '1000', max: '50000' },
+        moqMax: 10,
       });
     });
 

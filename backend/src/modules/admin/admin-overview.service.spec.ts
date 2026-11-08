@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { EnquiryService } from '../enquiries/enquiry.service';
 import { AdminAuditService } from './admin-audit.service';
 import { AdminOverviewService } from './admin-overview.service';
 
@@ -16,6 +17,7 @@ describe('AdminOverviewService', () => {
     user: { count: jest.fn() },
   };
   const auditMock = { recent: jest.fn() };
+  const enquiryMock = { assign: jest.fn() };
 
   beforeEach(async () => {
     jest.resetAllMocks();
@@ -24,6 +26,7 @@ describe('AdminOverviewService', () => {
         AdminOverviewService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: AdminAuditService, useValue: auditMock },
+        { provide: EnquiryService, useValue: enquiryMock },
       ],
     }).compile();
     service = module.get(AdminOverviewService);

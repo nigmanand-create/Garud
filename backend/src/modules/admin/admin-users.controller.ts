@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -103,5 +104,15 @@ export class AdminUsersController {
     @Body() dto: SetUserDisabledDto,
   ) {
     return this.users.setDisabled(actor.userId, id, dto.disabled);
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  @ApiOperation({
+    summary:
+      'Soft-delete a user (anonymize, revoke sessions, remove from directory; keeps history)',
+  })
+  deleteUser(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string) {
+    return this.users.deleteUser(actor.userId, id);
   }
 }

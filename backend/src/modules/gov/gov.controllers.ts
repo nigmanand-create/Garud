@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,10 +9,16 @@ import {
   Post,
   Query,
   StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
@@ -29,6 +36,7 @@ import type { AuthenticatedUser } from '../identity/types/auth.types';
 import { BEARER_AUTH_NAME } from '../../shared/swagger/swagger.setup';
 import {
   CreateGovOpportunityDto,
+  ImportGovOpportunitiesDto,
   UpdateGovOpportunityDto,
 } from './dto/gov.dto';
 import { GovService } from './gov.service';
@@ -89,6 +97,50 @@ export class AdminGovController {
       skip: skip ? parseInt(skip, 10) : undefined,
       take: take ? parseInt(take, 10) : undefined,
     });
+  }
+
+  @Post('import')
+  @ApiOperation({
+    summary:
+      'Bulk import tenders/schemes from CSV file, CSV text, or JSON rows',
+  })
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: '#/components/schemas/ImportGovOpportunitiesDto' },
+        {
+          type: 'object',
+          properties: {
+            file: { type: 'string', format: 'binary' },
+            csv: { type: 'string' },
+          },
+        },
+      ],
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
+  importBulk(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: ImportGovOpportunitiesDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (body?.rows?.length) {
+      return this.gov.importJsonRows(user.userId, body.rows);
+    }
+    const csvText =
+      (file?.buffer && file.buffer.toString('utf-8')) || body?.csv?.trim();
+    if (!csvText) {
+      throw new BadRequestException(
+        'Provide a CSV file, csv text field, or rows array',
+      );
+    }
+    return this.gov.importFromCsv(user.userId, csvText);
   }
 
   @Get(':id')

@@ -20,6 +20,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { PartnerBillingService } from '../partner-billing/partner-billing.service';
 import { PaymentsService } from '../payments/payments.service';
 import { CartService } from './cart.service';
+import { BuyerAddressService } from './buyer-address.service';
 import { CheckoutService } from './checkout.service';
 import { OrdersService } from './orders.service';
 
@@ -46,6 +47,13 @@ describe('Orders & Fulfillment Workflow Integration (TASK-004)', () => {
       providers: [
         OrdersService,
         CheckoutService,
+        {
+          provide: BuyerAddressService,
+          useValue: {
+            resolveToCheckoutShipping: jest.fn(),
+            createFromCheckoutShipping: jest.fn(),
+          },
+        },
         CartService,
         AdminService,
         PaymentsService,

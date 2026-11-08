@@ -2,6 +2,8 @@ import {
   AccountType,
   EnquiryStatus,
   FulfillmentStatus,
+  GovOpportunityStatus,
+  GovOpportunityType,
   OrderStatus,
   PaymentGateway,
   PaymentStatus,
@@ -36,6 +38,9 @@ type DemoAccount = {
   accountType: AccountType;
   companyName: string;
   verificationStatus: VerificationStatus;
+  /** E.164 for OTP login smoke tests (unique per demo row). */
+  phoneE164: string;
+  contactMobile: string;
 };
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
@@ -46,6 +51,8 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     accountType: AccountType.TECHNOLOGY_COMPANY,
     companyName: 'GarudHub Platform',
     verificationStatus: VerificationStatus.APPROVED,
+    phoneE164: '+919000000001',
+    contactMobile: '9000000001',
   },
   {
     email: 'partner@garudhub.local',
@@ -53,6 +60,8 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     accountType: AccountType.MANUFACTURER,
     companyName: 'Demo Drone Manufacturing Pvt Ltd',
     verificationStatus: VerificationStatus.APPROVED,
+    phoneE164: '+919000000002',
+    contactMobile: '9000000002',
   },
   {
     email: 'buyer@garudhub.local',
@@ -60,6 +69,8 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     accountType: AccountType.BUYER_ENTERPRISE,
     companyName: 'Demo Buyer Enterprise',
     verificationStatus: VerificationStatus.APPROVED,
+    phoneE164: '+919000000003',
+    contactMobile: '9000000003',
   },
   {
     email: 'checkout-test@garudhub.local',
@@ -67,6 +78,8 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     accountType: AccountType.BUYER_ENTERPRISE,
     companyName: 'Checkout Test Buyer',
     verificationStatus: VerificationStatus.APPROVED,
+    phoneE164: '+919000000004',
+    contactMobile: '9000000004',
   },
   {
     email: 'government@garudhub.local',
@@ -74,6 +87,8 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     accountType: AccountType.GOVERNMENT_PSU,
     companyName: 'Demo Government PSU',
     verificationStatus: VerificationStatus.APPROVED,
+    phoneE164: '+919000000005',
+    contactMobile: '9000000005',
   },
 ];
 
@@ -90,7 +105,7 @@ async function upsertDemoUser(account: DemoAccount) {
     city: 'Bengaluru',
     contactPersonName: `${account.role} Demo User`,
     contactEmail: email,
-    contactMobile: '9000000000',
+    contactMobile: account.contactMobile,
     verificationStatus: account.verificationStatus,
     ...(account.verificationStatus === VerificationStatus.APPROVED
       ? { submittedAt: now, reviewedAt: now }
@@ -102,12 +117,16 @@ async function upsertDemoUser(account: DemoAccount) {
     create: {
       email,
       passwordHash,
+      phoneE164: account.phoneE164,
+      phoneVerifiedAt: now,
       role: account.role,
       accountType: account.accountType,
       organization: { create: orgFields },
     },
     update: {
       passwordHash,
+      phoneE164: account.phoneE164,
+      phoneVerifiedAt: now,
       role: account.role,
       accountType: account.accountType,
       organization: {
@@ -244,6 +263,114 @@ async function seedDemoOrders() {
   console.log('Seeded demo confirmed order: PO-2026-IND-001 with verified NEFT transaction');
 }
 
+const SEED_GOV_REFERENCE_PREFIX = 'GARUD-SEED-GOV';
+
+type SeedGovRow = {
+  type: GovOpportunityType;
+  title: string;
+  summary: string;
+  description: string;
+  issuingBody: string;
+  referenceNo: string;
+  state: string | null;
+  sourceUrl: string | null;
+  estimatedValueInr: number | null;
+  openDate: Date | null;
+  closingDate: Date | null;
+  eligibility: string | null;
+};
+
+/** Curated published tenders + schemes so `/government` is non-empty after seed. */
+async function seedPublishedGovOpportunities(adminUserId: string) {
+  const closeFar = new Date('2099-12-31T18:30:00.000Z');
+  const opened = new Date('2025-01-15T00:00:00.000Z');
+
+  const rows: SeedGovRow[] = [
+    {
+      type: GovOpportunityType.TENDER,
+      title: 'UAV-based agricultural survey services (state pilot)',
+      summary:
+        'Hiring qualified operators for multispectral crop health surveys across three districts. ISO-compliant imagery and reporting.',
+      description:
+        'Seeded demo tender for local development. Replace with live opportunities in production.\n\nDeliverables: flight plans, raw imagery, orthomosaic, advisory report.',
+      issuingBody: 'Department of Agriculture & Farmers Welfare',
+      referenceNo: `${SEED_GOV_REFERENCE_PREFIX}-TDR-2026-001`,
+      state: 'Karnataka',
+      sourceUrl: 'https://example.gov.in/tenders/demo-001',
+      estimatedValueInr: 18500000,
+      openDate: opened,
+      closingDate: closeFar,
+      eligibility:
+        'DGCA-approved remote pilot organisation; prior work in precision agriculture preferred.',
+    },
+    {
+      type: GovOpportunityType.TENDER,
+      title: 'Border surveillance drone maintenance and spares (RFQ)',
+      summary:
+        'Annual maintenance contract and critical spares for fixed-wing surveillance UAVs operated under central scheme.',
+      description:
+        'Seeded demo tender. Scope includes depot-level repairs, firmware updates, and stock of motors and ESCs.',
+      issuingBody: 'Ministry of Home Affairs (representative)',
+      referenceNo: `${SEED_GOV_REFERENCE_PREFIX}-TDR-2026-002`,
+      state: null,
+      sourceUrl: null,
+      estimatedValueInr: 420000000,
+      openDate: opened,
+      closingDate: closeFar,
+      eligibility: 'OEM-authorised service partner or certified MRO with relevant security clearances.',
+    },
+    {
+      type: GovOpportunityType.SCHEME,
+      title: 'Drone Shakti — productivity-linked subsidy for farm spraying',
+      summary:
+        'Central subsidy for purchasing crop protection drone systems for FPOs and large farmers in identified blocks.',
+      description:
+        'Seeded demo scheme record. Shows scheme eligibility and value on the public listing; no sealed bidding.',
+      issuingBody: 'Ministry of Agriculture & Farmers Welfare',
+      referenceNo: `${SEED_GOV_REFERENCE_PREFIX}-SCH-2026-001`,
+      state: 'Punjab',
+      sourceUrl: 'https://example.gov.in/schemes/drone-shakti-demo',
+      estimatedValueInr: null,
+      openDate: null,
+      closingDate: null,
+      eligibility: 'Registered FPO or farmer producer group; proof of landholding and training certificate.',
+    },
+    {
+      type: GovOpportunityType.SUBSIDY,
+      title: 'State drone operator training reimbursement',
+      summary:
+        'Reimbursement of DGCA-compliant remote pilot training fees for SC/ST youth in industrial corridors.',
+      description:
+        'Seeded demo subsidy. Applicants submit training invoices through GarudHub enquiry flow.',
+      issuingBody: 'Industries Department (Demo State)',
+      referenceNo: `${SEED_GOV_REFERENCE_PREFIX}-SUB-2026-001`,
+      state: 'Tamil Nadu',
+      sourceUrl: null,
+      estimatedValueInr: 75000,
+      openDate: null,
+      closingDate: closeFar,
+      eligibility: 'Resident of target districts; training completed at GarudHub-listed institute.',
+    },
+  ];
+
+  for (const row of rows) {
+    const existing = await prisma.govOpportunity.findFirst({
+      where: { referenceNo: row.referenceNo },
+    });
+    if (existing) continue;
+
+    await prisma.govOpportunity.create({
+      data: {
+        ...row,
+        status: GovOpportunityStatus.PUBLISHED,
+        publishedAt: new Date(),
+        createdByUserId: adminUserId,
+      },
+    });
+    console.log(`Seeded published gov opportunity: ${row.referenceNo}`);
+  }
+}
+
 async function seedDemoEnquiry() {
   const existing = await prisma.enquiry.findFirst({
     where: { email: 'demo.enquiry@garudhub.local' },
@@ -269,6 +396,17 @@ async function main() {
   for (const account of DEMO_ACCOUNTS) {
     await upsertDemoUser(account);
   }
+
+  const adminUser = await prisma.user.findUnique({
+    where: { email: (process.env.ADMIN_EMAIL ?? 'admin@garudhub.local').toLowerCase() },
+    select: { id: true },
+  });
+  if (adminUser) {
+    await seedPublishedGovOpportunities(adminUser.id);
+  } else {
+    console.log('Admin user not found; skipping gov opportunity seed.');
+  }
+
   await seedDemoCatalogListings();
 
   const seedTransactions = process.env.SEED_DEMO_TRANSACTIONS === 'true';

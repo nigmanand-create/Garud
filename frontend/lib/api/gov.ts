@@ -95,6 +95,46 @@ export const deleteGovOpportunity = (id: string) =>
     auth: true,
   });
 
+export type GovImportRowResult = {
+  row: number;
+  action: 'created' | 'updated' | 'skipped' | 'error';
+  message?: string;
+  id?: string;
+  referenceNo?: string | null;
+  title?: string;
+};
+
+export type GovImportReport = {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  rows: GovImportRowResult[];
+};
+
+export function importGovOpportunitiesCsv(options: {
+  file?: File;
+  csvText?: string;
+}) {
+  if (options.file) {
+    const form = new FormData();
+    form.append('file', options.file);
+    return apiRequest<GovImportReport>('/admin/gov-opportunities/import', {
+      method: 'POST',
+      auth: true,
+      body: form,
+    });
+  }
+  if (options.csvText?.trim()) {
+    return apiRequest<GovImportReport>('/admin/gov-opportunities/import', {
+      method: 'POST',
+      auth: true,
+      body: { csv: options.csvText },
+    });
+  }
+  return Promise.reject(new Error('Choose a CSV file or paste CSV text'));
+}
+
 export type GovBidVault = {
   sealed: boolean;
   bidCount: number;
@@ -175,3 +215,17 @@ export const getMyGovBid = (opportunityId: string) =>
       submittedAt: string;
     } | null;
   }>(`/buyer/gov-opportunities/${opportunityId}/bids/mine`, { auth: true });
+
+export type MyGovBidRow = {
+  id: string;
+  opportunityId: string;
+  amountInr: string | number;
+  hasDocument: boolean;
+  submittedAt: string;
+  opportunity: GovOpportunity;
+};
+
+export const listMyGovBids = () =>
+  apiRequest<{ items: MyGovBidRow[] }>('/buyer/gov-opportunities/bids/mine', {
+    auth: true,
+  });

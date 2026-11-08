@@ -5,6 +5,7 @@ import { Suspense, useEffect } from 'react';
 import { AuthSessionGate } from '@/components/platform/AuthCard';
 import { authApi } from '@/lib/api/client';
 import { redirectPathAfterLogin } from '@/lib/platform/auth-login';
+import { consumePostLoginNext } from '@/lib/platform/post-login-next';
 
 function OAuthCallbackContent() {
   const router = useRouter();
@@ -23,7 +24,8 @@ function OAuthCallbackContent() {
     void (async () => {
       try {
         const me = await authApi.me();
-        router.replace(redirectPathAfterLogin(me));
+        const next = consumePostLoginNext();
+        router.replace(next ?? redirectPathAfterLogin(me));
       } catch {
         router.replace('/auth/login?error=oauth_failed');
       }

@@ -1,0 +1,3 @@
+type,title,summary,issuingBody,referenceNo,state,estimatedValueInr,closingAt,officialUrl,eligibility,details,publish
+TENDER,Example GeM tender listing,Short public summary shown on /government (min 10 characters).,GeM – Ministry of Defence,EXAMPLE-GEM-2026-001,,2500000,2026-12-31,https://gem.gov.in/,Registered OEM or authorized dealer,Mapped to the Details field in admin. Set publish=true to go live immediately.,false
+SCHEME,Example state drone scheme,Benefits and headline for the programme card.,State Agriculture Department,EXAMPLE-SCH-KA-001,Karnataka,,2027-03-31,https://example.gov.in/scheme,Farmer producer organisations,,false

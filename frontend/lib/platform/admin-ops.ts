@@ -97,6 +97,18 @@ export function buildAuditQuery(f: AuditFilters): string {
   return params.toString();
 }
 
+/** Path for CSV export (same filters as the audit log page, no pagination). */
+export function buildAuditExportPath(f: Omit<AuditFilters, 'page' | 'pageSize'>): string {
+  const params = new URLSearchParams();
+  if (f.kinds?.length) params.set('kind', f.kinds.join(','));
+  if (f.search?.trim()) params.set('search', f.search.trim());
+  if (f.actorUserId) params.set('actorUserId', f.actorUserId);
+  if (f.from) params.set('from', f.from);
+  if (f.to) params.set('to', f.to);
+  const q = params.toString();
+  return `/admin/audit-log/export.csv${q ? `?${q}` : ''}`;
+}
+
 export function auditPageCount(total: number, pageSize = AUDIT_PAGE_SIZE): number {
   return Math.max(Math.ceil(total / pageSize), 1);
 }
@@ -203,7 +215,13 @@ export type ManagedUser = {
   organization: { id: string } | null;
 };
 
-export type UserAction = 'promote' | 'demote' | 'reset' | 'disable' | 'enable';
+export type UserAction =
+  | 'promote'
+  | 'demote'
+  | 'reset'
+  | 'disable'
+  | 'enable'
+  | 'delete';
 
 /**
  * Actions the UI offers for a row. The backend enforces the same guards
@@ -220,5 +238,6 @@ export function availableUserActions(
   if (isAdmin && user.organization) actions.push('demote');
   actions.push('reset');
   actions.push(user.disabledAt ? 'enable' : 'disable');
+  actions.push('delete');
   return actions;
 }

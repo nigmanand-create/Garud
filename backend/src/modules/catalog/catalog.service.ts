@@ -175,43 +175,95 @@ export class CatalogService {
     category?: CatalogCategory;
     categories?: CatalogCategory[];
     q?: string;
+    /** Verified vendor org state (organization.state) */
     state?: string;
     priceType?: 'priced' | 'rfq';
+    brand?: string;
+    city?: string;
+    /** Listing-level state (partner_listings.state) */
+    listingState?: string;
+    minPrice?: Prisma.Decimal;
+    maxPrice?: Prisma.Decimal;
+    /** Listings with no MOQ or minOrderQuantity <= this value */
+    maxMoq?: number;
   }): Prisma.PartnerListingWhereInput {
     const q = filters.q?.trim();
-    const state = filters.state?.trim();
+    const orgState = filters.state?.trim();
+    const brand = filters.brand?.trim();
+    const city = filters.city?.trim();
+    const listingState = filters.listingState?.trim();
     const categoryFilter = filters.categories?.length
       ? { category: { in: filters.categories } }
       : filters.category
         ? { category: filters.category }
         : {};
 
-    return {
+    const priceTypeWhere: Prisma.PartnerListingWhereInput =
+      filters.priceType === 'priced'
+        ? { priceOnRequest: false }
+        : filters.priceType === 'rfq'
+          ? { priceOnRequest: true }
+          : {};
+
+    const orgWhere: Prisma.OrganizationWhereInput = {
+      verificationStatus: VerificationStatus.APPROVED,
+      ...(orgState
+        ? { state: { equals: orgState, mode: 'insensitive' as const } }
+        : {}),
+    };
+
+    const base: Prisma.PartnerListingWhereInput = {
       isPublished: true,
       reviewStatus: ListingReviewStatus.APPROVED,
       listingType: filters.listingType,
       ...categoryFilter,
-      ...(filters.priceType === 'priced'
-        ? { priceOnRequest: false }
-        : filters.priceType === 'rfq'
-          ? { priceOnRequest: true }
-          : {}),
-      organization: {
-        verificationStatus: VerificationStatus.APPROVED,
-        ...(state
-          ? { state: { equals: state, mode: 'insensitive' as const } }
-          : {}),
-      },
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { description: { contains: q, mode: 'insensitive' } },
-              { brand: { contains: q, mode: 'insensitive' } },
-            ],
-          }
+      ...priceTypeWhere,
+      organization: orgWhere,
+      ...(brand
+        ? { brand: { equals: brand, mode: 'insensitive' as const } }
+        : {}),
+      ...(city
+        ? { city: { equals: city, mode: 'insensitive' as const } }
+        : {}),
+      ...(listingState
+        ? { state: { equals: listingState, mode: 'insensitive' as const } }
         : {}),
     };
+
+    const and: Prisma.PartnerListingWhereInput[] = [base];
+
+    if (q) {
+      and.push({
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+          { brand: { contains: q, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (filters.minPrice != null || filters.maxPrice != null) {
+      and.push({
+        priceOnRequest: false,
+        priceInr: {
+          not: null,
+          ...(filters.minPrice != null ? { gte: filters.minPrice } : {}),
+          ...(filters.maxPrice != null ? { lte: filters.maxPrice } : {}),
+        },
+      });
+    }
+
+    if (filters.maxMoq != null && Number.isFinite(filters.maxMoq)) {
+      const cap = Math.max(0, Math.floor(filters.maxMoq));
+      and.push({
+        OR: [
+          { minOrderQuantity: null },
+          { minOrderQuantity: { lte: cap } },
+        ],
+      });
+    }
+
+    return and.length > 1 ? { AND: and } : base;
   }
 
   async browsePublic(filters: {
@@ -224,10 +276,27 @@ export class CatalogService {
     sort?: 'newest' | 'price_asc' | 'price_desc';
     skip?: number;
     take?: number;
+    brand?: string;
+    city?: string;
+    listingState?: string;
+    minPrice?: Prisma.Decimal;
+    maxPrice?: Prisma.Decimal;
+    maxMoq?: number;
   }) {
     const take = Math.min(filters.take ?? 20, 50);
     const skip = filters.skip ?? 0;
-    const where = this.buildBrowsePublicWhere(filters);
+    let minPrice = filters.minPrice;
+    let maxPrice = filters.maxPrice;
+    if (minPrice != null && maxPrice != null && minPrice.gt(maxPrice)) {
+      const t = minPrice;
+      minPrice = maxPrice;
+      maxPrice = t;
+    }
+    const where = this.buildBrowsePublicWhere({
+      ...filters,
+      minPrice,
+      maxPrice,
+    });
     const orderBy: Prisma.PartnerListingOrderByWithRelationInput[] =
       filters.sort === 'price_asc'
         ? [{ priceInr: { sort: 'asc', nulls: 'last' } }, { updatedAt: 'desc' }]
@@ -453,27 +522,104 @@ export class CatalogService {
     return { items, total, skip, take };
   }
 
-  /** Distinct states of verified vendors with published listings (filter facets). */
-  async listPublicFacets() {
-    const rows = await this.prisma.organization.findMany({
-      where: {
-        verificationStatus: VerificationStatus.APPROVED,
-        state: { not: null },
-        listings: {
-          some: {
-            isPublished: true,
-            reviewStatus: ListingReviewStatus.APPROVED,
-          },
-        },
-      },
-      select: { state: true },
-      distinct: ['state'],
-      orderBy: { state: 'asc' },
-    });
+  private publishedListingWhere(): Prisma.PartnerListingWhereInput {
     return {
-      states: rows
+      isPublished: true,
+      reviewStatus: ListingReviewStatus.APPROVED,
+      organization: { verificationStatus: VerificationStatus.APPROVED },
+    };
+  }
+
+  /** Facets for marketplace filters from live published listings. */
+  async listPublicFacets() {
+    const listingBase = this.publishedListingWhere();
+
+    const [
+      orgStateRows,
+      categoryRows,
+      listingTypeRows,
+      brandRows,
+      cityRows,
+      listingStateRows,
+      priceAgg,
+      moqAgg,
+    ] = await Promise.all([
+      this.prisma.organization.findMany({
+        where: {
+          verificationStatus: VerificationStatus.APPROVED,
+          state: { not: null },
+          listings: { some: { ...listingBase } },
+        },
+        select: { state: true },
+        distinct: ['state'],
+        orderBy: { state: 'asc' },
+      }),
+      this.prisma.partnerListing.groupBy({
+        by: ['category'],
+        where: listingBase,
+        orderBy: { category: 'asc' },
+      }),
+      this.prisma.partnerListing.groupBy({
+        by: ['listingType'],
+        where: listingBase,
+        orderBy: { listingType: 'asc' },
+      }),
+      this.prisma.partnerListing.groupBy({
+        by: ['brand'],
+        where: { ...listingBase, brand: { not: null } },
+        orderBy: { brand: 'asc' },
+      }),
+      this.prisma.partnerListing.groupBy({
+        by: ['city'],
+        where: { ...listingBase, city: { not: null } },
+        orderBy: { city: 'asc' },
+      }),
+      this.prisma.partnerListing.groupBy({
+        by: ['state'],
+        where: { ...listingBase, state: { not: null } },
+        orderBy: { state: 'asc' },
+      }),
+      this.prisma.partnerListing.aggregate({
+        where: {
+          ...listingBase,
+          priceOnRequest: false,
+          priceInr: { not: null },
+        },
+        _min: { priceInr: true },
+        _max: { priceInr: true },
+      }),
+      this.prisma.partnerListing.aggregate({
+        where: { ...listingBase, minOrderQuantity: { not: null } },
+        _max: { minOrderQuantity: true },
+      }),
+    ]);
+
+    const minP = priceAgg._min.priceInr;
+    const maxP = priceAgg._max.priceInr;
+
+    return {
+      states: orgStateRows
         .map((r) => r.state?.trim())
         .filter((v): v is string => Boolean(v)),
+      categories: categoryRows.map((r) => r.category),
+      listingTypes: listingTypeRows.map((r) => r.listingType),
+      brands: brandRows
+        .map((r) => r.brand?.trim())
+        .filter((v): v is string => Boolean(v)),
+      cities: cityRows
+        .map((r) => r.city?.trim())
+        .filter((v): v is string => Boolean(v)),
+      listingStates: listingStateRows
+        .map((r) => r.state?.trim())
+        .filter((v): v is string => Boolean(v)),
+      priceInr:
+        minP != null && maxP != null
+          ? {
+              min: minP.toString(),
+              max: maxP.toString(),
+            }
+          : null,
+      moqMax: moqAgg._max.minOrderQuantity ?? null,
     };
   }
 

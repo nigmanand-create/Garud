@@ -1,6 +1,6 @@
 # GarudHub — Route map (living spec ↔ code)
 
-**Updated:** November 4, 2026 (PRD Phase 3)  
+**Updated:** November 6, 2026 (government hub + seeded gov opportunities + list-my-bids API)  
 **Spec:** [`DECODE_JWT_SPEC.txt`](./DECODE_JWT_SPEC.txt) · **Open work:** [`PRD_REMAINING_TASKS.md`](./PRD_REMAINING_TASKS.md) · **Code status:** [`CODE_LEVEL_STATUS.md`](./CODE_LEVEL_STATUS.md)
 
 **Maintenance rule:** when you add, move, or retire a route, update this file in the same PR. Source of truth in code:
@@ -12,7 +12,7 @@
 
 ## Chrome decision (B6 / P-UI-11)
 
-**Decision: keep `MarketingShell` (marketing header + footer) for every React route** — public, partner, buyer, and admin. `PlatformShell` was never imported and carried “local dev” footer copy; it has been **deleted**. Partner pages add `PartnerPageShell` subnav; admin uses `AdminSubnav`.
+**MarketingShell** remains the default for public and buyer routes. **`PlatformShell`** switches chrome by path/role: `PartnerAppShell` on `/partner`, `AdminAppShell` on `/admin`, and **`GovernmentAppShell`** when the signed-in user is **`GOVERNMENT`** and the path is `/government` or `/government/*` (sidebar + top bar; guests on `/government` still see marketing chrome).
 
 ## Spec navigation → routes
 
@@ -25,7 +25,7 @@ Spec main nav: `HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | 
 | Drone services (8) | `/services` (`#marketplace`, `#training`, `#compliance`, `#repair`, `#professional`, `#finance`, `#government`, `#recycling`) | React | Legacy per-service snapshot URLs redirect here (see bridge). |
 | Service vertical intake | `/services/request?category=REPAIR_AMC\|COMPLIANCE\|PROFESSIONAL\|FINANCE_INSURANCE\|SCRAP_RECYCLING`, `/services/track/[token]` | React | Phase 8 |
 | Training courses | `/training`, `/training/[id]` | React | Phase 8 |
-| Government tenders & schemes | `/government`, `/government/[id]` | React | Phase 8 |
+| Government tenders & schemes | `/government`, `/government/[id]`, `/government/dashboard` | React | Phase 8. **`GOVERNMENT`:** Account menu includes **Gov · My work** → `/government/dashboard` and **Gov opportunities** → `/government`; mobile “Go to dashboard” uses `/government/dashboard`. **Seeded demo:** `npx prisma db seed` creates published tenders + schemes (references `GARUD-SEED-GOV-*`) so `/government` is not empty. Header listing CTA: `PLATFORM_ADMIN` → `/admin/gov-opportunities`; `BUYER` / `GOVERNMENT` → listing enquiry (`/enquiry`…); signed-out → sign-in with `?next=` to that enquiry. |
 | Marketplace | `/marketplace` (`?section=drones\|accessories\|components\|courses\|services`) | React | |
 | Marketplace → Vendors | `/marketplace/vendors`, `/marketplace/partners/[orgId]` | React | |
 | Marketplace → Listing | `/marketplace/listings/[id]` | React | |
@@ -34,19 +34,23 @@ Spec main nav: `HOME | ABOUT US | DRONE SERVICES | MARKETPLACE | B2B PARTNERS | 
 | Marketplace → RFQ | `/buyer/rfqs/new` | React (buyer/gov) | Nav CTA “Post B2B Drone RFQ”. |
 | B2B partners | `/b2b-partners` (`#manufacturers`, `#international`, `#dealers`, `#services`, `#training`, `#technology`) | React | |
 | Join → Registration | `/auth/register` (`?type=partner` or an account type, e.g. `?type=OEM`) | React | International hints (P-UX-05). |
-| Join → Partner login | `/auth/login` | React | Users on an admin-issued temporary password are sent to `/auth/change-password`. |
-| Contact / enquiry | `/enquiry` (`intent`, `service`, `listing`, `partner`, `subject`) | React | `/enquiry.php` → 308 `/enquiry`. |
+| Join → Partner login | `/auth/login`, `/auth/login/{partner\|buyer\|admin\|government}` | React | Optional `?next=/internal/path` (stored in `sessionStorage` for email/OTP sign-in and honoured after Google OAuth callback). Users on an admin-issued temporary password are sent to `/auth/change-password`. |
+| Contact / enquiry | `/enquiry` (`intent`, `service`, `listing`, `partner`, `subject`, `message`) | React | `/enquiry.php` → 308 `/enquiry`. `message` pre-fills the body (used for government “list this tender” template). |
 | Insights & blogs | `/blogging`, `/blogging/post/*`, `/blogging/category/*` | Snapshot | |
 | Legal | `/legal.php?page=tos\|privacy\|refund` | Snapshot | |
 
 ## Buyer / government (`BUYER`, `GOVERNMENT`)
 
-Header (desktop + mobile): My RFQs · My Orders · Messages · Cart (live badge).
+**`BUYER`** header (desktop + mobile): My RFQs · My Orders · Addresses · Messages · Cart (live badge).
+
+**`GOVERNMENT`** header adds: **Gov · My work** (`/government/dashboard`) · **Gov opportunities** (`/government`), then the same buyer rail as above.
 
 | Route | Purpose |
 |-------|---------|
+| `/government/dashboard` | “My work”: sealed tender bids (`GET /buyer/gov-opportunities/bids/mine`), shortcuts to opportunities + programme / listing enquiry |
 | `/buyer/rfqs`, `/buyer/rfqs/new`, `/buyer/rfqs/[id]` | RFQ list / create / quotes compare + accept |
-| `/buyer/cart`, `/buyer/checkout` | Single-vendor cart and checkout |
+| `/buyer/cart`, `/buyer/checkout` | Multi-line cart grouped by seller; checkout one seller at a time (`?vendor=`); checkout steps: address → review order → payment |
+| `/buyer/addresses` | Saved shipping addresses (address book) for checkout |
 | `/buyer/orders`, `/buyer/orders/[id]` | Orders + payment + tracking |
 | `/buyer/messages` | Supplier threads |
 
@@ -74,9 +78,9 @@ Header: Admin · Orders. Subnav (`AdminSubnav`): Ops Home · Partner Application
 |-------|---------|
 | `/admin` | Operations home (queue counts, quick links, recent audit activity) |
 | `/admin/service-requests` | Service-request oversight (rematch, assign, cancel/complete) |
-| `/admin/gov-opportunities` | Tenders / schemes / subsidies CRUD |
+| `/admin/gov-opportunities` | Tenders / schemes / subsidies CRUD; **Import CSV** panel → `POST …/import` — see [`GOV_TENDER_IMPORT.md`](./GOV_TENDER_IMPORT.md); sample [`/samples/gov-opportunity-import-template.csv`](../frontend/public/samples/gov-opportunity-import-template.csv) |
 | `/admin/applications` | KYC applications queue |
-| `/admin/leads` | Partner leads oversight (read-only) |
+| `/admin/leads` | Partner leads oversight (status, note, reroute) |
 | `/admin/users` | Admin users & roles (create admin, promote/demote, reset password, disable) |
 | `/admin/analytics` | Commerce analytics: GMV trend, order mix, top vendors, RFQ funnel (`GET /admin/analytics`) |
 | `/admin/billing` | Partner plans/entitlements, Razorpay plan sync, subscriptions, manual assign (`/admin/billing/*`) |

@@ -218,4 +218,72 @@ describe('GovService', () => {
       service.downloadBidDocumentForAdmin('g1', 'b1'),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it('lists all bids for the current bidder with opportunity metadata', async () => {
+    prismaMock.govOpportunityBid.findMany.mockResolvedValue([
+      {
+        id: 'b1',
+        opportunityId: 'g1',
+        amountInr: 99,
+        storedRelativePath: null,
+        updatedAt: new Date('2026-11-01T00:00:00Z'),
+        opportunity: {
+          id: 'g1',
+          type: GovOpportunityType.TENDER,
+          title: 'Survey tender',
+          issuingBody: 'Dept',
+          status: GovOpportunityStatus.PUBLISHED,
+          closingDate: new Date('2099-01-01'),
+          referenceNo: 'REF-1',
+        },
+      },
+    ]);
+    const res = await service.listMyBids('u1', UserRole.GOVERNMENT);
+    expect(res.items).toHaveLength(1);
+    expect(res.items[0]).toMatchObject({
+      id: 'b1',
+      opportunityId: 'g1',
+      opportunity: { id: 'g1', title: 'Survey tender', isExpired: false },
+    });
+    expect(prismaMock.govOpportunityBid.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { bidderUserId: 'u1' },
+        include: expect.any(Object),
+      }),
+    );
+  });
+
+  it('import creates draft rows from CSV', async () => {
+    prismaMock.govOpportunity.findFirst.mockResolvedValue(null);
+    prismaMock.govOpportunity.create.mockResolvedValue({
+      id: 'g-new',
+      title: 'CSV tender',
+      referenceNo: 'REF-A',
+      closingDate: null,
+    });
+    const csv = [
+      'type,title,summary,issuingBody,referenceNo',
+      'TENDER,CSV tender,Summary line long enough,Dept A,REF-A',
+    ].join('\n');
+    const report = await service.importFromCsv('admin-1', csv);
+    expect(report.created).toBe(1);
+    expect(report.errors).toBe(0);
+    expect(prismaMock.govOpportunity.create).toHaveBeenCalled();
+  });
+
+  it('import skips published duplicates', async () => {
+    prismaMock.govOpportunity.findFirst.mockResolvedValue({
+      id: 'g-existing',
+      status: GovOpportunityStatus.PUBLISHED,
+      referenceNo: 'REF-A',
+      title: 'CSV tender',
+    });
+    const csv = [
+      'type,title,summary,issuingBody,referenceNo',
+      'TENDER,CSV tender,Summary line long enough,Dept A,REF-A',
+    ].join('\n');
+    const report = await service.importFromCsv('admin-1', csv);
+    expect(report.skipped).toBe(1);
+    expect(prismaMock.govOpportunity.create).not.toHaveBeenCalled();
+  });
 });

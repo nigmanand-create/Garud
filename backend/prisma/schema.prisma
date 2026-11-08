@@ -74,6 +74,9 @@ model User {
   id                 String      @id @default(uuid())
   email              String      @unique
   passwordHash       String?     @map("password_hash")
+  /// E.164 mobile for OTP sign-in (e.g. +919876543210); optional until verified.
+  phoneE164          String?     @unique @map("phone_e164")
+  phoneVerifiedAt    DateTime?   @map("phone_verified_at")
   /// Google OAuth subject (`sub`); unique when linked.
   googleSub          String?     @unique @map("google_sub")
   role               UserRole
@@ -82,13 +85,15 @@ model User {
   mustChangePassword Boolean     @default(false) @map("must_change_password")
   /// Soft-disable: blocks login, refresh and API access without deleting history.
   disabledAt         DateTime?   @map("disabled_at")
+  /// Soft-delete (admin "Delete"): anonymized, excluded from admin user list; blocks all access.
+  deletedAt          DateTime?   @map("deleted_at")
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
   organization         Organization?
   refreshTokens        RefreshToken[]
   rfqsCreated          Rfq[]                 @relation("RfqBuyer")
-  cart                 Cart?
+  carts                Cart[]
   ordersAsBuyer        Order[]               @relation("OrderBuyer")
   conversationsAsBuyer Conversation[]        @relation("ConversationBuyer")
   notifications        InAppNotification[]
@@ -97,6 +102,18 @@ model User {
   govOpportunityBids   GovOpportunityBid[]
 
   @@map("users")
+}
+
+/// Short-lived OTP for phone sign-in (hashed at rest).
+model OtpChallenge {
+  id        String   @id @default(uuid())
+  phoneE164 String   @map("phone_e164")
+  codeHash  String   @map("code_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phoneE164, createdAt])
+  @@map("otp_challenges")
 }
 
 model RefreshToken {
@@ -165,8 +182,35 @@ model Organization {
   studentTrainingLeads        StudentTrainingLead[]
   serviceRequestMatches       ServiceRequestMatch[]
   serviceRequestsAssigned     ServiceRequest[]         @relation("ServiceRequestAssignee")
+  buyerAddresses              BuyerAddress[]
 
   @@map("organizations")
+}
+
+/// Saved shipping addresses for buyer / government orgs (checkout address book).
+model BuyerAddress {
+  id                    String       @id @default(uuid())
+  buyerOrganizationId   String       @map("buyer_organization_id")
+  label                 String
+  /// Optional — omit for personal / residential delivery.
+  companyName           String?      @map("company_name")
+  contactName           String       @map("contact_name")
+  contactPhone          String       @map("contact_phone")
+  line1                 String
+  line2                 String?
+  city                  String
+  state                 String
+  pincode               String
+  country               String       @default("India")
+  isDefault             Boolean      @default(false) @map("is_default")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+
+  buyerOrganization Organization @relation(fields: [buyerOrganizationId], references: [id], onDelete: Cascade)
+
+  @@index([buyerOrganizationId])
+  @@index([buyerOrganizationId, isDefault])
+  @@map("buyer_addresses")
 }
 
 model VerificationAuditLog {
@@ -230,6 +274,10 @@ model PartnerListing {
   reviewedByUserId     String?             @map("reviewed_by_user_id")
   createdAt            DateTime            @default(now()) @map("created_at")
   updatedAt            DateTime            @updatedAt @map("updated_at")
+  /// Harmonized System of Nomenclature (when captured in catalog).
+  hsnCode              String?             @map("hsn_code")
+  /// GST rate % for intra/inter-state display (optional; not IRP e-invoice).
+  gstPercent           Decimal?            @map("gst_percent") @db.Decimal(5, 2)
 
   organization   Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cartItems      CartItem[]
@@ -269,6 +317,7 @@ enum AdminUserAuditAction {
   PASSWORD_RESET
   USER_DISABLED
   USER_ENABLED
+  USER_DELETED
 }
 
 /// Audit trail for admin user / role management (shown in the global admin audit log).
@@ -307,7 +356,7 @@ enum PaymentStatus {
 
 model Cart {
   id                    String   @id @default(uuid())
-  userId                String   @unique @map("user_id")
+  userId                String   @map("user_id")
   partnerOrganizationId String   @map("partner_organization_id")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
@@ -316,6 +365,7 @@ model Cart {
   partnerOrganization Organization @relation("CartVendor", fields: [partnerOrganizationId], references: [id], onDelete: Cascade)
   items               CartItem[]
 
+  @@unique([userId, partnerOrganizationId])
   @@index([partnerOrganizationId])
   @@map("carts")
 }
@@ -443,6 +493,13 @@ model OrderLineItem {
   snapshotName     String  @map("snapshot_name")
   snapshotSku      String? @map("snapshot_sku")
   snapshotImageUrl String? @map("snapshot_image_url")
+  snapshotHsnCode  String? @map("snapshot_hsn_code")
+  snapshotGstPercent Decimal? @map("snapshot_gst_percent") @db.Decimal(5, 2)
+  /// Line value before GST split (matches line pre-tax when rates exist).
+  taxableValueInr  Decimal? @map("taxable_value_inr") @db.Decimal(14, 2)
+  cgstInr          Decimal @default(0) @map("cgst_inr") @db.Decimal(14, 2)
+  sgstInr          Decimal @default(0) @map("sgst_inr") @db.Decimal(14, 2)
+  igstInr          Decimal @default(0) @map("igst_inr") @db.Decimal(14, 2)
   unitPriceInr     Decimal @map("unit_price_inr") @db.Decimal(14, 2)
   quantity         Int
   lineTotalInr     Decimal @map("line_total_inr") @db.Decimal(14, 2)

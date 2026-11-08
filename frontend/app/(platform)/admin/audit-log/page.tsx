@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { apiDownload } from '@/lib/api/client';
 import { listAuditLog, type AuditLogResponse } from '@/lib/api/admin';
 import { RequireAuth } from '@/components/platform/AuthProvider';
 import { PlatformLoading } from '@/components/platform/PlatformLoading';
@@ -14,6 +15,7 @@ import {
   auditActorLabel,
   auditPageCount,
   auditSubjectHref,
+  buildAuditExportPath,
   type AuditKind,
 } from '@/lib/platform/admin-ops';
 import { formatEnumLabel } from '@/lib/platform/labels';
@@ -37,6 +39,7 @@ function AuditLogInner() {
   const [data, setData] = useState<AuditLogResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -63,6 +66,25 @@ function AuditLogInner() {
   const allCount = data
     ? AUDIT_KINDS.reduce((sum, k) => sum + data.kindCounts[k], 0)
     : 0;
+
+  async function exportCsv() {
+    setExporting(true);
+    try {
+      await apiDownload(
+        buildAuditExportPath({
+          kinds: kind ? [kind] : undefined,
+          search: search || undefined,
+          from: from || undefined,
+          to: to || undefined,
+        }),
+        `garudhub-audit-log-${new Date().toISOString().slice(0, 10)}.csv`,
+      );
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="platform-admin-list-page">
@@ -142,6 +164,19 @@ function AuditLogInner() {
           </label>
           <button type="submit" className="platform-btn platform-btn-sm">
             Apply
+          </button>
+        </div>
+        <div className="platform-admin-list-filter-field platform-admin-list-filter-field--action">
+          <label className="platform-admin-list-filter-action-label" aria-hidden="true">
+            &nbsp;
+          </label>
+          <button
+            type="button"
+            className="platform-btn platform-btn-secondary platform-btn-sm"
+            disabled={exporting}
+            onClick={exportCsv}
+          >
+            {exporting ? 'Exporting…' : 'Export CSV'}
           </button>
         </div>
       </form>

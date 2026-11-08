@@ -9,17 +9,30 @@ import {
 } from '../platform/header-nav';
 
 describe('header-nav', () => {
-  it('buyer and government get RFQs, orders, messages and cart (P-UX-04)', () => {
-    for (const role of ['BUYER', 'GOVERNMENT']) {
-      const links = getAccountNavLinks(role);
-      expect(links.map((l) => l.href)).toEqual([
-        '/buyer/rfqs',
-        '/buyer/orders',
-        '/buyer/messages',
-        '/buyer/cart',
-      ]);
-      expect(links.find((l) => l.cart)?.href).toBe('/buyer/cart');
-    }
+  it('buyer gets RFQs, orders, addresses, messages and cart (P-UX-04)', () => {
+    const links = getAccountNavLinks('BUYER');
+    expect(links.map((l) => l.href)).toEqual([
+      '/buyer/rfqs',
+      '/buyer/orders',
+      '/buyer/addresses',
+      '/buyer/messages',
+      '/buyer/cart',
+    ]);
+    expect(links.find((l) => l.cart)?.href).toBe('/buyer/cart');
+  });
+
+  it('government gets hub links plus buyer rail', () => {
+    const links = getAccountNavLinks('GOVERNMENT');
+    expect(links.map((l) => l.href)).toEqual([
+      '/government/dashboard',
+      '/government',
+      '/buyer/rfqs',
+      '/buyer/orders',
+      '/buyer/addresses',
+      '/buyer/messages',
+      '/buyer/cart',
+    ]);
+    expect(getDashboardLink('GOVERNMENT')?.href).toBe('/government/dashboard');
   });
 
   it('has no duplicate hrefs for any role', () => {

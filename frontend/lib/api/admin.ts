@@ -46,6 +46,8 @@ export type AdminUser = {
   accountType: AccountType;
   mustChangePassword: boolean;
   disabledAt: string | null;
+  /** Present for typing; soft-deleted rows are not returned by the list API. */
+  deletedAt?: string | null;
   createdAt: string;
   organization: {
     id: string;
@@ -140,6 +142,13 @@ export const setUserDisabled = (id: string, disabled: boolean) =>
     body: { disabled },
   });
 
+/** Soft-delete: anonymize credentials, revoke sessions; user disappears from this list. */
+export const deleteAdminUser = (id: string) =>
+  apiRequest<{ ok: true }>(`/admin/users/${id}`, {
+    method: 'DELETE',
+    auth: true,
+  });
+
 export const listAdminLeads = (params: {
   status?: LeadStatus;
   stale?: boolean;
@@ -155,6 +164,17 @@ export const listAdminLeads = (params: {
     auth: true,
   });
 };
+
+export function updateAdminLead(
+  id: string,
+  body: { status?: LeadStatus; partnerNote?: string; organizationId?: string },
+) {
+  return apiRequest<AdminLead>(`/admin/leads/${id}`, {
+    method: 'PATCH',
+    auth: true,
+    body,
+  });
+}
 
 export type CommerceAnalytics = {
   days: number;

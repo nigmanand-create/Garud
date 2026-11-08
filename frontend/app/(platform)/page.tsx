@@ -19,8 +19,10 @@ export default function HomePage() {
         imageSrc={HOME_HERO_IMAGE}
         imageAlt={hero.imageAlt}
         eyebrow={hero.eyebrow}
+        brandName={hero.brandName}
         title={hero.title}
         description={hero.lead}
+        showTrustChips={false}
         primaryCta={hero.primaryCta}
         secondaryCta={hero.secondaryCta}
         trustChips={[...hero.trustChips]}

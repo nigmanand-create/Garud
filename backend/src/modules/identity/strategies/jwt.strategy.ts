@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ACCESS_COOKIE } from '../auth-cookies';
@@ -18,8 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req) => {
-          const cookies = req?.cookies as Record<string, string> | undefined;
+        (req: Request) => {
+          const cookies = req.cookies as Record<string, string> | undefined;
           if (cookies?.[ACCESS_COOKIE]) return cookies[ACCESS_COOKIE];
           return ExtractJwt.fromAuthHeaderAsBearerToken()(req) ?? null;
         },
@@ -34,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: { id: payload.sub },
       include: { organization: true },
     });
-    if (!user || user.disabledAt) {
+    if (!user || user.disabledAt || user.deletedAt) {
       throw new UnauthorizedException();
     }
     return {

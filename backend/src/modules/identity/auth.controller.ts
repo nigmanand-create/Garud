@@ -27,6 +27,9 @@ import {
   AuthUserResponse,
   ChangePasswordDto,
   LoginDto,
+  OtpRequestDto,
+  OtpRequestResponse,
+  OtpVerifyDto,
   RefreshTokenDto,
   RegisterDto,
   RegisterGoogleDto,
@@ -41,6 +44,7 @@ import {
   readRefreshTokenFromRequest,
 } from './auth-session.helper';
 import { GoogleOAuthService } from './google-oauth.service';
+import { OtpAuthService } from './otp-auth.service';
 import { GOOGLE_PENDING_COOKIE } from './google-oauth.util';
 import { AccountType } from '@prisma/client';
 import { cookieBaseFromConfig } from './google-oauth-cookies.helper';
@@ -52,6 +56,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly config: ConfigService,
     private readonly googleOAuth: GoogleOAuthService,
+    private readonly otpAuth: OtpAuthService,
   ) {}
 
   @Post('register')
@@ -78,6 +83,30 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.authService.login(dto);
+    return applyAuthSession({} as Request, res, this.config, tokens);
+  }
+
+  @Post('otp/request')
+  @HttpCode(200)
+  @Throttle({ default: throttleFor('otpRequest') })
+  @ApiOperation({
+    summary: 'Request SMS OTP for phone sign-in (India +91)',
+  })
+  @ApiOkResponse({ type: OtpRequestResponse })
+  async requestOtp(@Body() dto: OtpRequestDto): Promise<OtpRequestResponse> {
+    return this.otpAuth.requestOtp(dto.phone);
+  }
+
+  @Post('otp/verify')
+  @HttpCode(200)
+  @Throttle({ default: throttleFor('auth') })
+  @ApiOperation({ summary: 'Verify OTP and start session (same cookies/JWT as login)' })
+  @ApiOkResponse({ type: AuthTokensResponse })
+  async verifyOtp(
+    @Body() dto: OtpVerifyDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.otpAuth.verifyOtpAndLogin(dto.phone, dto.code);
     return applyAuthSession({} as Request, res, this.config, tokens);
   }
 

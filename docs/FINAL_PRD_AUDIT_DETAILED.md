@@ -207,7 +207,7 @@ See **Section C** for step-by-step walkthroughs. Summary:
 | KYC queue | **Done** | `/admin/applications` |
 | Listing moderation | **Done** | `/admin/listings` |
 | Enquiry triage | **Done** | `/admin/enquiries` + CRM export |
-| Partner leads oversight | **Done** | `/admin/leads` (read-only) |
+| Partner leads oversight | **Done** | `/admin/leads` (status, note, reroute to partner) |
 | Service requests | **Done** | `/admin/service-requests` |
 | Gov opportunities | **Done** | `/admin/gov-opportunities` |
 | Partnership moderation | **Done** | `/admin/partnerships` |

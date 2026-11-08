@@ -13,7 +13,17 @@ Override for those accounts: set `DEMO_PASSWORD` in `backend/.env`.
 | `partner@garudhub.local` | `ChangeMeDemo123!` | `PARTNER` (verified org) | `/partner` |
 | `buyer@garudhub.local` | `ChangeMeDemo123!` | `BUYER` | `/marketplace` → cart `/buyer/cart`, orders `/buyer/orders`, RFQs `/buyer/rfqs` |
 | `checkout-test@garudhub.local` | `ChangeMeDemo123!` | `BUYER` (dedicated checkout QA) | Same as buyer — use this account for checkout flows |
-| `government@garudhub.local` | `ChangeMeDemo123!` | `GOVERNMENT` | Same as buyer (cart + RFQs) |
+| `government@garudhub.local` | `ChangeMeDemo123!` | `GOVERNMENT` | `/government` (vertical) · **My work** `/government/dashboard` · buyer rail (RFQs, cart, orders) |
+
+**Phone OTP (after migrate + seed):** each demo user has a distinct Indian mobile on the org profile. Use **Sign in → Phone OTP** with the 10-digit number below. In **development**, the 6-digit code is printed in the **backend** log if SMS is not configured (`SMS_PROVIDER=none`).
+
+| Email | Mobile (10 digits) |
+|-------|--------------------|
+| `admin@garudhub.local` | `9000000001` |
+| `partner@garudhub.local` | `9000000002` |
+| `buyer@garudhub.local` | `9000000003` |
+| `checkout-test@garudhub.local` | `9000000004` |
+| `government@garudhub.local` | `9000000005` |
 
 Login (any role): http://localhost:3001/auth/login  
 Role-specific: `/auth/login/partner`, `/auth/login/buyer`, `/auth/login/admin`, `/auth/login/government`

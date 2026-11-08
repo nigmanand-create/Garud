@@ -418,3 +418,29 @@ export function tenderEnquiryDefaults(item: {
     .join('\n');
   return { subject, message };
 }
+
+/** Enquiry prefill for buyers/government requesting ops to list a public-sector tender or scheme on /government. */
+export const GOV_TENDER_LISTING_ENQUIRY_SUBJECT =
+  'Request: list our government tender or scheme on GarudHub';
+
+export function govTenderListingEnquiryHref(): string {
+  const message = [
+    'We would like our government tender, scheme or subsidy listed on GarudHub’s /government page (curated by ops).',
+    '',
+    'Programme title:',
+    'Issuing body / department:',
+    'Reference / tender ID (if any):',
+    'State or scope:',
+    'Closing date (if known):',
+    'Official notice URL:',
+    '',
+    'Brief summary and how vendors should engage:',
+  ].join('\n');
+  const q = new URLSearchParams({
+    service: 'tender',
+    intent: 'TENDER',
+    subject: GOV_TENDER_LISTING_ENQUIRY_SUBJECT,
+    message,
+  });
+  return `/enquiry?${q.toString()}`;
+}

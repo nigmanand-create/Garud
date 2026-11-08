@@ -2,13 +2,22 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
+
+export enum CheckoutPaymentMethod {
+  ONLINE = 'ONLINE',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  OFFLINE_PO = 'OFFLINE_PO',
+  CASH_ON_DELIVERY = 'CASH_ON_DELIVERY',
+}
 
 export class AddCartItemDto {
   @ApiProperty()
@@ -32,10 +41,14 @@ export class UpdateCartItemDto {
 }
 
 export class CheckoutAddressDto {
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description:
+      'Company or organization on the label (optional for personal delivery)',
+  })
+  @IsOptional()
   @IsString()
   @MaxLength(300)
-  companyName: string;
+  companyName?: string;
 
   @ApiProperty()
   @IsString()
@@ -80,10 +93,22 @@ export class CheckoutAddressDto {
 }
 
 export class PlaceCheckoutDto {
-  @ApiProperty({ type: CheckoutAddressDto })
+  @ApiPropertyOptional({
+    description:
+      'Use a saved address from GET /buyer/addresses; omit shipping when set',
+  })
+  @IsOptional()
+  @IsString()
+  buyerAddressId?: string;
+
+  @ApiPropertyOptional({
+    type: CheckoutAddressDto,
+    description: 'Required unless buyerAddressId is sent',
+  })
+  @ValidateIf((o: PlaceCheckoutDto) => !o.buyerAddressId)
   @ValidateNested()
   @Type(() => CheckoutAddressDto)
-  shipping: CheckoutAddressDto;
+  shipping?: CheckoutAddressDto;
 
   @ApiPropertyOptional({ type: CheckoutAddressDto })
   @IsOptional()
@@ -96,15 +121,46 @@ export class PlaceCheckoutDto {
   @IsBoolean()
   billingSameAsShipping?: boolean;
 
-  @ApiPropertyOptional({ example: '29ABCDE1234F1Z5' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  gstin?: string;
-
   @ApiPropertyOptional({ example: 'PO-2026-0042' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   purchaseOrderNumber?: string;
+
+  /** When the buyer has multiple seller carts, identify which seller to check out. */
+  @ApiPropertyOptional({
+    description: 'Partner organization id (seller) for this checkout',
+  })
+  @IsOptional()
+  @IsString()
+  vendorOrganizationId?: string;
+
+  @ApiPropertyOptional({
+    enum: CheckoutPaymentMethod,
+    description: 'How the buyer intends to pay.',
+  })
+  @IsOptional()
+  @IsEnum(CheckoutPaymentMethod)
+  paymentMethod?: CheckoutPaymentMethod;
+
+  @ApiPropertyOptional({
+    description:
+      'After placing the order, save shipping as a new address (only when shipping body is sent, not buyerAddressId)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  saveNewAddressToBook?: boolean;
+
+  @ApiPropertyOptional({ example: 'Warehouse' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  saveAddressLabel?: string;
+
+  @ApiPropertyOptional({
+    description: 'When saving a new address, set as default',
+  })
+  @IsOptional()
+  @IsBoolean()
+  saveAddressAsDefault?: boolean;
 }

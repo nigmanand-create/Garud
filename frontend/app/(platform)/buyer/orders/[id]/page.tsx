@@ -195,7 +195,13 @@ function BuyerOrderDetailInner() {
                     {order.transactions.map((tx) => (
                       <tr key={tx.id}>
                         <td>
-                          <strong>{tx.gateway === 'RAZORPAY' ? 'Razorpay Gateway' : 'Bank Wire (NEFT/RTGS)'}</strong>
+                          <strong>
+                            {tx.gateway === 'RAZORPAY'
+                              ? 'Razorpay Gateway'
+                              : tx.gateway === 'CASH_ON_DELIVERY'
+                                ? 'Cash on delivery'
+                                : 'Bank Wire (NEFT/RTGS)'}
+                          </strong>
                         </td>
                         <td>
                           {tx.utrNumber ? (
@@ -244,56 +250,64 @@ function BuyerOrderDetailInner() {
                     rel="noopener noreferrer"
                     className="platform-link-btn"
                   >
-                    Download payment receipt (stub)
+                    Download GST receipt (HTML)
                   </a>
-                  <span className="platform-muted"> · Not a statutory GST invoice</span>
+                  <span className="platform-muted"> · GSTIN, HSN &amp; tax as recorded</span>
                 </p>
               </>
             ) : order.paymentStatus === 'PENDING' ? (
-              <div className="platform-payment-card__body">
-                <p className="platform-muted platform-text-sm" style={{ margin: '0 0 1rem', lineHeight: 1.5 }}>
-                  Payment of <strong>{formatPrice(false, order.totalInr)}</strong> is pending. You can pay instantly online or submit your corporate wire UTR reference:
-                </p>
-
-                <div className="platform-payment-card__actions">
-                  <Button
-                    type="button"
-                    variant="cta"
-                    fullWidth
-                    onClick={() => setShowPaymentModal(true)}
-                  >
-                    ⚡ Pay Now Online (Razorpay)
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    fullWidth
-                    size="sm"
-                    onClick={() => setShowPaymentModal(true)}
-                  >
-                    🏦 Submit NEFT / RTGS Wire UTR
-                  </Button>
-
-                  <button
-                    type="button"
-                    className="platform-link-btn platform-text-xs"
-                    style={{ textAlign: 'center', marginTop: '0.25rem' }}
-                    onClick={() => setShowBankDetails(!showBankDetails)}
-                  >
-                    {showBankDetails ? 'Hide Escrow Bank Details ▲' : 'View Escrow Bank Details ▼'}
-                  </button>
-
-                  {showBankDetails && (
-                    <div className="platform-escrow-details">
-                      <div><strong>Bank:</strong> {ESCROW_BANK_DETAILS.bankName}</div>
-                      <div><strong>A/C Name:</strong> {ESCROW_BANK_DETAILS.accountName}</div>
-                      <div><strong>A/C No:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.accountNumber}</span></div>
-                      <div><strong>IFSC:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.ifscCode}</span></div>
-                    </div>
-                  )}
+              order.codPaymentPending ? (
+                <div className="platform-payment-card__body">
+                  <p className="platform-muted platform-text-sm" style={{ margin: 0, lineHeight: 1.5 }}>
+                    This order was placed as <strong>Cash on Delivery</strong>. Pay the courier when your shipment arrives — there is no Razorpay checkout or bank UTR for this order. Settlement stays manual until ops records collection.
+                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="platform-payment-card__body">
+                  <p className="platform-muted platform-text-sm" style={{ margin: '0 0 1rem', lineHeight: 1.5 }}>
+                    Payment of <strong>{formatPrice(false, order.totalInr)}</strong> is pending. You can pay instantly online or submit your corporate wire UTR reference:
+                  </p>
+
+                  <div className="platform-payment-card__actions">
+                    <Button
+                      type="button"
+                      variant="cta"
+                      fullWidth
+                      onClick={() => setShowPaymentModal(true)}
+                    >
+                      ⚡ Pay Now Online (Razorpay)
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      fullWidth
+                      size="sm"
+                      onClick={() => setShowPaymentModal(true)}
+                    >
+                      🏦 Submit NEFT / RTGS Wire UTR
+                    </Button>
+
+                    <button
+                      type="button"
+                      className="platform-link-btn platform-text-xs"
+                      style={{ textAlign: 'center', marginTop: '0.25rem' }}
+                      onClick={() => setShowBankDetails(!showBankDetails)}
+                    >
+                      {showBankDetails ? 'Hide Escrow Bank Details ▲' : 'View Escrow Bank Details ▼'}
+                    </button>
+
+                    {showBankDetails && (
+                      <div className="platform-escrow-details">
+                        <div><strong>Bank:</strong> {ESCROW_BANK_DETAILS.bankName}</div>
+                        <div><strong>A/C Name:</strong> {ESCROW_BANK_DETAILS.accountName}</div>
+                        <div><strong>A/C No:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.accountNumber}</span></div>
+                        <div><strong>IFSC:</strong> <span className="platform-font-mono">{ESCROW_BANK_DETAILS.ifscCode}</span></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
             ) : (
               <p className="platform-muted platform-text-sm platform-mt-sm">
                 Status: {order.paymentStatus}

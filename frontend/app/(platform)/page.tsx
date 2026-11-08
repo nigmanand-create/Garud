@@ -191,11 +191,11 @@ export default function HomePage() {
               Ready to grow your drone business in India?
             </h2>
             <div className="platform-b2b-hero__actions">
-              <Link href={hero.primaryCta.href} className="platform-btn platform-btn-cta">
-                {hero.primaryCta.label}
+              <Link href="/marketplace" className="platform-btn platform-btn-cta">
+                Browse marketplace
               </Link>
-              <Link href={hero.signInCta.href} className="platform-btn-hero-secondary">
-                {hero.signInCta.label}
+              <Link href="/buyer/rfqs/new" className="platform-btn-hero-secondary">
+                Post a buyer RFQ
               </Link>
               <Link href={hero.secondaryCta.href} className="platform-btn-hero-secondary">
                 {hero.secondaryCta.label}

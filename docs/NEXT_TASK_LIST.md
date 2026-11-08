@@ -21,7 +21,7 @@
 
 **Code next (suggested order):**
 
-1. ~~UX audit **P1 quick wins**~~ — done `eaabd22`; ~~marketplace mobile filters sheet~~ — done `312f0dc`; optional: trim duplicate partner CTAs in body copy.  
+1. ~~UX audit **P1 quick wins**~~ — done `eaabd22`; ~~marketplace mobile filters sheet~~ — done `312f0dc`; ~~optional: trim duplicate partner CTAs in body copy~~ — home final band + footer/mega nav dedupe (2026-11-08).  
 2. ~~**Home / snapshot → React** design parity~~ — hero done `7c94b28`; optional: migrate remaining snapshot-only marketing pages.  
 3. ~~**Blog/legal** snapshot migration~~ — **MDX/markdown CMS** `a611290` — see [`BLOG_LEGAL_MDX.md`](./BLOG_LEGAL_MDX.md); ~35 marketing HTML pages still snapshot (later pass).  
 4. Fix only what **staging smoke** fails (checkout/webhook) — see open checkboxes below.  

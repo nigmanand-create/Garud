@@ -104,11 +104,6 @@ export function MarketingFooter() {
               <li><Link href="/buyer/rfqs" style={{ color: '#94a3b8', textDecoration: 'none' }}>Vendor Comparison Matrix</Link></li>
               <li><Link href="/about-us" style={{ color: '#94a3b8', textDecoration: 'none' }}>About GarudHub</Link></li>
               <li><Link href="/auth/login" style={{ color: '#94a3b8', textDecoration: 'none' }}>Sign in</Link></li>
-              <li>
-                <Link href="/auth/register?type=partner" style={{ color: '#94a3b8', textDecoration: 'none' }}>
-                  Register as partner
-                </Link>
-              </li>
             </ul>
             <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: '#1e293b', borderRadius: 8 }}>
               <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.8rem', marginBottom: 4 }}>Need Sourcing Assistance?</div>

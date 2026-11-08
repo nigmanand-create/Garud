@@ -153,7 +153,7 @@ export default function AboutUsPage() {
         </p>
         <div className="platform-marketing-cta__actions">
           <Link href="/auth/register?type=partner" className="platform-btn platform-btn-cta">
-            Register as B2B Partner
+            Register as partner
           </Link>
           <Link href="/buyer/rfqs/new" className="platform-btn platform-btn-secondary">
             Post Drone RFP (Buyer)

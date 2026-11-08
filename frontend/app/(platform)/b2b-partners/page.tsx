@@ -121,7 +121,7 @@ export default function B2bPartnersPage() {
           </p>
           <div className="platform-b2b-hero__actions">
             <Link href="/auth/register?type=partner" className="platform-btn platform-btn-cta">
-              Register as B2B Partner →
+              Register as partner
             </Link>
             <Link href="/auth/login/partner" className="platform-btn-hero-secondary">
               Sign in
@@ -236,9 +236,9 @@ export default function B2bPartnersPage() {
           <div className="platform-b2b-step platform-b2b-step--active">4. Active Dashboard</div>
         </div>
 
-        <Link href="/auth/register?type=partner" className="platform-btn platform-btn-cta">
-          Begin Partner Registration
-        </Link>
+        <p className="platform-muted platform-b2b-verify-banner__desc" style={{ marginTop: '1rem' }}>
+          Use the partner registration button at the top of this page to start your application.
+        </p>
       </section>
     </div>
   );

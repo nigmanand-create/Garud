@@ -30,7 +30,7 @@ export const PARTNERS_MEGA_COL2 = [
   { href: '/b2b-partners#services', icon: 'bi-tools', label: 'Service & Maintenance Providers' },
   { href: '/b2b-partners#training', icon: 'bi-mortarboard', label: 'Training Institutes & Academies' },
   { href: '/b2b-partners#technology', icon: 'bi-diagram-3-fill', label: 'Technology & Project Partners' },
-  { href: '/auth/register?type=partner', icon: 'bi-patch-check-fill', label: 'Register as B2B Partner →' },
+  { href: '/b2b-partners', icon: 'bi-patch-check-fill', label: 'How to become a partner' },
 ];
 
 export const MARKETPLACE_LINKS = [

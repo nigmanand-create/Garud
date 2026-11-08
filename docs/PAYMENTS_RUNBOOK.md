@@ -156,3 +156,6 @@ UX: adding an item from another seller returns `409`; the product page now expla
 | Valid signature for *another* Razorpay order could be applied to a pricier order | Verification requires an intent created for **that** order |
 | Unconfigured gateway skipped signature check for non-sandbox ids | Returns 503 instead |
 | Webhook marked paid without amount check; no failed/refund handling; not idempotent | Amount compared in paise; `payment.failed`, `refund.processed`, subscription events handled; replays are no-ops |
+| Checkout callback failed while webhook already marked PAID (race) | Client re-checks `GET /buyer/orders/:id` on verify error and treats `paymentStatus=PAID` as success |
+| `order.paid` payloads with only `order.entity` (no `payment.entity`) | Falls back to order id + amount for capture handling |
+| Concurrent `payment.captured` + verify callback | Transaction re-reads tx row before mark-paid; replays stay no-ops |

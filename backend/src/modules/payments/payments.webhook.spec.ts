@@ -4,7 +4,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { PaymentStatus, TransactionStatus } from '@prisma/client';
+import {
+  PaymentGateway,
+  PaymentStatus,
+  TransactionStatus,
+} from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { hmacSha256Hex } from '../../shared/razorpay/razorpay.util';
 import { PartnerBillingService } from '../partner-billing/partner-billing.service';
@@ -15,11 +19,14 @@ const dec = (n: number) => ({ toNumber: () => n });
 describe('PaymentsService webhook + verify hardening (mocked)', () => {
   let service: PaymentsService;
   const env: Record<string, string | undefined> = {};
+  let razorpayFindFirstResult: unknown = null;
+  let razorpayFindUniqueResult: unknown = null;
 
   const prisma = {
     order: { findUnique: jest.fn(), update: jest.fn() },
     paymentTransaction: {
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
       update: jest.fn(),
       create: jest.fn(),
     },
@@ -56,6 +63,19 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
     delete process.env.RAZORPAY_KEY_SECRET;
     prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) =>
       fn(prisma),
+    );
+    razorpayFindFirstResult = null;
+    razorpayFindUniqueResult = null;
+    prisma.paymentTransaction.findFirst.mockImplementation(
+      (args: { where?: { gateway?: PaymentGateway } }) => {
+        if (args?.where?.gateway === PaymentGateway.CASH_ON_DELIVERY) {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve(razorpayFindFirstResult);
+      },
+    );
+    prisma.paymentTransaction.findUnique.mockImplementation(() =>
+      Promise.resolve(razorpayFindUniqueResult),
     );
     env.RAZORPAY_KEY_ID = 'rzp_test_x';
     env.RAZORPAY_KEY_SECRET = 'secret';
@@ -97,13 +117,15 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
 
   describe('payment.captured', () => {
     it('marks the order PAID for a valid, amount-matching event', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+      razorpayFindFirstResult = {
         id: 'tx1',
         orderId: 'o1',
+        gateway: PaymentGateway.RAZORPAY,
         status: TransactionStatus.CREATED,
         amountInr: dec(1500),
         paymentMethod: null,
-      });
+      };
+      razorpayFindUniqueResult = razorpayFindFirstResult;
       const body = captured();
       const res = await service.handleRazorpayWebhook(body, sign(body));
       expect(res.handled).toBe(true);
@@ -113,13 +135,34 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
       });
     });
 
-    it('is idempotent on replay', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+    it('handles order.paid when only the order entity is present', async () => {
+      razorpayFindFirstResult = {
         id: 'tx1',
         orderId: 'o1',
+        gateway: PaymentGateway.RAZORPAY,
+        status: TransactionStatus.CREATED,
+        amountInr: dec(1500),
+        paymentMethod: null,
+      };
+      razorpayFindUniqueResult = razorpayFindFirstResult;
+      const body = JSON.stringify({
+        event: 'order.paid',
+        payload: {
+          order: { entity: { id: 'order_rzp1', amount: 150000 } },
+        },
+      });
+      const res = await service.handleRazorpayWebhook(body, sign(body));
+      expect(res.handled).toBe(true);
+    });
+
+    it('is idempotent on replay', async () => {
+      razorpayFindFirstResult = {
+        id: 'tx1',
+        orderId: 'o1',
+        gateway: PaymentGateway.RAZORPAY,
         status: TransactionStatus.SUCCESS,
         amountInr: dec(1500),
-      });
+      };
       const body = captured();
       const res = await service.handleRazorpayWebhook(body, sign(body));
       expect(res.handled).toBe(false);
@@ -127,12 +170,14 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
     });
 
     it('does not mark paid when the amount differs', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+      razorpayFindFirstResult = {
         id: 'tx1',
         orderId: 'o1',
+        gateway: PaymentGateway.RAZORPAY,
         status: TransactionStatus.CREATED,
         amountInr: dec(1500),
-      });
+      };
+      razorpayFindUniqueResult = razorpayFindFirstResult;
       const body = captured(100);
       const res = await service.handleRazorpayWebhook(body, sign(body));
       expect(res.handled).toBe(false);
@@ -148,11 +193,12 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
   });
 
   it('marks the transaction FAILED on payment.failed without touching the order', async () => {
-    prisma.paymentTransaction.findFirst.mockResolvedValue({
+    razorpayFindFirstResult = {
       id: 'tx1',
       orderId: 'o1',
+      gateway: PaymentGateway.RAZORPAY,
       status: TransactionStatus.CREATED,
-    });
+    };
     const body = JSON.stringify({
       event: 'payment.failed',
       payload: {
@@ -178,12 +224,12 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
   });
 
   it('marks order REFUNDED on a full refund.processed', async () => {
-    prisma.paymentTransaction.findFirst.mockResolvedValue({
+    razorpayFindFirstResult = {
       id: 'tx1',
       orderId: 'o1',
       status: TransactionStatus.SUCCESS,
       amountInr: dec(1500),
-    });
+    };
     const body = JSON.stringify({
       event: 'refund.processed',
       payload: { refund: { entity: { payment_id: 'pay_1', amount: 150000 } } },
@@ -230,7 +276,7 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
     });
 
     it('rejects a payment whose gateway order was not created for this order', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue(null);
+      razorpayFindFirstResult = null;
       await expect(
         service.verifyRazorpayPayment('u1', 'BUYER' as never, dto()),
       ).rejects.toBeInstanceOf(BadRequestException);
@@ -238,10 +284,11 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
     });
 
     it('rejects forged sandbox ids with no sandbox intent', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+      razorpayFindFirstResult = {
         id: 'tx1',
+        status: TransactionStatus.CREATED,
         metadata: { sandboxMode: false },
-      });
+      };
       await expect(
         service.verifyRazorpayPayment(
           'u1',
@@ -253,10 +300,11 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
 
     it('rejects sandbox verification on the production deploy', async () => {
       process.env.GARUD_DEPLOY_ENV = 'production';
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+      razorpayFindFirstResult = {
         id: 'tx1',
+        status: TransactionStatus.CREATED,
         metadata: { sandboxMode: true },
-      });
+      };
       await expect(
         service.verifyRazorpayPayment(
           'u1',
@@ -266,11 +314,43 @@ describe('PaymentsService webhook + verify hardening (mocked)', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('rejects a bad signature and accepts a good one', async () => {
-      prisma.paymentTransaction.findFirst.mockResolvedValue({
+    it('is idempotent when the transaction is already SUCCESS', async () => {
+      razorpayFindFirstResult = {
         id: 'tx1',
+        status: TransactionStatus.SUCCESS,
+        gatewayPaymentId: 'pay_1',
         metadata: {},
+      };
+      prisma.order.findUnique.mockResolvedValue({
+        ...order,
+        paymentStatus: PaymentStatus.PAID,
       });
+      const ok = await service.verifyRazorpayPayment(
+        'u1',
+        'BUYER' as never,
+        dto(),
+      );
+      expect(ok.success).toBe(true);
+      expect(prisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects verify on a FAILED intent', async () => {
+      razorpayFindFirstResult = {
+        id: 'tx1',
+        status: TransactionStatus.FAILED,
+        metadata: {},
+      };
+      await expect(
+        service.verifyRazorpayPayment('u1', 'BUYER' as never, dto()),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('rejects a bad signature and accepts a good one', async () => {
+      razorpayFindFirstResult = {
+        id: 'tx1',
+        status: TransactionStatus.CREATED,
+        metadata: {},
+      };
       await expect(
         service.verifyRazorpayPayment(
           'u1',

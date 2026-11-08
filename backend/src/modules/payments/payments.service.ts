@@ -289,6 +289,26 @@ export class PaymentsService {
       );
     }
 
+    if (existingTx.status === TransactionStatus.SUCCESS) {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: PaymentStatus.PAID },
+      });
+      return {
+        success: true,
+        message: 'Payment already verified.',
+        orderId: order.id,
+        paymentStatus: PaymentStatus.PAID,
+        paymentId: existingTx.gatewayPaymentId ?? dto.razorpayPaymentId,
+      };
+    }
+
+    if (existingTx.status === TransactionStatus.FAILED) {
+      throw new BadRequestException(
+        'This payment attempt failed at the gateway. Start a new payment from the order page.',
+      );
+    }
+
     const isSandboxOrder = dto.razorpayOrderId.startsWith('order_sand_');
     if (isSandboxOrder) {
       const meta = (existingTx.metadata ?? {}) as { sandboxMode?: boolean };
@@ -623,24 +643,35 @@ export class PaymentsService {
       return { status: 'ok', event, handled: res.handled };
     }
 
-    if (
-      (event === 'payment.captured' || event === 'order.paid') &&
-      body.payment?.entity
-    ) {
-      return {
-        status: 'ok',
-        event,
-        handled: await this.applyCapturedPayment(body.payment.entity),
-      };
+    if (event === 'payment.captured' || event === 'order.paid') {
+      let paymentEntity = body.payment?.entity;
+      if (!paymentEntity && body.order?.entity) {
+        paymentEntity = {
+          id: `order_paid_${body.order.entity.id}`,
+          order_id: body.order.entity.id,
+          amount: body.order.entity.amount,
+        };
+      }
+      if (paymentEntity) {
+        return {
+          status: 'ok',
+          event,
+          handled: await this.applyCapturedPayment(paymentEntity),
+        };
+      }
     }
 
     if (event === 'payment.failed' && body.payment?.entity) {
       const p = body.payment.entity;
       const tx = await this.prisma.paymentTransaction.findFirst({
-        where: { gatewayOrderId: p.order_id },
+        where: { gatewayOrderId: p.order_id, gateway: PaymentGateway.RAZORPAY },
         orderBy: { createdAt: 'desc' },
       });
-      if (tx && tx.status !== TransactionStatus.SUCCESS) {
+      if (
+        tx &&
+        tx.status !== TransactionStatus.SUCCESS &&
+        !(await this.orderHasCashOnDelivery(tx.orderId))
+      ) {
         await this.prisma.paymentTransaction.update({
           where: { id: tx.id },
           data: {
@@ -688,7 +719,7 @@ export class PaymentsService {
 
   private async applyCapturedPayment(p: RazorpayPaymentEntity) {
     const tx = await this.prisma.paymentTransaction.findFirst({
-      where: { gatewayOrderId: p.order_id },
+      where: { gatewayOrderId: p.order_id, gateway: PaymentGateway.RAZORPAY },
       orderBy: { createdAt: 'desc' },
     });
     if (!tx) {
@@ -697,49 +728,50 @@ export class PaymentsService {
       );
       return false;
     }
-    if (tx.gateway !== PaymentGateway.RAZORPAY) {
-      this.logger.warn(
-        `Ignoring Razorpay capture for non-gateway transaction ${tx.id} (gateway=${tx.gateway})`,
-      );
-      return false;
-    }
     if (await this.orderHasCashOnDelivery(tx.orderId)) {
-      this.logger.warn(
-        `Ignoring Razorpay capture for COD order ${tx.orderId}`,
-      );
+      this.logger.warn(`Ignoring Razorpay capture for COD order ${tx.orderId}`);
       return false;
     }
     if (tx.status === TransactionStatus.SUCCESS) return false; // replay
 
-    const expectedPaise = Math.round(tx.amountInr.toNumber() * 100);
-    if (p.amount !== expectedPaise) {
-      this.logger.error(
-        `Amount mismatch for ${p.order_id}: gateway ${p.amount} vs expected ${expectedPaise}; NOT marking paid`,
-      );
-      await this.prisma.paymentTransaction.update({
+    const settled = await this.prisma.$transaction(async (prismaTx) => {
+      const fresh = await prismaTx.paymentTransaction.findUnique({
         where: { id: tx.id },
-        data: {
-          failureReason: `Webhook amount mismatch (${p.amount} vs ${expectedPaise} paise) — manual review`,
-        },
       });
-      return false;
-    }
+      if (!fresh || fresh.status === TransactionStatus.SUCCESS) return false;
+      if (fresh.gateway !== PaymentGateway.RAZORPAY) return false;
 
-    await this.prisma.$transaction(async (prismaTx) => {
+      const expectedPaise = Math.round(fresh.amountInr.toNumber() * 100);
+      if (p.amount !== expectedPaise) {
+        this.logger.error(
+          `Amount mismatch for ${p.order_id}: gateway ${p.amount} vs expected ${expectedPaise}; NOT marking paid`,
+        );
+        await prismaTx.paymentTransaction.update({
+          where: { id: fresh.id },
+          data: {
+            failureReason: `Webhook amount mismatch (${p.amount} vs ${expectedPaise} paise) — manual review`,
+          },
+        });
+        return false;
+      }
+
       await prismaTx.paymentTransaction.update({
-        where: { id: tx.id },
+        where: { id: fresh.id },
         data: {
           status: TransactionStatus.SUCCESS,
-          gatewayPaymentId: p.id,
-          paymentMethod: tx.paymentMethod ?? 'online_razorpay',
+          gatewayPaymentId: p.id.startsWith('order_paid_')
+            ? fresh.gatewayPaymentId
+            : p.id,
+          paymentMethod: fresh.paymentMethod ?? 'online_razorpay',
         },
       });
       await prismaTx.order.update({
-        where: { id: tx.orderId },
+        where: { id: fresh.orderId },
         data: { paymentStatus: PaymentStatus.PAID },
       });
+      return true;
     });
-    return true;
+    return settled;
   }
 }
 
@@ -756,6 +788,7 @@ interface RazorpayWebhookPayload {
   event: string;
   payload?: {
     payment?: { entity?: RazorpayPaymentEntity };
+    order?: { entity?: { id: string; amount: number } };
     refund?: { entity?: { payment_id: string; amount: number } };
     subscription?: { entity?: SubscriptionWebhookEntity };
   };

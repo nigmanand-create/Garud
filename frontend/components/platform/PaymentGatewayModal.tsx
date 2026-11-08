@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { apiRequest } from '@/lib/api/client';
 import {
   createPaymentIntent,
   ESCROW_BANK_DETAILS,
@@ -48,6 +49,19 @@ export function PaymentGatewayModal({
   const [selectedSandboxMethod, setSelectedSandboxMethod] = useState<'UPI' | 'NETBANKING' | 'CARD'>('UPI');
 
   if (!isOpen) return null;
+
+  /** Webhook may mark PAID before the client verify round-trip finishes. */
+  async function orderAlreadyPaid(): Promise<boolean> {
+    try {
+      const order = await apiRequest<{ paymentStatus: string }>(
+        `/buyer/orders/${orderId}`,
+        { auth: true },
+      );
+      return order.paymentStatus === 'PAID';
+    } catch {
+      return false;
+    }
+  }
 
   function copyToClipboard(text: string, label: string) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -108,6 +122,10 @@ export function PaymentGatewayModal({
             });
             onSuccess(response.razorpay_payment_id);
           } catch (vErr) {
+            if (await orderAlreadyPaid()) {
+              onSuccess(response.razorpay_payment_id);
+              return;
+            }
             setError(vErr instanceof ApiError ? vErr.message : 'Payment verification failed');
           } finally {
             setLoading(false);

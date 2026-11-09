@@ -108,7 +108,7 @@ Complete before treating production as live. Owner hints: **Ops** = infra/DNS/ho
 
 ## Sprint Hardening (P1 — first ~30 days after launch)
 
-Security, observability, and platform hygiene. Owner: **Dev** unless noted **Ops**.
+Security, observability, and platform hygiene. Owner: **Dev** unless noted **Ops**. Phased backlog: [SECURITY_IMPROVEMENT_PLAN.md](./SECURITY_IMPROVEMENT_PLAN.md).
 
 - [x] **P1-1** — httpOnly session cookies — **P1** — Replace localStorage JWT; document break-glass for future mobile clients. *(Dev)* — *2026-11-04: cookie auth + proxy; [AUTH_HTTPONLY.md](./AUTH_HTTPONLY.md); `AUTH_SESSION_MODE` / `NEXT_PUBLIC_AUTH_SESSION`.*
 - [x] **P1-2** — Helmet + Cloudflare WAF — **P1** — Security headers and edge rules on public hostnames. *(Dev/Ops)* — *2026-11-04: Helmet on Nest API; Cloudflare WAF still Ops.*
